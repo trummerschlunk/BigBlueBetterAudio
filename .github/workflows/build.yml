@@ -1,0 +1,95 @@
+name: build
+
+on:
+  push:
+
+env:
+  NAME: podcast-plugins
+
+jobs:
+  linux:
+    strategy:
+      matrix:
+        target: [linux-arm64, linux-armhf, linux-i686, linux-riscv64, linux-x86_64]
+    runs-on: ubuntu-latest
+    container: ubuntu:20.04
+    steps:
+      - name: Install git
+        run: |
+          apt-get update -qq && apt-get install -yqq --no-install-recommends ca-certificates curl git openssl
+          curl -sLO https://launchpad.net/~kxstudio-debian/+archive/ubuntu/toolchain/+files/git_2.34.1-1ubuntu1~bpo20.04.1~ppa1_amd64.deb
+          curl -sLO https://launchpad.net/~kxstudio-debian/+archive/ubuntu/toolchain/+files/git-man_2.34.1-1ubuntu1~bpo20.04.1~ppa1_all.deb
+          dpkg -i *.deb
+          rm *.deb
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: distrho/dpf-makefile-action@v1
+        with:
+          target: ${{ matrix.target }}
+          lto: true
+
+  macos:
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: distrho/dpf-makefile-action@v1
+        env:
+          WELCOME_TXT: ./plugins/macos-installer-welcome.txt
+        with:
+          target: macos-universal
+          lto: true
+
+  windows:
+    strategy:
+      matrix:
+        target: [win32, win64]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: distrho/dpf-makefile-action@v1
+        with:
+          target: ${{ matrix.target }}
+          lto: false
+
+  plugin-validation:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: distrho/dpf-makefile-action@v1
+        with:
+          target: pluginval
+
+  source-tarball:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Create source tarball
+        run: |
+          make tarball
+      - name: Set sha8
+        shell: bash
+        run: |
+          echo "SHA8=$(echo ${{ github.sha }} | cut -c1-8)" >> $GITHUB_ENV
+      - uses: actions/upload-artifact@v4
+        with:
+          name: podcast-plugins-source-${{ github.event.pull_request.number || env.SHA8 }}
+          path: |
+            *.tar.xz
+      - uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          files: |
+            *.tar.xz
