@@ -22,7 +22,7 @@ all: au clap ladspa lv2_gen lv2_sep vst2 vst3
 lv2_gen: bin/$(NAME).lv2/manifest.ttl bin/$(NAME).lv2/plugin.ttl
 
 bin/$(NAME).lv2/%.ttl: pregen/$(NAME).lv2/%.ttl
-	mkdir -p bin
+	mkdir -p bin/$(NAME).lv2
 	sed -e "s/@libext@/$(LIB_EXT)/g" $< > $@
 
 # ---------------------------------------------------------------------------------------------------------------------
