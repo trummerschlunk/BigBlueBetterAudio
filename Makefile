@@ -7,6 +7,7 @@ VERSION = $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_MICRO)
 # dpf plugin config
 NAME = BBBA
 FILES_DSP = plugin/Plugin.cpp
+MAPI_MODULE_NAME = mapi_bbba
 
 # include dpf plugins makefile definitions
 include dpf/Makefile.plugins.mk
