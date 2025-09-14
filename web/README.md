@@ -10,3 +10,9 @@ env CC=emcc CXX=em++ make NOOPT=true mapi
 ```
 
 The `NOOPT=true` disables optimizations, so that the wasm files can be loaded on browsers that do not support SIMD (such as old WebKit versions).
+
+For trying it locally simply run after building:
+
+```
+emrun bin/index.html
+```
