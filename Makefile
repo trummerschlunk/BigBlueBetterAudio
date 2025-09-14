@@ -18,12 +18,18 @@ BUILD_CXX_FLAGS += -Iplugin
 # default plugin targets
 all: au clap ladspa lv2_gen lv2_sep vst2 vst3
 
-# lv2 ttl generator, from pregen files
+# lv2 ttl generator, using pregen files
 lv2_gen: bin/$(NAME).lv2/manifest.ttl bin/$(NAME).lv2/plugin.ttl
 
 bin/$(NAME).lv2/%.ttl: pregen/$(NAME).lv2/%.ttl
 	mkdir -p bin/$(NAME).lv2
 	sed -e "s/@libext@/$(LIB_EXT)/g" $< > $@
+
+# extra resources for mapi builds
+mapi: bin/index.html
+
+bin/index.html: web/mapi-example-usage.html
+	cp $< $@
 
 # ---------------------------------------------------------------------------------------------------------------------
 # rules for faust dsp to plugin code conversion
