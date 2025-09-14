@@ -10,7 +10,7 @@
 // -*-Faust-*-
 
 declare name "bbba";
-declare version "0.04";
+declare version "0.06";
 declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
@@ -18,30 +18,45 @@ import("stdfaust.lib");
 
 Nch = 1;                            // bbba is mono
 NBands = 8;                         // number of bands of the multiband processing
+SB_bands = 8;                       // number of bands of the spectral ballancer
 maxSR = 48000;                      // maximum samplerate
 Sliding_window_max = 480000;        // maximum size of the sliding window for noisefloor tracking
 
 
 
-init_leveler_target = -16;
-init_leveler_maxboost = 30;
-init_leveler_maxcut = 30;
+init_leveler_target = -23;
+init_leveler_maxboost = 20;
+init_leveler_maxcut = 20;
 init_leveler_brake_threshold = -22;
 init_leveler_speed = 60;
 init_leveler_scale =100;
+
+meters_minimum = -70;
+
+target_spectrum_init = -10, -5, -5, -8, -9, -10, -7, -3;
+target_spectrum = par(i,SB_bands, vslider("h:[1]Spectral Ballancer/h:Target Curve/spec %i", (target_spectrum_init : ba.selector(i,SB_bands)),-20,0,1));
+
+init_sb_strength = 50;
+
+meter_sb(i) = _ <: attach(_, vbargraph("h:[1]Spectral Ballancer/h:[2]loudness normalized spectrum/[1][unit:dB]band%2i",-40,40));
+gainmeter_sb(i) = _ <: attach(_, (ba.linear2db:vbargraph("h:[1]Spectral Ballancer/h:[3]resulting gain/[1][symbol:spectral_ballancer_gain_band_%2i]gr %2i",-12,12)));
+meter_expander_sb = vbargraph("h:[1]Spectral Ballancer/h:Parameters/[3][integer]expander",0,1);
+
+sb_strength = vslider("h:[1]Spectral Ballancer/h:Parameters/[1][symbol:timbre_strength][unit:%]strength", init_sb_strength,0,100,1) : _/100;
 
 
 process = si.bus(Nch) 
         : ba.bypass1(bypass_switch,
             //: pregain(Nch) 
             preFilter
-            : levelerMono 
+            : levelerMono
+            : ballancer
             //: dynEQ
             : mbExpComp
             //: postgain(Nch) 
         )
-        <: si.bus(2)
-        : limiter_lookahead
+        //<: si.bus(2)
+        //: limiter_lookahead
         ;
 
 
@@ -126,8 +141,11 @@ limiter_lad_N(N, LD, ceiling, attack, hold, release) =
       };
 
 
+// crossover for spectral ballancer and multiband expander/compressor
 
+crossover = fi.crossover8LR4(100,200,400,800,1600,3200,6400);
 
+ 
 
 
 //   _                    _           
@@ -322,10 +340,10 @@ dynamicSmoothing(sensitivity, baseCF, x) = f ~ _ : ! , ! , _
 //                              | |                         | |    
 //                              |_|                         |_|    
 
-mbExpComp(l) = l 
+mbExpComp = si.bus(8)
     
-    : fi.crossover8LR4(xo1,xo2,xo3,xo4,xo5,xo6,xo7)
-
+    //: fi.crossover8LR4(xo1,xo2,xo3,xo4,xo5,xo6,xo7)
+    //: crossover
     // : gainNBands
     
     : expander
@@ -374,4 +392,98 @@ mbExpComp(l) = l
         };
 
     };
+
+/*
+   _____                 _             _   ____        _ _                           
+  / ____|               | |           | | |  _ \      | | |                          
+ | (___  _ __   ___  ___| |_ _ __ __ _| | | |_) | __ _| | | __ _ _ __   ___ ___ _ __ 
+  \___ \| '_ \ / _ \/ __| __| '__/ _` | | |  _ < / _` | | |/ _` | '_ \ / __/ _ \ '__|
+  ____) | |_) |  __/ (__| |_| | | (_| | | | |_) | (_| | | | (_| | | | | (_|  __/ |   
+ |_____/| .__/ \___|\___|\__|_|  \__,_|_| |____/ \__,_|_|_|\__,_|_| |_|\___\___|_|   
+        | |                                                                          
+        |_|                                                                        */
+
+
+//----------------------- Ballancer Section -----------------------
+
+ballancer_bp1 = ba.bypass_fade(100,checkbox("bypass sb"),ballancer);
+ballancer_bp2 = bp2(ballancer_checkbox, ballancer_st);
+ballancer_st = _,_ :> _ *0.5 : ballancer <: _,_;        // fake stereo
+
+ballancer(l) = l <: 
+        (measure_full <:                                // split input in 2 for FULLRANGE measurement and crossover split
+        
+        par(i,SB_bands,_)),                                // multiply FULLRANGE measurement by SB_bands
+        
+        (_ : (xoverbank                                 // filterbank split
+        
+        : par(i,SB_bands,(_<: ((measure_bp),_))))          // duplicate each filtered band and measure the first one
+        
+        : ro.interleave(2,SB_bands))                       // swap for subtraction
+    
+        : target_spectrum, par(i,SB_bands*3,_)             // get target spectrum
+        : ro.interleave(SB_bands,4)                        // rearrange
+        
+        : par(i,SB_bands,(_,(ro.cross(2)                   // cross
+        :(_-_)                                          // subract from fullrange loudness
+        :meter_sb(i)),_))                               // meter (incoming frequency spectrum loudness-normalized)
+        
+        : par(i,SB_bands,(((((_-_)                         // substract target spectrum
+        : sb_envelope(i)                                // gainchange smoothing (dependent on frequency band)
+        : sb_limit                                      // limit gainchange
+        : _*sb_strength                                 // apply strength
+        : _*expander_sb(l) : ba.db2linear)     )        // multiply with expander (voice activity detection)
+        : gainmeter_sb(i)),_))                          // meter the gainchange
+        : par(i,SB_bands,gainchange(l))                    // do the actual gainchange to each band
+        // :> _                                            // sum bands together
+        
+        with {
+        
+            //xoverbank = _ : fi.crossover8LR4(80,160,320,640,1280,2560,5120) : si.bus(SB_bands);
+            xoverbank = crossover;
+            sb_limitUP = 12;
+            sb_limitDOWN = 12;
+            sb_limit = max(ma.neg(sb_limitDOWN)) : min(sb_limitUP);
+        
+            sb_envelope(i) = si.smooth(ba.tau2pole(tau)) with{
+                tau = 0.2 * ((SB_bands-i) / SB_bands);
+            };
+            
+            gainchange(in) = (_)*(_ : sb_delay);
+
+            sb_delay = de.delay(48000,0);                            // delay = 0, needed at all?
+
+            measure_full =  fi.itu_r_bs_1770_4_kfilter
+                            : an.amp_follower_ud(0.01,0.1) 
+                            : max(-90:ba.db2linear) 
+                            : ba.linear2db;
+
+            measure_bp =    _ * ba.db2linear(12)                    // boost the bands for measuring by +18dB
+                            : fi.itu_r_bs_1770_4_kfilter            // k-weighting
+                            : an.amp_follower_ud(0.01,0.1)          // actual measuring with separate up/down time constants
+                            : max(-90:ba.db2linear)                 // limit floor to -70dB (in linear domain)
+                            : ba.linear2db;
+
+            expander_sb(x) =    co.peak_expansion_gain_mono_db(maxHold,strength,thresh,range,att,hold,gate_rel,knee,prePost,x) with{
+                                    maxHold = hold*maxSR;
+                                    strength = 0.8;
+                                    thresh = -20;      
+                                    range = 0-(ma.MAX);
+                                    att = 0.025;
+                                    hold = 0.010;
+                                    gate_rel = 1;
+                                    knee = ma.EPSILON;
+                                    prePost = 1;
+                                    }
+                                : ba.db2linear
+                                :max(0)
+                                :min(1)
+                                <: attach(_: meter_expander_sb)
+                                ;
+
+        };    
+
+
+
+
 
