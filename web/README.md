@@ -4,8 +4,19 @@ Building BBBA for web requires the use of emscripten.
 Assuming emscripten is installed and setup, building is as simple as:
 
 ```sh
+# import emscripten build environment
 source /path/to/emsdk/emsdk_env.sh
+
+# change dir to BBBA
 cd /path/to/BBBA
+
+# update DPF
+git submodule update --init --recursive
+
+# re-gen C++ code from faust dsp files
+make pregen
+
+# build
 env CC=emcc CXX=em++ make NOOPT=true mapi
 ```
 
