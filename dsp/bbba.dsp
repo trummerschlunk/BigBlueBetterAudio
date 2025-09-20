@@ -49,6 +49,7 @@ process = si.bus(Nch)
         : ba.bypass1(bypass_switch,
             //: pregain(Nch) 
             preFilter
+            : re.mono_freeverb(0.9, 0.9, 0.1, 5)
             : levelerMono
             : ballancer
             //: dynEQ
