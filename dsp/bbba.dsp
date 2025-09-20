@@ -34,7 +34,7 @@ init_leveler_scale =100;
 meters_minimum = -70;
 
 target_spectrum_init = -10, -5, -5, -8, -9, -10, -7, -3;
-target_spectrum = par(i,SB_bands, vslider("h:[1]Spectral Ballancer/h:Target Curve/spec %i", (target_spectrum_init : ba.selector(i,SB_bands)),-20,0,1));
+target_spectrum = par(i,SB_bands, vslider("h:[1]Spectral Ballancer/h:Target Curve/spec %i[symbol:spec_%i]", (target_spectrum_init : ba.selector(i,SB_bands)),-20,0,1));
 
 init_sb_strength = 50;
 

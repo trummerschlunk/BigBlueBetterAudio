@@ -742,7 +742,7 @@ class mydsp : public dsp {
 		m->declare("basics.lib/parallelOp:licence", "GPL-3.0");
 		m->declare("basics.lib/tabulateNd", "Copyright (C) 2023 Bart Brouns <bart@magnetophon.nl>");
 		m->declare("basics.lib/version", "1.21.0");
-		m->declare("compile_options", "-a /Users/klausscheuermann/Library/Caches/TemporaryItems/faustpp/73962-md.cpp -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("compile_options", "-a /Users/klausscheuermann/Library/Caches/TemporaryItems/faustpp/74641-md.cpp -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("compressors.lib/expanderSC_N_chan:author", "Bart Brouns");
 		m->declare("compressors.lib/expanderSC_N_chan:license", "GPLv3");
 		m->declare("compressors.lib/expander_N_chan:author", "Bart Brouns");
@@ -2156,13 +2156,21 @@ class mydsp : public dsp {
 		ui_interface->addVerticalBargraph("expander", &fVbargraph4, FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f));
 		ui_interface->closeBox();
 		ui_interface->openHorizontalBox("Target Curve");
+		ui_interface->declare(&fVslider4, "symbol", "spec_0");
 		ui_interface->addVerticalSlider("spec 0", &fVslider4, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-2e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f));
+		ui_interface->declare(&fVslider5, "symbol", "spec_1");
 		ui_interface->addVerticalSlider("spec 1", &fVslider5, FAUSTFLOAT(-5.0f), FAUSTFLOAT(-2e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f));
+		ui_interface->declare(&fVslider6, "symbol", "spec_2");
 		ui_interface->addVerticalSlider("spec 2", &fVslider6, FAUSTFLOAT(-5.0f), FAUSTFLOAT(-2e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f));
+		ui_interface->declare(&fVslider7, "symbol", "spec_3");
 		ui_interface->addVerticalSlider("spec 3", &fVslider7, FAUSTFLOAT(-8.0f), FAUSTFLOAT(-2e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f));
+		ui_interface->declare(&fVslider8, "symbol", "spec_4");
 		ui_interface->addVerticalSlider("spec 4", &fVslider8, FAUSTFLOAT(-9.0f), FAUSTFLOAT(-2e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f));
+		ui_interface->declare(&fVslider9, "symbol", "spec_5");
 		ui_interface->addVerticalSlider("spec 5", &fVslider9, FAUSTFLOAT(-1e+01f), FAUSTFLOAT(-2e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f));
+		ui_interface->declare(&fVslider10, "symbol", "spec_6");
 		ui_interface->addVerticalSlider("spec 6", &fVslider10, FAUSTFLOAT(-7.0f), FAUSTFLOAT(-2e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f));
+		ui_interface->declare(&fVslider11, "symbol", "spec_7");
 		ui_interface->addVerticalSlider("spec 7", &fVslider11, FAUSTFLOAT(-3.0f), FAUSTFLOAT(-2e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f));
 		ui_interface->closeBox();
 		ui_interface->declare(0, "2", "");
@@ -3645,7 +3653,7 @@ protected:
             param.ranges.min = kParameterRanges[0].min;
             param.ranges.max = kParameterRanges[0].max;
             break;
-        case kParameter__:
+        case kParameter_spec_0:
             param.hints = kParameterIsAutomatable
             
             
@@ -3660,7 +3668,7 @@ protected:
             param.ranges.min = kParameterRanges[1].min;
             param.ranges.max = kParameterRanges[1].max;
             break;
-        case kParameter__:
+        case kParameter_spec_1:
             param.hints = kParameterIsAutomatable
             
             
@@ -3675,7 +3683,7 @@ protected:
             param.ranges.min = kParameterRanges[2].min;
             param.ranges.max = kParameterRanges[2].max;
             break;
-        case kParameter__:
+        case kParameter_spec_2:
             param.hints = kParameterIsAutomatable
             
             
@@ -3690,7 +3698,7 @@ protected:
             param.ranges.min = kParameterRanges[3].min;
             param.ranges.max = kParameterRanges[3].max;
             break;
-        case kParameter__:
+        case kParameter_spec_3:
             param.hints = kParameterIsAutomatable
             
             
@@ -3705,7 +3713,7 @@ protected:
             param.ranges.min = kParameterRanges[4].min;
             param.ranges.max = kParameterRanges[4].max;
             break;
-        case kParameter__:
+        case kParameter_spec_4:
             param.hints = kParameterIsAutomatable
             
             
@@ -3720,7 +3728,7 @@ protected:
             param.ranges.min = kParameterRanges[5].min;
             param.ranges.max = kParameterRanges[5].max;
             break;
-        case kParameter__:
+        case kParameter_spec_5:
             param.hints = kParameterIsAutomatable
             
             
@@ -3735,7 +3743,7 @@ protected:
             param.ranges.min = kParameterRanges[6].min;
             param.ranges.max = kParameterRanges[6].max;
             break;
-        case kParameter__:
+        case kParameter_spec_6:
             param.hints = kParameterIsAutomatable
             
             
@@ -3750,7 +3758,7 @@ protected:
             param.ranges.min = kParameterRanges[7].min;
             param.ranges.max = kParameterRanges[7].max;
             break;
-        case kParameter__:
+        case kParameter_spec_7:
             param.hints = kParameterIsAutomatable
             
             
@@ -4351,21 +4359,21 @@ protected:
         {
         case kParameter_timbre_strength:
             return dsp->fVslider3;
-        case kParameter__:
+        case kParameter_spec_0:
             return dsp->fVslider4;
-        case kParameter__:
+        case kParameter_spec_1:
             return dsp->fVslider5;
-        case kParameter__:
+        case kParameter_spec_2:
             return dsp->fVslider6;
-        case kParameter__:
+        case kParameter_spec_3:
             return dsp->fVslider7;
-        case kParameter__:
+        case kParameter_spec_4:
             return dsp->fVslider8;
-        case kParameter__:
+        case kParameter_spec_5:
             return dsp->fVslider9;
-        case kParameter__:
+        case kParameter_spec_6:
             return dsp->fVslider10;
-        case kParameter__:
+        case kParameter_spec_7:
             return dsp->fVslider11;
         case kParameter__0:
             return dsp->fCheckbox0;
@@ -4460,28 +4468,28 @@ protected:
         case kParameter_timbre_strength:
             dsp->fVslider3 = value;
             break;
-        case kParameter__:
+        case kParameter_spec_0:
             dsp->fVslider4 = value;
             break;
-        case kParameter__:
+        case kParameter_spec_1:
             dsp->fVslider5 = value;
             break;
-        case kParameter__:
+        case kParameter_spec_2:
             dsp->fVslider6 = value;
             break;
-        case kParameter__:
+        case kParameter_spec_3:
             dsp->fVslider7 = value;
             break;
-        case kParameter__:
+        case kParameter_spec_4:
             dsp->fVslider8 = value;
             break;
-        case kParameter__:
+        case kParameter_spec_5:
             dsp->fVslider9 = value;
             break;
-        case kParameter__:
+        case kParameter_spec_6:
             dsp->fVslider10 = value;
             break;
-        case kParameter__:
+        case kParameter_spec_7:
             dsp->fVslider11 = value;
             break;
         case kParameter__0:
