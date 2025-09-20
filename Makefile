@@ -90,7 +90,7 @@ FAUSTPP_RUN = \
 	-Dbinary_name="$(NAME)" \
 	-Dlabel="bbb_audio" \
 	-Dlv2uri="https://github.com/trummerschlunk/BigBlueBetterAudio" \
-	dsp/bbba06.dsp
+	dsp/bbba.dsp
 
 pregen: faustpp
 	mkdir -p pregen/$(NAME).lv2
