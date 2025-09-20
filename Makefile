@@ -32,10 +32,53 @@ bin/index.html: web/mapi-example-usage.html
 	cp $< $@
 
 # ---------------------------------------------------------------------------------------------------------------------
+# faustpp target, building it ourselves if not available from the system
+
+ifeq ($(shell command -v faustpp 1>/dev/null && echo true),true)
+FAUSTPP_TARGET =
+FAUSTPP_EXEC = faustpp
+else
+FAUSTPP_TARGET = build/faustpp/faustpp$(APP_EXT)
+FAUSTPP_EXEC = $(CURDIR)/$(FAUSTPP_TARGET)
+endif
+
+faustpp:
+
+# never rebuild faustpp
+ifneq ($(FAUSTPP_TARGET),)
+ifeq ($(wildcard $(FAUSTPP_TARGET)),)
+faustpp: $(FAUSTPP_TARGET)
+.PHONY: faustpp
+endif
+endif
+
+# ---------------------------------------------------------------------------------------------------------------------
+# rules for custom faustpp build
+
+FAUSTPP_CMAKE_ARGS  = -G 'Unix Makefiles'
+ifeq ($(DEBUG),true)
+FAUSTPP_CMAKE_ARGS += -DCMAKE_BUILD_TYPE=Debug
+else
+FAUSTPP_CMAKE_ARGS += -DCMAKE_BUILD_TYPE=Release
+endif
+ifeq ($(WINDOWS),true)
+FAUSTPP_CMAKE_ARGS += -DCMAKE_SYSTEM_NAME=Windows
+endif
+
+faustpp/CMakeLists.txt:
+	git clone --recursive https://github.com/falkTX/faustpp.git --depth=1 -b use-internal=boost
+
+build/faustpp/Makefile: faustpp/CMakeLists.txt
+	cmake -Bbuild/faustpp -Sfaustpp -DFAUSTPP_USE_INTERNAL_BOOST=ON $(FAUSTPP_CMAKE_ARGS)
+
+build/faustpp/faustpp$(APP_EXT): build/faustpp/Makefile
+	$(MAKE) -C build/faustpp
+
+# ---------------------------------------------------------------------------------------------------------------------
 # rules for faust dsp to plugin code conversion
 
 FAUSTPP_RUN = \
-	faustpp \
+	$(FAUSTPP_EXEC) \
 	-Dbrand="Klaus Scheuermann" \
 	-Dhomepage="https://4ohm.de/" \
 	-Dlicense="GPLv3+" \
@@ -49,7 +92,7 @@ FAUSTPP_RUN = \
 	-Dlv2uri="https://github.com/trummerschlunk/BigBlueBetterAudio" \
 	dsp/bbba06.dsp
 
-pregen:
+pregen: faustpp
 	mkdir -p pregen/$(NAME).lv2
 	$(FAUSTPP_RUN) $(FAUSTPP_OPTS) -a template/DistrhoPluginInfo.h -o pregen/DistrhoPluginInfo.h
 	$(FAUSTPP_RUN) $(FAUSTPP_OPTS) -a template/Plugin.cpp          -o pregen/Plugin.cpp
