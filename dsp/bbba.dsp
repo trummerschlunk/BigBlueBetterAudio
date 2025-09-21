@@ -10,51 +10,49 @@
 // -*-Faust-*-
 
 declare name "bbba";
-declare version "0.06";
+declare version "0.09";
 declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
 import("stdfaust.lib");
 
 Nch = 1;                            // bbba is mono
-NBands = 8;                         // number of bands of the multiband processing
+MB_bands = 8;                         // number of bands of the multiband processing
 SB_bands = 8;                       // number of bands of the spectral ballancer
 maxSR = 48000;                      // maximum samplerate
 Sliding_window_max = 480000;        // maximum size of the sliding window for noisefloor tracking
 
 
 
-init_leveler_target = -23;
-init_leveler_maxboost = 20;
-init_leveler_maxcut = 20;
-init_leveler_brake_threshold = -22;
-init_leveler_speed = 60;
-init_leveler_scale =100;
+lev_target_init = -23;
+lev_maxboost_init = 20;
+lev_maxcut_init = 20;
+lev_brake_threshold_init = -22;
+lev_speed_init = 60;
+lev_scale_init =100;
 
-meters_minimum = -70;
 
-target_spectrum_init = -10, -5, -5, -8, -9, -10, -7, -3;
-target_spectrum = par(i,SB_bands, vslider("h:[1]Spectral Ballancer/h:Target Curve/spec %i[symbol:spec_%i]", (target_spectrum_init : ba.selector(i,SB_bands)),-20,0,1));
+sb_target_spectrum_init = -10, -5, -5, -8, -9, -10, -7, -3;
+sb_target_spectrum = par(i,SB_bands, vslider("h:[1]Spectral Ballancer/h:Target Curve/spec %i[symbol:sb_target_spectrum_%i]", (sb_target_spectrum_init : ba.selector(i,SB_bands)),-20,0,1));
 
-init_sb_strength = 50;
+sb_strength_init = 50;
 
-meter_sb(i) = _ <: attach(_, vbargraph("h:[1]Spectral Ballancer/h:[2]loudness normalized spectrum/[1][unit:dB]band%2i",-40,40));
-gainmeter_sb(i) = _ <: attach(_, (ba.linear2db:vbargraph("h:[1]Spectral Ballancer/h:[3]resulting gain/[1][symbol:spectral_ballancer_gain_band_%2i]gr %2i",-12,12)));
-meter_expander_sb = vbargraph("h:[1]Spectral Ballancer/h:Parameters/[3][integer]expander",0,1);
+meter_sb(i) = _ <: attach(_, vbargraph("h:[1]Spectral Ballancer/h:[2]loudness normalized spectrum/[1][unit:dB]band %2i[symbol:sb_meter_%2i]",-40,40));
+gainmeter_sb(i) = _ <: attach(_, (ba.linear2db:vbargraph("h:[1]Spectral Ballancer/h:[3]resulting gain/[1]sb_gain %2i[symbol:sb_gain_%2i]",-12,12)));
+meter_expander_sb = vbargraph("h:[1]Spectral Ballancer/h:Parameters/[3]sb_expander[symbol:sb_expander]",0,1);
 
-sb_strength = vslider("h:[1]Spectral Ballancer/h:Parameters/[1][symbol:timbre_strength][unit:%]strength", init_sb_strength,0,100,1) : _/100;
+sb_strength = vslider("h:[1]Spectral Ballancer/h:Parameters/[1][unit:%]strength[symbol:sb_strength]", sb_strength_init,0,100,1) : _/100;
 
 
 process = si.bus(Nch) 
         : ba.bypass1(bypass_switch,
             //: pregain(Nch) 
             preFilter
-            : re.mono_freeverb(0.9, 0.9, 0.1, 5)
-            : levelerMono
-            : ballancer
-            //: dynEQ
+            // : re.mono_freeverb(0.9, 0.9, 0.1, 5)
+            : (leveler_sc(target) : ballancer) ~_
+            
+            //: crossover
             : mbExpComp
-            //: postgain(Nch) 
         )
         //<: si.bus(2)
         //: limiter_lookahead
@@ -67,7 +65,7 @@ gui_main(x) = hgroup("main",x);
 gui_mb(x) = gui_main(hgroup("mbExpComp",x));
 gui_leveler(x) = gui_main(hgroup("leveler",x));
 
-bypass_switch = gui_main(checkbox("[0]bypass"));
+bypass_switch = gui_main(checkbox("[0]bypass[symbol:bypass]"));
 
 //        _   _ _ _ _         
 //       | | (_) (_) |        
@@ -81,8 +79,8 @@ bypass_switch = gui_main(checkbox("[0]bypass"));
 
 // pre and post gain
 
-preGainSlider = vslider("h:[2]Controls/[0][unit:dB]PreGain", 0, -20, 20, 0.1);
-postGainSlider = vslider("h:[2]Controls/[9][unit:dB]PostGain", 0, -20, 20, 0.1);
+preGainSlider = vslider("h:[2]Controls/[0][unit:dB]PreGain[symbol:pre_gain", 0, -20, 20, 0.1);
+postGainSlider = vslider("h:[2]Controls/[9][unit:dB]PostGain[symbol:post_gain]", 0, -20, 20, 0.1);
 
 pregain(n) = par(i,n,gain) with {
     gain = _ * (preGainSlider : ba.db2linear : si.smoo);
@@ -105,7 +103,7 @@ ratio2strength(ratio) = 1-(1/ratio);
 preFilter = preHighpass : preLowpass with {
 
     preHighpass = fi.highpass(3,preHighpass_freq);
-    preHighpass_freq = gui_mb(vslider("preLowcut_freq[scale:log]",80,1,400,1));
+    preHighpass_freq = gui_mb(vslider("preLowcut_freq[scale:log][symbol:pre_lowcut]",80,1,400,1));
 
     preLowpass = fi.lowpass(3,preLowpass_freq);
     preLowpass_freq = 22000;
@@ -158,16 +156,16 @@ crossover = fi.crossover8LR4(100,200,400,800,1600,3200,6400);
 
 //  Leveler GUI
 bp = 0; //checkbox("h:LevelerPro/[0]bypass_leveler"):si.smoo;
-target = gui_leveler(vslider("[1][unit:dB]target", init_leveler_target, -60, 0, 1));
-limit_pos = 20; //vslider("h:[2]Controls/[2][unit:dB]max boost", init_leveler_maxboost, 0, 30, 1);
-limit_neg = -20; //vslider("h:[2]Controls/[3][unit:dB]max cut", init_leveler_maxcut, 0, 30, 1) : ma.neg;
-scale = 1; //vslider("h:[2]Controls/[4][unit:%]strength", init_leveler_scale, 0, 100, 1) * 0.01;
-leveler_speed = 0.6; //vslider("h:[2]Controls/[5][unit:%]speed", init_leveler_speed, 0, 100, 1) * 0.01;
-leveler_brake_thresh = -22 + target; //target + vslider("h:[2]Controls/[6][unit:dB]brake threshold", init_leveler_brake_threshold,-90,0,1)+32;
-meter_leveler_brake = _*100 : gui_leveler(vbargraph("[7][unit:%]brake",0,100));
-leveler_meter_gain = gui_leveler(vbargraph("[8][unit:dB]gain",-50,50));
-expander_thresh_offset = gui_leveler(vslider("thresh offset", 6,0,40,1));
-min_meter =  _ <: attach(_,gui_leveler(vbargraph("min_track",-100,0)));
+target = gui_leveler(vslider("[1][unit:dB]target[symbol:leveler_target]", lev_target_init, -60, 0, 1));
+limit_pos = lev_maxboost_init;
+limit_neg = lev_maxcut_init : ma.neg;
+scale = lev_scale_init / 100; 
+leveler_speed = lev_speed_init / 100;
+leveler_brake_thresh = lev_brake_threshold_init + target;
+meter_leveler_brake = _*100 : gui_leveler(vbargraph("[7][unit:%]brake[symbol:leveler_brake]",0,100));
+leveler_meter_gain = gui_leveler(vbargraph("[8][unit:dB]gain[symbol:leveler_gain]",-50,50));
+expander_thresh_offset = gui_leveler(vslider("thresh offset[symbol:leveler_expander_offset]", 6,0,40,1));
+min_meter =  _ <: attach(_,gui_leveler(vbargraph("min_track[symbol:leveler_meter_minimum]",-100,0)));
 
 //  Leveler NO GUI
 /*
@@ -185,13 +183,8 @@ min_meter =  _ <: attach(_,vbargraph("min_track",-100,0));
 */
 levelerMono(l) =
 
-  ( ((l):leveler_sc(target)~(_)
-                              :(
-       (_*(1-bp))
-      
-     ))
-  , (l*bp)
-  ):>(_);
+  (l):leveler_sc(target)~(_)
+                             ;
 
 /*
 leveler(l,r) =
@@ -341,14 +334,15 @@ dynamicSmoothing(sensitivity, baseCF, x) = f ~ _ : ! , ! , _
 //                              | |                         | |    
 //                              |_|                         |_|    
 
-mbExpComp = si.bus(8)
+mbExpComp = 
     
     //: fi.crossover8LR4(xo1,xo2,xo3,xo4,xo5,xo6,xo7)
-    //: crossover
-    // : gainNBands
+    crossover
+    // : gainMB_bands
     
     : expander
-    : par(i,NBands,compressor)
+    : par(i,MB_bands,compressor)
+    //: compressorN
 
     :> si.bus(1)
 
@@ -362,9 +356,9 @@ mbExpComp = si.bus(8)
         xo6 = 3200;
         xo7 = 6400;
 
-        gainNBands = par(i,NBands,(_ * (gui_mb(vslider("gain %i",0,-12,12,1) : ba.db2linear))));
+        // gainMB_bands = par(i,MB_bands,(_ * (gui_mb(vslider("gain %i[symbol:mb_comp_gain_%i]",0,-12,12,1) : ba.db2linear))));
 
-        expander = co.expander_N_chan(strength,thresh,range,att,hold,rel,knee,prePost,link,meter,maxHold,NBands) with {
+        expander = co.expander_N_chan(strength,thresh,range,att,hold,rel,knee,prePost,link,meter,maxHold,MB_bands) with {
             strength = ratio2strength(4);// 20; //hslider("strength", 0.4, 0, 100, 1);
             thresh = target - 12; //hslider("threshold", -20, -80, 0, 0.1);
             range = -12;//hslider("range", 12, 0, 20, 1);
@@ -374,22 +368,55 @@ mbExpComp = si.bus(8)
             knee = 6;//hslider("knee", 6, 0, 30, 1);
             prePost = 1;
             link = 0.25;
-            //meter _ <: attach(_, (ba.linear2db : hbargraph("Level",-12,12)));
-            meter = _<:(_, ((gui_mb(vbargraph("[1][unit:dB]", -12, 12))))):attach;
-            //meter = _;
-            maxHold = 1000; //9600;//ma.SR * 0.1;
-            
+            meter = _;//_<:(_, ((gui_mb(vbargraph("[1][unit:dB][symbol:mb_exp_meter]", -12, 12))))):attach;
+            maxHold = 1000;
+        };
+
+        expander_new = par(i,MB_bands,
+            co.expander_N_chan(
+                ratio2strength(ratio_array : ba.selector(i,MB_bands)),
+                target + (thresh_array : ba.selector(i,MB_bands)),
+                range_array : ba.selector(i,MB_bands),
+                (att_array : ba.selector(i,MB_bands)) /1000,
+                hold,
+                (rel_array : ba.selector(i,MB_bands)) /1000,
+                knee,
+                prePost,
+                link,meter,maxHold,1)) with {
+            ratio_array = 4,4,4,4,4,4,4,4;
+            thresh_array = -12,-12,-12,-12,-13,-13,-14,-15;
+            range_array = -12,-12,-12,-12,-12,-12,-12,-12;
+            att_array = 8,7,6,5,4,3,2,1;
+            hold = 0.001;
+            rel_array = 200,200,200,200,160,120,80,50;
+            knee = 6;
+            prePost = 1;
+            link = 0.25;
+            meter = _<:(_, ((gui_mb(vbargraph("[1][unit:dB][symbol:mb_exp_meter]", -12, 12))))):attach;
+            maxHold = 1000;
         };
 
         compressor(l) = l * (l:co.peak_compression_gain_mono(strength,thresh,att,rel,knee,prePost):compressor_meter) with {
             strength = ratio2strength(1.4); 
-            thresh = target -6;
+            thresh = target -4;
             att = 0.001;
             rel = 0.1;
             knee = 6;
             prePost = 1;
-            compressor_meter = _ <: attach(_,ba.linear2db:gui_mb(vbargraph("[2][unit:dB]",-6,0)));
+            compressor_meter = _;//_ <: attach(_,ba.linear2db:gui_mb(vbargraph("[2][unit:dB][symbol:mb_comp_gain]",-6,0)));
 
+        };
+
+        compressorN = co.RMS_FBFFcompressor_N_chan(ratio2strength(ratio),thresh,att,rel,knee,prePost,link,FBFF,compressor_meter,MB_bands) with {
+            ratio = 4;
+            thresh = target -8;
+            att = 0.001;
+            rel = 0.1;
+            knee = 3;
+            prePost = 1;
+            link = 0.25;
+            FBFF = 0.5;
+            compressor_meter = _ <: attach(_,gui_mb(vbargraph("[2][unit:dB][symbol:mb_comp_gain]",-6,0)));
         };
 
     };
@@ -407,9 +434,9 @@ mbExpComp = si.bus(8)
 
 //----------------------- Ballancer Section -----------------------
 
-ballancer_bp1 = ba.bypass_fade(100,checkbox("bypass sb"),ballancer);
-ballancer_bp2 = bp2(ballancer_checkbox, ballancer_st);
-ballancer_st = _,_ :> _ *0.5 : ballancer <: _,_;        // fake stereo
+//ballancer_bp1 = ba.bypass_fade(100,checkbox("bypass sb"),ballancer);
+//ballancer_bp2 = bp2(ballancer_checkbox, ballancer_st);
+//ballancer_st = _,_ :> _ *0.5 : ballancer <: _,_;        // fake stereo
 
 ballancer(l) = l <: 
         (measure_full <:                                // split input in 2 for FULLRANGE measurement and crossover split
@@ -422,7 +449,7 @@ ballancer(l) = l <:
         
         : ro.interleave(2,SB_bands))                       // swap for subtraction
     
-        : target_spectrum, par(i,SB_bands*3,_)             // get target spectrum
+        : sb_target_spectrum, par(i,SB_bands*3,_)             // get target spectrum
         : ro.interleave(SB_bands,4)                        // rearrange
         
         : par(i,SB_bands,(_,(ro.cross(2)                   // cross
@@ -436,7 +463,7 @@ ballancer(l) = l <:
         : _*expander_sb(l) : ba.db2linear)     )        // multiply with expander (voice activity detection)
         : gainmeter_sb(i)),_))                          // meter the gainchange
         : par(i,SB_bands,gainchange(l))                    // do the actual gainchange to each band
-        // :> _                                            // sum bands together
+        :> _                                            // sum bands together
         
         with {
         
