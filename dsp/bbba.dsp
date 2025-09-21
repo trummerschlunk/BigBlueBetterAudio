@@ -10,7 +10,7 @@
 // -*-Faust-*-
 
 declare name "bbba";
-declare version "0.09";
+declare version "0.10";
 declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
@@ -45,7 +45,7 @@ sb_strength = vslider("h:[1]Spectral Ballancer/h:Parameters/[1][unit:%]strength[
 
 
 process = si.bus(Nch) 
-        : ba.bypass1(bypass_switch,
+        : bp1(bypass_switch,
             //: pregain(Nch) 
             preFilter
             // : re.mono_freeverb(0.9, 0.9, 0.1, 5)
@@ -92,6 +92,11 @@ postgain(n) = par(i,n,gain) with {
 
 // Stereo bypass with smooth fading
 bp2(sw,pr) = _,_ <: _,_,pr : (_*sm,_*sm),(_*(1-sm),_*(1-sm)) :> _,_ with {
+    sm = sw : si.smoo;
+};
+
+// Mono bypass with smooth fading
+bp1(sw,pr) = _ <: _,pr : (_*sm),(_*(1-sm)) :> _ with {
     sm = sw : si.smoo;
 };
 
