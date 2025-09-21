@@ -4,6 +4,10 @@ Building BBBA for web requires the use of emscripten.
 Assuming emscripten is installed and setup, building is as simple as:
 
 ```sh
+# use known good version
+/path/to/emsdk/emsdk install 3.1.27
+/path/to/emsdk/emsdk activate 3.1.27
+
 # import emscripten build environment
 source /path/to/emsdk/emsdk_env.sh
 
