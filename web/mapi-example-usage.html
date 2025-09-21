@@ -129,15 +129,12 @@ window.addEventListener('DOMContentLoaded', function() {
 
         // audio input processing
         document.getElementById('enable-input').addEventListener('click', function() {
-            var numInputs = 1;
-            var numOutputs = 1;
-
             var constraints = {
                 'audio': {
                     'autoGainControl': { 'ideal': false },
                     'echoCancellation': { 'ideal': false },
                     'noiseSuppression': { 'ideal': false },
-                    'channelCount': { 'min': 0, 'ideal': numInputs },
+                    'channelCount': { 'min': 0, 'ideal': 2 },
                     'latency': { 'min': 0, 'ideal': 0 },
                     'sampleSize': { 'min': 8, 'max': 32, 'ideal': 16 },
                     // old properties for chrome
@@ -161,14 +158,20 @@ window.addEventListener('DOMContentLoaded', function() {
             var success = function(stream) {
                 document.getElementById('enable-input').style.setProperty('display', 'none');
 
-                audioProcessor = new AudioWorkletNode(audioContext, "mapi-proc", {
-                    numberOfInputs: numInputs,
-                    numberOfOutputs: numOutputs,
-                    // outputChannelCount: [numOutputs, numOutputs],
-                });
+                var sourceContext = audioContext.createMediaStreamSource(stream);
+                var options = {
+                    numberOfInputs: sourceContext.channelCount,
+                    numberOfOutputs: sourceContext.channelCount,
+                    outputChannelCount: [],
+                };
+                for (let i = 0; i < sourceContext.channelCount; ++i) {
+                    options.outputChannelCount.push(sourceContext.channelCount);
+                }
+
+                audioProcessor = new AudioWorkletNode(audioContext, "mapi-proc", options);
                 audioProcessor.port.postMessage({type: 'init', js: moduleJs, wasm: moduleWasm});
 
-                audioContext.createMediaStreamSource(stream).connect(audioProcessor);
+                sourceContext.connect(audioProcessor);
                 audioProcessor.connect(audioContext.destination);
             };
             var fail = function(err) {

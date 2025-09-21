@@ -122,7 +122,7 @@ class MapiWorkletProcessor extends AudioWorkletProcessor {
         const output = outputs[0];
 
         // IO check
-        if (input.length == 0) {
+        if (input.length == 0 || output.length == 0) {
             // can be zero if stream is not connected yet
             return false;
         }
