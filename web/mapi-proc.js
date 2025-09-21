@@ -1,22 +1,61 @@
 // Copyright 2025 Filipe Coelho <falktx@falktx.com>
 // SPDX-License-Identifier: ISC
 
-class MapiProcessor extends AudioWorkletProcessor {
+// known constants
+const maxBufferSize = 2048;
+const sizeof_float = 4;
+const sizeof_ptr = 4;
+
+// class that holds a mono audio plugin instance
+class MapiProcessorInstance {
+    constructor(module) {
+        this.module = module;
+        this.handle = module._mapi_create(sampleRate);
+
+        this.audioData = module._malloc(sizeof_float * maxBufferSize);
+        this.audioPtrs = module._malloc(sizeof_ptr);
+        module.HEAPU32[this.audioPtrs + (0 << 2) >> 2] = this.audioData;
+    }
+
+    destructor() {
+        module._free(this.audioData);
+        module._free(this.audioPtrs);
+        module._mapi_destroy(this.handle);
+    }
+
+    process(input, output, channelOffset) {
+        // copy audio input into wasm buffers
+        let buffer = input[channelOffset];
+        for (var i = 0; i < buffer.length; ++i) {
+            this.module.HEAPF32[this.audioData + (i << 2) >> 2] = buffer[i];
+        }
+
+        // process wasm module
+        this.module._mapi_process(this.handle, this.audioPtrs, this.audioPtrs, buffer.length);
+
+        // copy wasm output to auto output
+        buffer = output[channelOffset];
+        for (var i = 0; i < buffer.length; ++i) {
+            buffer[i] = this.module.HEAPF32[this.audioData + (i << 2) >> 2];
+        }
+    }
+};
+
+// worklet processor implementation
+class MapiWorkletProcessor extends AudioWorkletProcessor {
     constructor(options) {
         super(options);
+
+        // save for future use
+        this.numIO = Math.min(options.numberOfInputs, options.numberOfOutputs);
 
         // the emscripten module
         this.module = null;
 
-        // instance of an audio plugin
-        this.handle = null;
+        // instances of audio plugins
+        this.instances = [];
 
-        // wasm memory
-        this.mem = {
-            audioData: null,
-            audioPtrs: null,
-        };
-
+        // bi-directional port communication
         this.port.onmessage = event => {
             switch (event.data.type)
             {
@@ -56,96 +95,44 @@ class MapiProcessor extends AudioWorkletProcessor {
             },
             postRun: module => {
                 this.module = module;
-                this.handle = module._mapi_create(sampleRate);
 
-                const maxBufferSize = 512;
-                const sizeof_float = 4;
-                const sizeof_ptr = 4;
-
-                this.mem.audioData = module._malloc(sizeof_float * maxBufferSize);
-                this.mem.audioPtrs = module._malloc(sizeof_ptr);
-                module.HEAPU32[this.mem.audioPtrs + (0 << 2) >> 2] = this.mem.audioData;
+                for (let i = 0; i < this.numIO; ++i) {
+                    this.instances.push(new MapiProcessorInstance(module));
+                }
             },
         });
     }
 
     param(data) {
-        if (!this.module || !this.handle) {
+        if (!this.module) {
             return;
         }
 
-        this.module._mapi_set_parameter(this.handle, data.index, data.value);
+        for (let instance in this.instances) {
+            this.module._mapi_set_parameter(instance.handle, data.index, data.value);
+        }
     }
 
     process(inputs, outputs, parameters) {
-        if (!this.module || !this.handle) {
-            return true;
+        if (!this.module) {
+            return false;
         }
 
         const input = inputs[0];
         const output = outputs[0];
 
         // IO check
-        if (input.length != 1) {
+        if (input.length == 0) {
             // can be zero if stream is not connected yet
             return false;
         }
-        if (output.length != 1) {
-            console.error('invalid number of output channels!', output.length);
-            return false;
-        }
 
-        // buffer size check
-        let bufferSize = 0;
-        for (var i = 0; i < input.length; ++i) {
-            var buffer = input[i];
-            if (bufferSize == 0) {
-                bufferSize = buffer.length;
-            } else if (bufferSize != buffer.length) {
-                console.error('inconsistent buffer size!', buffer.length, bufferSize);
-                return false;
-            }
-        }
-        for (var i = 0; i < output.length; ++i) {
-            var buffer = output[i];
-            if (bufferSize == 0) {
-                bufferSize = buffer.length;
-            } else if (bufferSize != buffer.length) {
-                console.error('inconsistent buffer size!', buffer.length, bufferSize);
-                return false;
-            }
-        }
-        if (bufferSize == 0) {
-            console.error('nothing to process!');
-            return false;
-        }
-
-        const module = this.module;
-        const handle = this.handle;
-        const mem = this.mem;
-
-        // copy audio input into wasm buffers
-        for (var i = 0; i < input.length; ++i) {
-            var buffer = input[i];
-            var offset = buffer.length * i;
-            for (var j = 0; j < buffer.length; ++j)
-                module.HEAPF32[mem.audioData + ((offset + j) << 2) >> 2] = buffer[j];
-        }
-
-        // process wasm module
-        module._mapi_process(handle, mem.audioPtrs, mem.audioPtrs, bufferSize);
-
-        // copy wasm output to system output
-        for (var i = 0; i < output.length; ++i) {
-            var buffer = output[i];
-            var offset = buffer.length * i;
-            for (var j = 0; j < buffer.length; ++j) {
-                buffer[j] = module.HEAPF32[mem.audioData + ((offset + j) << 2) >> 2];
-            }
+        for (var i = 0; i < this.numIO; ++i) {
+            this.instances[i].process(input, output, i);
         }
 
         return true;
     }
 };
 
-registerProcessor("mapi-proc", MapiProcessor);
+registerProcessor("mapi-proc", MapiWorkletProcessor);

@@ -164,6 +164,7 @@ window.addEventListener('DOMContentLoaded', function() {
                 audioProcessor = new AudioWorkletNode(audioContext, "mapi-proc", {
                     numberOfInputs: numInputs,
                     numberOfOutputs: numOutputs,
+                    // outputChannelCount: [numOutputs, numOutputs],
                 });
                 audioProcessor.port.postMessage({type: 'init', js: moduleJs, wasm: moduleWasm});
 
