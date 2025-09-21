@@ -26,9 +26,12 @@ bin/$(NAME).lv2/%.ttl: pregen/$(NAME).lv2/%.ttl
 	sed -e "s/@libext@/$(LIB_EXT)/g" $< > $@
 
 # extra resources for mapi builds
-mapi: bin/index.html
+mapi: bin/index.html bin/mapi-proc.js
 
 bin/index.html: web/mapi-example-usage.html
+	cp $< $@
+
+bin/mapi-proc.js: web/mapi-proc.js
 	cp $< $@
 
 # ---------------------------------------------------------------------------------------------------------------------

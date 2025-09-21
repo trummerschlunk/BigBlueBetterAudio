@@ -38,8 +38,7 @@ var Parameters = {
 
 // global vars
 var audioContext = null;
-var mapi_handle = null;
-var mapi_module = null;
+var audioProcessor = null;
 
 // load the wasm modules
 function init(callback) {
@@ -69,35 +68,56 @@ function init(callback) {
         return;
     }
 
-    // load mapi module
-    var mapi_script = document.createElement('script');
-    mapi_script.setAttribute('async',true);
-    mapi_script.setAttribute('src', 'BBBA-mapi.js');
-    mapi_script.setAttribute('type','text/javascript');
-    mapi_script.onload = function() {
-        // mapi_bbba is the global function to create the master module object
-        mapi_bbba({
-            postRun: function(module) {
-                mapi_handle = module._mapi_create(audioContext.sampleRate);
-                if (mapi_handle) {
-                    mapi_module = module;
-                    // start bypassed
-                    mapi_module._mapi_set_parameter(mapi_handle, Parameters.bypass, 1.0);
-                    callback()
-                } else {
-                    callback(['failed to initialize audio module'])
-                }
-            },
-        });
-    };
+    // load mapi files, trigger callback when all done
+    var moduleJs = null, moduleWasm = null, workletLoaded = false;
 
-    // trigger async loading
-    document.head.appendChild(mapi_script);
+    // load audio worklet
+    audioContext.audioWorklet.addModule("mapi-proc.js").then(function() {
+        workletLoaded = true;
+        if (moduleJs && moduleWasm && workletLoaded) {
+            callback(null, moduleJs, moduleWasm);
+        }
+    }).catch(function(error) {
+        err.push(error);
+        callback(err);
+    });
+
+    // load mapi js
+    fetch('BBBA-mapi.js').then(function(resp) {
+        resp.text().then(function(text) {
+            moduleJs = text;
+            if (moduleJs && moduleWasm && workletLoaded) {
+                callback(null, moduleJs, moduleWasm);
+            }
+        }).catch(function(error) {
+            err.push(error);
+            callback(err);
+        });
+    }).catch(function(error) {
+        err.push(error);
+        callback(err);
+    });
+
+    // load mapi wasm
+    fetch('BBBA-mapi.wasm').then(function(resp) {
+        resp.arrayBuffer().then(function(bytes) {
+            moduleWasm = bytes;
+            if (moduleJs && moduleWasm && workletLoaded) {
+                callback(null, moduleJs, moduleWasm);
+            }
+        }).catch(function(error) {
+            err.push(error);
+            callback(err);
+        });
+    }).catch(function(error) {
+        err.push(error);
+        callback(err);
+    });
 };
 
 window.addEventListener('DOMContentLoaded', function() {
     // call init function and do setup processing once we have loaded the wasm modules
-    init(function(err) {
+    init(function(err, moduleJs, moduleWasm) {
 
         if (err) {
             document.getElementById('error').setHTMLUnsafe('<h2>Error</h2><p>' + err.join('<br>') + '</p>');
@@ -109,12 +129,15 @@ window.addEventListener('DOMContentLoaded', function() {
 
         // audio input processing
         document.getElementById('enable-input').addEventListener('click', function() {
+            var numInputs = 1;
+            var numOutputs = 1;
+
             var constraints = {
                 'audio': {
                     'autoGainControl': { 'ideal': false },
                     'echoCancellation': { 'ideal': false },
                     'noiseSuppression': { 'ideal': false },
-                    'channelCount': { 'min': 0, 'ideal': 2 },
+                    'channelCount': { 'min': 0, 'ideal': numInputs },
                     'latency': { 'min': 0, 'ideal': 0 },
                     'sampleSize': { 'min': 8, 'max': 32, 'ideal': 16 },
                     // old properties for chrome
@@ -138,53 +161,11 @@ window.addEventListener('DOMContentLoaded', function() {
             var success = function(stream) {
                 document.getElementById('enable-input').style.setProperty('display', 'none');
 
-                // create processor
-                var bufferSize = 512;
-                var numInputs = 1;
-                var numOutputs = 1;
-                var audioProcessor = audioContext.createScriptProcessor(bufferSize, numInputs, numOutputs);
-
-                // setup wasm memory
-                // TODO simplify this setup?
-                var numBuffers = Math.max(numInputs, numOutputs);
-                var sizeof_float = 4;
-                var wasmAudioData = mapi_module._malloc(sizeof_float * bufferSize * numBuffers);
-                var wasmAudioPtrs = mapi_module._malloc(sizeof_float * numBuffers);
-                for (var i = 0; i < numBuffers; ++i) {
-                    mapi_module.HEAPU32[wasmAudioPtrs + (i << 2) >> 2] = wasmAudioData + sizeof_float * bufferSize * i;
-                }
-
-                audioProcessor.onaudioprocess = function (e) {
-                    if (e.inputBuffer.length != e.outputBuffer.length || e.inputBuffer.length != bufferSize) {
-                        console.log('invalid buffer size!', e.inputBuffer.length, e.inputBuffer.length, bufferSize);
-                    }
-                    if (e.inputBuffer.numberOfChannels != numInputs) {
-                        console.log('invalid number of input channels!', e.inputBuffer.numberOfChannels, numInputs);
-                    }
-                    if (e.outputBuffer.numberOfChannels != numOutputs) {
-                        console.log('invalid number of output channels!', e.outputBuffer.numberOfChannels, numOutputs);
-                    }
-
-                    // copy audio input into wasm buffers
-                    for (var i = 0; i < numInputs; ++i) {
-                        var buffer = e.inputBuffer.getChannelData(i);
-                        var offset = bufferSize * i;
-                        for (var j = 0; j < bufferSize; ++j)
-                            mapi_module.HEAPF32[wasmAudioData + ((offset + j) << 2) >> 2] = buffer[j];
-                    }
-
-                    // process wasm module
-                    mapi_module._mapi_process(mapi_handle, wasmAudioPtrs, wasmAudioPtrs, bufferSize);
-
-                    // copy wasm output to system output
-                    for (var i = 0; i < numOutputs; ++i) {
-                        var buffer = e.outputBuffer.getChannelData(i);
-                        var offset = bufferSize * i;
-                        for (var j = 0; j < bufferSize; ++j) {
-                            buffer[j] = mapi_module.HEAPF32[wasmAudioData + ((offset + j) << 2) >> 2];
-                        }
-                    }
-                };
+                audioProcessor = new AudioWorkletNode(audioContext, "mapi-proc", {
+                    numberOfInputs: numInputs,
+                    numberOfOutputs: numOutputs,
+                });
+                audioProcessor.port.postMessage({type: 'init', js: moduleJs, wasm: moduleWasm});
 
                 audioContext.createMediaStreamSource(stream).connect(audioProcessor);
                 audioProcessor.connect(audioContext.destination);
@@ -217,22 +198,22 @@ window.addEventListener('DOMContentLoaded', function() {
         elems.preLowcutFreqVal.textContent = elems.preLowcutFreq.value;
 
         elems.bypass.addEventListener('click', function() {
-            mapi_module._mapi_set_parameter(mapi_handle, Parameters.bypass, this.checked ? 1.0 : 0.0);
+            audioProcessor.port.postMessage({type: 'param', index: Parameters.bypass, value: this.checked ? 1.0 : 0.0});
         });
         elems.strength.addEventListener('input', function(event) {
-            mapi_module._mapi_set_parameter(mapi_handle, Parameters.strength, event.target.value);
+            audioProcessor.port.postMessage({type: 'param', index: Parameters.strength, value: event.target.value});
             elems.strengthVal.textContent = event.target.value;
         });
         elems.target.addEventListener('input', function(event) {
-            mapi_module._mapi_set_parameter(mapi_handle, Parameters.target, event.target.value);
+            audioProcessor.port.postMessage({type: 'param', index: Parameters.target, value: event.target.value});
             elems.targetVal.textContent = event.target.value;
         });
         elems.threshOffset.addEventListener('input', function(event) {
-            mapi_module._mapi_set_parameter(mapi_handle, Parameters.thresh_offset, event.target.value);
+            audioProcessor.port.postMessage({type: 'param', index: Parameters.thresh_offset, value: event.target.value});
             elems.threshOffsetVal.textContent = event.target.value;
         });
         elems.preLowcutFreq.addEventListener('input', function(event) {
-            mapi_module._mapi_set_parameter(mapi_handle, Parameters.preLowcut_freq, event.target.value);
+            audioProcessor.port.postMessage({type: 'param', index: Parameters.preLowcut_freq, value: event.target.value});
             elems.preLowcutFreqVal.textContent = event.target.value;
         });
     });
