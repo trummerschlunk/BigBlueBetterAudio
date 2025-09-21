@@ -56,19 +56,10 @@
     ] ;
     
 
-    lv2:port [
-        a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 2 ;
-        lv2:name "Latency" ;
-        lv2:symbol "lv2_latency" ;
-        lv2:designation lv2:latency ;
-        lv2:portProperty lv2:reportsLatency, lv2:integer, <http://lv2plug.in/ns/ext/port-props#notOnGUI> ;
-    ] ;
-
     
     lv2:port [
         a lv2:InputPort, lv2:ControlPort ;
-        lv2:index 3 ;
+        lv2:index 2 ;
     
         lv2:name "strength" ;
         lv2:symbol "timbre_strength" ;
@@ -90,7 +81,7 @@
     
     lv2:port [
         a lv2:InputPort, lv2:ControlPort ;
-        lv2:index 4 ;
+        lv2:index 3 ;
     
         lv2:name "spec 0" ;
         lv2:symbol "spec_0" ;
@@ -110,7 +101,7 @@
     
     lv2:port [
         a lv2:InputPort, lv2:ControlPort ;
-        lv2:index 5 ;
+        lv2:index 4 ;
     
         lv2:name "spec 1" ;
         lv2:symbol "spec_1" ;
@@ -130,7 +121,7 @@
     
     lv2:port [
         a lv2:InputPort, lv2:ControlPort ;
-        lv2:index 6 ;
+        lv2:index 5 ;
     
         lv2:name "spec 2" ;
         lv2:symbol "spec_2" ;
@@ -150,7 +141,7 @@
     
     lv2:port [
         a lv2:InputPort, lv2:ControlPort ;
-        lv2:index 7 ;
+        lv2:index 6 ;
     
         lv2:name "spec 3" ;
         lv2:symbol "spec_3" ;
@@ -170,7 +161,7 @@
     
     lv2:port [
         a lv2:InputPort, lv2:ControlPort ;
-        lv2:index 8 ;
+        lv2:index 7 ;
     
         lv2:name "spec 4" ;
         lv2:symbol "spec_4" ;
@@ -190,7 +181,7 @@
     
     lv2:port [
         a lv2:InputPort, lv2:ControlPort ;
-        lv2:index 9 ;
+        lv2:index 8 ;
     
         lv2:name "spec 5" ;
         lv2:symbol "spec_5" ;
@@ -210,7 +201,7 @@
     
     lv2:port [
         a lv2:InputPort, lv2:ControlPort ;
-        lv2:index 10 ;
+        lv2:index 9 ;
     
         lv2:name "spec 6" ;
         lv2:symbol "spec_6" ;
@@ -230,7 +221,7 @@
     
     lv2:port [
         a lv2:InputPort, lv2:ControlPort ;
-        lv2:index 11 ;
+        lv2:index 10 ;
     
         lv2:name "spec 7" ;
         lv2:symbol "spec_7" ;
@@ -250,10 +241,10 @@
     
     lv2:port [
         a lv2:InputPort, lv2:ControlPort ;
-        lv2:index 12 ;
+        lv2:index 11 ;
     
         lv2:name "bypass" ;
-        lv2:symbol "lv2_port_12" ;
+        lv2:symbol "lv2_port_11" ;
         lv2:default 0 ;
         lv2:minimum 0 ;
         lv2:maximum 1 ;
@@ -274,10 +265,10 @@
     
     lv2:port [
         a lv2:InputPort, lv2:ControlPort ;
-        lv2:index 13 ;
+        lv2:index 12 ;
     
         lv2:name "target" ;
-        lv2:symbol "lv2_port_13" ;
+        lv2:symbol "lv2_port_12" ;
         lv2:default -23.0 ;
         lv2:minimum -60.0 ;
         lv2:maximum 0.0 ;
@@ -296,10 +287,10 @@
     
     lv2:port [
         a lv2:InputPort, lv2:ControlPort ;
-        lv2:index 14 ;
+        lv2:index 13 ;
     
         lv2:name "thresh offset" ;
-        lv2:symbol "lv2_port_14" ;
+        lv2:symbol "lv2_port_13" ;
         lv2:default 6.0 ;
         lv2:minimum 0.0 ;
         lv2:maximum 40.0 ;
@@ -316,10 +307,10 @@
     
     lv2:port [
         a lv2:InputPort, lv2:ControlPort ;
-        lv2:index 15 ;
+        lv2:index 14 ;
     
         lv2:name "preLowcut_freq" ;
-        lv2:symbol "lv2_port_15" ;
+        lv2:symbol "lv2_port_14" ;
         lv2:default 80.0 ;
         lv2:minimum 1.0 ;
         lv2:maximum 400.0 ;
@@ -340,9 +331,9 @@
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 16 ;
+        lv2:index 15 ;
         lv2:name "expander" ;
-        lv2:symbol "lv2_port_16" ;
+        lv2:symbol "lv2_port_15" ;
         lv2:minimum 0.0 ;
         lv2:maximum 1.0 ;
         
@@ -358,8 +349,26 @@
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 17 ;
+        lv2:index 16 ;
         lv2:name "band 0" ;
+        lv2:symbol "lv2_port_16" ;
+        lv2:minimum -40.0 ;
+        lv2:maximum 40.0 ;
+        
+        
+        
+        
+        unit:unit unit:db ;
+        
+        
+        
+        
+    ] ;
+    
+    lv2:port [
+        a lv2:OutputPort, lv2:ControlPort ;
+        lv2:index 17 ;
+        lv2:name "band 1" ;
         lv2:symbol "lv2_port_17" ;
         lv2:minimum -40.0 ;
         lv2:maximum 40.0 ;
@@ -377,7 +386,7 @@
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
         lv2:index 18 ;
-        lv2:name "band 1" ;
+        lv2:name "band 2" ;
         lv2:symbol "lv2_port_18" ;
         lv2:minimum -40.0 ;
         lv2:maximum 40.0 ;
@@ -395,7 +404,7 @@
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
         lv2:index 19 ;
-        lv2:name "band 2" ;
+        lv2:name "band 3" ;
         lv2:symbol "lv2_port_19" ;
         lv2:minimum -40.0 ;
         lv2:maximum 40.0 ;
@@ -413,7 +422,7 @@
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
         lv2:index 20 ;
-        lv2:name "band 3" ;
+        lv2:name "band 4" ;
         lv2:symbol "lv2_port_20" ;
         lv2:minimum -40.0 ;
         lv2:maximum 40.0 ;
@@ -431,7 +440,7 @@
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
         lv2:index 21 ;
-        lv2:name "band 4" ;
+        lv2:name "band 5" ;
         lv2:symbol "lv2_port_21" ;
         lv2:minimum -40.0 ;
         lv2:maximum 40.0 ;
@@ -449,7 +458,7 @@
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
         lv2:index 22 ;
-        lv2:name "band 5" ;
+        lv2:name "band 6" ;
         lv2:symbol "lv2_port_22" ;
         lv2:minimum -40.0 ;
         lv2:maximum 40.0 ;
@@ -467,7 +476,7 @@
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
         lv2:index 23 ;
-        lv2:name "band 6" ;
+        lv2:name "band 7" ;
         lv2:symbol "lv2_port_23" ;
         lv2:minimum -40.0 ;
         lv2:maximum 40.0 ;
@@ -485,24 +494,6 @@
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
         lv2:index 24 ;
-        lv2:name "band 7" ;
-        lv2:symbol "lv2_port_24" ;
-        lv2:minimum -40.0 ;
-        lv2:maximum 40.0 ;
-        
-        
-        
-        
-        unit:unit unit:db ;
-        
-        
-        
-        
-    ] ;
-    
-    lv2:port [
-        a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 25 ;
         lv2:name "gr  0" ;
         lv2:symbol "spectral_ballancer_gain_band__0" ;
         lv2:minimum -12.0 ;
@@ -518,7 +509,7 @@
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 26 ;
+        lv2:index 25 ;
         lv2:name "gr  1" ;
         lv2:symbol "spectral_ballancer_gain_band__1" ;
         lv2:minimum -12.0 ;
@@ -534,7 +525,7 @@
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 27 ;
+        lv2:index 26 ;
         lv2:name "gr  2" ;
         lv2:symbol "spectral_ballancer_gain_band__2" ;
         lv2:minimum -12.0 ;
@@ -550,7 +541,7 @@
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 28 ;
+        lv2:index 27 ;
         lv2:name "gr  3" ;
         lv2:symbol "spectral_ballancer_gain_band__3" ;
         lv2:minimum -12.0 ;
@@ -566,7 +557,7 @@
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 29 ;
+        lv2:index 28 ;
         lv2:name "gr  4" ;
         lv2:symbol "spectral_ballancer_gain_band__4" ;
         lv2:minimum -12.0 ;
@@ -582,7 +573,7 @@
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 30 ;
+        lv2:index 29 ;
         lv2:name "gr  5" ;
         lv2:symbol "spectral_ballancer_gain_band__5" ;
         lv2:minimum -12.0 ;
@@ -598,7 +589,7 @@
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 31 ;
+        lv2:index 30 ;
         lv2:name "gr  6" ;
         lv2:symbol "spectral_ballancer_gain_band__6" ;
         lv2:minimum -12.0 ;
@@ -614,7 +605,7 @@
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 32 ;
+        lv2:index 31 ;
         lv2:name "gr  7" ;
         lv2:symbol "spectral_ballancer_gain_band__7" ;
         lv2:minimum -12.0 ;
@@ -630,9 +621,9 @@
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 33 ;
+        lv2:index 32 ;
         lv2:name "brake" ;
-        lv2:symbol "lv2_port_33" ;
+        lv2:symbol "lv2_port_32" ;
         lv2:minimum 0.0 ;
         lv2:maximum 100.0 ;
         
@@ -648,9 +639,9 @@
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 34 ;
+        lv2:index 33 ;
         lv2:name "gain" ;
-        lv2:symbol "lv2_port_34" ;
+        lv2:symbol "lv2_port_33" ;
         lv2:minimum -50.0 ;
         lv2:maximum 50.0 ;
         
@@ -666,9 +657,9 @@
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 35 ;
+        lv2:index 34 ;
         lv2:name "min_track" ;
-        lv2:symbol "lv2_port_35" ;
+        lv2:symbol "lv2_port_34" ;
         lv2:minimum -100.0 ;
         lv2:maximum 0.0 ;
         
@@ -682,8 +673,26 @@
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 36 ;
+        lv2:index 35 ;
         lv2:name "hbargraph0" ;
+        lv2:symbol "lv2_port_35" ;
+        lv2:minimum -12.0 ;
+        lv2:maximum 12.0 ;
+        
+        
+        
+        
+        unit:unit unit:db ;
+        
+        
+        
+        
+    ] ;
+    
+    lv2:port [
+        a lv2:OutputPort, lv2:ControlPort ;
+        lv2:index 36 ;
+        lv2:name "hbargraph1" ;
         lv2:symbol "lv2_port_36" ;
         lv2:minimum -12.0 ;
         lv2:maximum 12.0 ;
@@ -701,7 +710,7 @@
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
         lv2:index 37 ;
-        lv2:name "hbargraph1" ;
+        lv2:name "hbargraph2" ;
         lv2:symbol "lv2_port_37" ;
         lv2:minimum -12.0 ;
         lv2:maximum 12.0 ;
@@ -719,7 +728,7 @@
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
         lv2:index 38 ;
-        lv2:name "hbargraph2" ;
+        lv2:name "hbargraph3" ;
         lv2:symbol "lv2_port_38" ;
         lv2:minimum -12.0 ;
         lv2:maximum 12.0 ;
@@ -737,7 +746,7 @@
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
         lv2:index 39 ;
-        lv2:name "hbargraph3" ;
+        lv2:name "hbargraph4" ;
         lv2:symbol "lv2_port_39" ;
         lv2:minimum -12.0 ;
         lv2:maximum 12.0 ;
@@ -755,7 +764,7 @@
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
         lv2:index 40 ;
-        lv2:name "hbargraph4" ;
+        lv2:name "hbargraph5" ;
         lv2:symbol "lv2_port_40" ;
         lv2:minimum -12.0 ;
         lv2:maximum 12.0 ;
@@ -773,7 +782,7 @@
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
         lv2:index 41 ;
-        lv2:name "hbargraph5" ;
+        lv2:name "hbargraph6" ;
         lv2:symbol "lv2_port_41" ;
         lv2:minimum -12.0 ;
         lv2:maximum 12.0 ;
@@ -791,7 +800,7 @@
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
         lv2:index 42 ;
-        lv2:name "hbargraph6" ;
+        lv2:name "hbargraph7" ;
         lv2:symbol "lv2_port_42" ;
         lv2:minimum -12.0 ;
         lv2:maximum 12.0 ;
@@ -809,10 +818,10 @@
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
         lv2:index 43 ;
-        lv2:name "hbargraph7" ;
+        lv2:name "hbargraph8" ;
         lv2:symbol "lv2_port_43" ;
-        lv2:minimum -12.0 ;
-        lv2:maximum 12.0 ;
+        lv2:minimum -6.0 ;
+        lv2:maximum 0.0 ;
         
         
         
@@ -827,7 +836,7 @@
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
         lv2:index 44 ;
-        lv2:name "hbargraph8" ;
+        lv2:name "hbargraph9" ;
         lv2:symbol "lv2_port_44" ;
         lv2:minimum -6.0 ;
         lv2:maximum 0.0 ;
@@ -845,7 +854,7 @@
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
         lv2:index 45 ;
-        lv2:name "hbargraph9" ;
+        lv2:name "hbargraph10" ;
         lv2:symbol "lv2_port_45" ;
         lv2:minimum -6.0 ;
         lv2:maximum 0.0 ;
@@ -863,7 +872,7 @@
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
         lv2:index 46 ;
-        lv2:name "hbargraph10" ;
+        lv2:name "hbargraph11" ;
         lv2:symbol "lv2_port_46" ;
         lv2:minimum -6.0 ;
         lv2:maximum 0.0 ;
@@ -881,7 +890,7 @@
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
         lv2:index 47 ;
-        lv2:name "hbargraph11" ;
+        lv2:name "hbargraph12" ;
         lv2:symbol "lv2_port_47" ;
         lv2:minimum -6.0 ;
         lv2:maximum 0.0 ;
@@ -899,7 +908,7 @@
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
         lv2:index 48 ;
-        lv2:name "hbargraph12" ;
+        lv2:name "hbargraph13" ;
         lv2:symbol "lv2_port_48" ;
         lv2:minimum -6.0 ;
         lv2:maximum 0.0 ;
@@ -917,7 +926,7 @@
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
         lv2:index 49 ;
-        lv2:name "hbargraph13" ;
+        lv2:name "hbargraph14" ;
         lv2:symbol "lv2_port_49" ;
         lv2:minimum -6.0 ;
         lv2:maximum 0.0 ;
@@ -935,26 +944,8 @@
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
         lv2:index 50 ;
-        lv2:name "hbargraph14" ;
-        lv2:symbol "lv2_port_50" ;
-        lv2:minimum -6.0 ;
-        lv2:maximum 0.0 ;
-        
-        
-        
-        
-        unit:unit unit:db ;
-        
-        
-        
-        
-    ] ;
-    
-    lv2:port [
-        a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 51 ;
         lv2:name "hbargraph15" ;
-        lv2:symbol "lv2_port_51" ;
+        lv2:symbol "lv2_port_50" ;
         lv2:minimum -6.0 ;
         lv2:maximum 0.0 ;
         
