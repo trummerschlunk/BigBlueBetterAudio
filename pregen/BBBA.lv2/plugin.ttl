@@ -63,9 +63,9 @@
     
         lv2:name "strength" ;
         lv2:symbol "sb_strength" ;
-        lv2:default 50.0 ;
-        lv2:minimum 0.0 ;
-        lv2:maximum 100.0 ;
+        lv2:default 50 ;
+        lv2:minimum 0 ;
+        lv2:maximum 100 ;
         
         
         
@@ -85,9 +85,9 @@
     
         lv2:name "spec 0" ;
         lv2:symbol "sb_target_spectrum_0" ;
-        lv2:default -10.0 ;
-        lv2:minimum -20.0 ;
-        lv2:maximum 0.0 ;
+        lv2:default -10 ;
+        lv2:minimum -20 ;
+        lv2:maximum 0 ;
         
         
         
@@ -105,9 +105,9 @@
     
         lv2:name "spec 1" ;
         lv2:symbol "sb_target_spectrum_1" ;
-        lv2:default -5.0 ;
-        lv2:minimum -20.0 ;
-        lv2:maximum 0.0 ;
+        lv2:default -5 ;
+        lv2:minimum -20 ;
+        lv2:maximum 0 ;
         
         
         
@@ -125,9 +125,9 @@
     
         lv2:name "spec 2" ;
         lv2:symbol "sb_target_spectrum_2" ;
-        lv2:default -5.0 ;
-        lv2:minimum -20.0 ;
-        lv2:maximum 0.0 ;
+        lv2:default -5 ;
+        lv2:minimum -20 ;
+        lv2:maximum 0 ;
         
         
         
@@ -145,9 +145,9 @@
     
         lv2:name "spec 3" ;
         lv2:symbol "sb_target_spectrum_3" ;
-        lv2:default -8.0 ;
-        lv2:minimum -20.0 ;
-        lv2:maximum 0.0 ;
+        lv2:default -8 ;
+        lv2:minimum -20 ;
+        lv2:maximum 0 ;
         
         
         
@@ -165,9 +165,9 @@
     
         lv2:name "spec 4" ;
         lv2:symbol "sb_target_spectrum_4" ;
-        lv2:default -9.0 ;
-        lv2:minimum -20.0 ;
-        lv2:maximum 0.0 ;
+        lv2:default -9 ;
+        lv2:minimum -20 ;
+        lv2:maximum 0 ;
         
         
         
@@ -185,9 +185,9 @@
     
         lv2:name "spec 5" ;
         lv2:symbol "sb_target_spectrum_5" ;
-        lv2:default -10.0 ;
-        lv2:minimum -20.0 ;
-        lv2:maximum 0.0 ;
+        lv2:default -10 ;
+        lv2:minimum -20 ;
+        lv2:maximum 0 ;
         
         
         
@@ -205,9 +205,9 @@
     
         lv2:name "spec 6" ;
         lv2:symbol "sb_target_spectrum_6" ;
-        lv2:default -7.0 ;
-        lv2:minimum -20.0 ;
-        lv2:maximum 0.0 ;
+        lv2:default -7 ;
+        lv2:minimum -20 ;
+        lv2:maximum 0 ;
         
         
         
@@ -225,9 +225,9 @@
     
         lv2:name "spec 7" ;
         lv2:symbol "sb_target_spectrum_7" ;
-        lv2:default -3.0 ;
-        lv2:minimum -20.0 ;
-        lv2:maximum 0.0 ;
+        lv2:default -3 ;
+        lv2:minimum -20 ;
+        lv2:maximum 0 ;
         
         
         
@@ -269,9 +269,9 @@
     
         lv2:name "target" ;
         lv2:symbol "leveler_target" ;
-        lv2:default -23.0 ;
-        lv2:minimum -60.0 ;
-        lv2:maximum 0.0 ;
+        lv2:default -23 ;
+        lv2:minimum -60 ;
+        lv2:maximum 0 ;
         
         
         
@@ -291,9 +291,9 @@
     
         lv2:name "thresh offset" ;
         lv2:symbol "leveler_expander_offset" ;
-        lv2:default 6.0 ;
-        lv2:minimum 0.0 ;
-        lv2:maximum 40.0 ;
+        lv2:default 6 ;
+        lv2:minimum 0 ;
+        lv2:maximum 40 ;
         
         
         
@@ -311,9 +311,9 @@
     
         lv2:name "preLowcut_freq" ;
         lv2:symbol "pre_lowcut" ;
-        lv2:default 80.0 ;
-        lv2:minimum 1.0 ;
-        lv2:maximum 400.0 ;
+        lv2:default 80 ;
+        lv2:minimum 1 ;
+        lv2:maximum 400 ;
         
         
         
@@ -334,8 +334,8 @@
         lv2:index 15 ;
         lv2:name "sb_expander" ;
         lv2:symbol "sb_expander" ;
-        lv2:minimum 0.0 ;
-        lv2:maximum 1.0 ;
+        lv2:minimum 0 ;
+        lv2:maximum 1 ;
         
         
         
@@ -350,8 +350,8 @@
         lv2:index 16 ;
         lv2:name "band  0" ;
         lv2:symbol "sb_meter__0" ;
-        lv2:minimum -40.0 ;
-        lv2:maximum 40.0 ;
+        lv2:minimum -40 ;
+        lv2:maximum 40 ;
         
         
         
@@ -368,8 +368,8 @@
         lv2:index 17 ;
         lv2:name "band  1" ;
         lv2:symbol "sb_meter__1" ;
-        lv2:minimum -40.0 ;
-        lv2:maximum 40.0 ;
+        lv2:minimum -40 ;
+        lv2:maximum 40 ;
         
         
         
@@ -386,8 +386,8 @@
         lv2:index 18 ;
         lv2:name "band  2" ;
         lv2:symbol "sb_meter__2" ;
-        lv2:minimum -40.0 ;
-        lv2:maximum 40.0 ;
+        lv2:minimum -40 ;
+        lv2:maximum 40 ;
         
         
         
@@ -404,8 +404,8 @@
         lv2:index 19 ;
         lv2:name "band  3" ;
         lv2:symbol "sb_meter__3" ;
-        lv2:minimum -40.0 ;
-        lv2:maximum 40.0 ;
+        lv2:minimum -40 ;
+        lv2:maximum 40 ;
         
         
         
@@ -422,8 +422,8 @@
         lv2:index 20 ;
         lv2:name "band  4" ;
         lv2:symbol "sb_meter__4" ;
-        lv2:minimum -40.0 ;
-        lv2:maximum 40.0 ;
+        lv2:minimum -40 ;
+        lv2:maximum 40 ;
         
         
         
@@ -440,8 +440,8 @@
         lv2:index 21 ;
         lv2:name "band  5" ;
         lv2:symbol "sb_meter__5" ;
-        lv2:minimum -40.0 ;
-        lv2:maximum 40.0 ;
+        lv2:minimum -40 ;
+        lv2:maximum 40 ;
         
         
         
@@ -458,8 +458,8 @@
         lv2:index 22 ;
         lv2:name "band  6" ;
         lv2:symbol "sb_meter__6" ;
-        lv2:minimum -40.0 ;
-        lv2:maximum 40.0 ;
+        lv2:minimum -40 ;
+        lv2:maximum 40 ;
         
         
         
@@ -476,8 +476,8 @@
         lv2:index 23 ;
         lv2:name "band  7" ;
         lv2:symbol "sb_meter__7" ;
-        lv2:minimum -40.0 ;
-        lv2:maximum 40.0 ;
+        lv2:minimum -40 ;
+        lv2:maximum 40 ;
         
         
         
@@ -494,8 +494,8 @@
         lv2:index 24 ;
         lv2:name "sb_gain  0" ;
         lv2:symbol "sb_gain__0" ;
-        lv2:minimum -12.0 ;
-        lv2:maximum 12.0 ;
+        lv2:minimum -12 ;
+        lv2:maximum 12 ;
         
         
         
@@ -510,8 +510,8 @@
         lv2:index 25 ;
         lv2:name "sb_gain  1" ;
         lv2:symbol "sb_gain__1" ;
-        lv2:minimum -12.0 ;
-        lv2:maximum 12.0 ;
+        lv2:minimum -12 ;
+        lv2:maximum 12 ;
         
         
         
@@ -526,8 +526,8 @@
         lv2:index 26 ;
         lv2:name "sb_gain  2" ;
         lv2:symbol "sb_gain__2" ;
-        lv2:minimum -12.0 ;
-        lv2:maximum 12.0 ;
+        lv2:minimum -12 ;
+        lv2:maximum 12 ;
         
         
         
@@ -542,8 +542,8 @@
         lv2:index 27 ;
         lv2:name "sb_gain  3" ;
         lv2:symbol "sb_gain__3" ;
-        lv2:minimum -12.0 ;
-        lv2:maximum 12.0 ;
+        lv2:minimum -12 ;
+        lv2:maximum 12 ;
         
         
         
@@ -558,8 +558,8 @@
         lv2:index 28 ;
         lv2:name "sb_gain  4" ;
         lv2:symbol "sb_gain__4" ;
-        lv2:minimum -12.0 ;
-        lv2:maximum 12.0 ;
+        lv2:minimum -12 ;
+        lv2:maximum 12 ;
         
         
         
@@ -574,8 +574,8 @@
         lv2:index 29 ;
         lv2:name "sb_gain  5" ;
         lv2:symbol "sb_gain__5" ;
-        lv2:minimum -12.0 ;
-        lv2:maximum 12.0 ;
+        lv2:minimum -12 ;
+        lv2:maximum 12 ;
         
         
         
@@ -590,8 +590,8 @@
         lv2:index 30 ;
         lv2:name "sb_gain  6" ;
         lv2:symbol "sb_gain__6" ;
-        lv2:minimum -12.0 ;
-        lv2:maximum 12.0 ;
+        lv2:minimum -12 ;
+        lv2:maximum 12 ;
         
         
         
@@ -606,8 +606,8 @@
         lv2:index 31 ;
         lv2:name "sb_gain  7" ;
         lv2:symbol "sb_gain__7" ;
-        lv2:minimum -12.0 ;
-        lv2:maximum 12.0 ;
+        lv2:minimum -12 ;
+        lv2:maximum 12 ;
         
         
         
@@ -622,8 +622,8 @@
         lv2:index 32 ;
         lv2:name "brake" ;
         lv2:symbol "leveler_brake" ;
-        lv2:minimum 0.0 ;
-        lv2:maximum 100.0 ;
+        lv2:minimum 0 ;
+        lv2:maximum 100 ;
         
         
         
@@ -640,8 +640,8 @@
         lv2:index 33 ;
         lv2:name "gain" ;
         lv2:symbol "leveler_gain" ;
-        lv2:minimum -50.0 ;
-        lv2:maximum 50.0 ;
+        lv2:minimum -50 ;
+        lv2:maximum 50 ;
         
         
         
@@ -658,8 +658,8 @@
         lv2:index 34 ;
         lv2:name "min_track" ;
         lv2:symbol "leveler_meter_minimum" ;
-        lv2:minimum -100.0 ;
-        lv2:maximum 0.0 ;
+        lv2:minimum -100 ;
+        lv2:maximum 0 ;
         
         
         
