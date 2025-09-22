@@ -6,10 +6,10 @@
 // Source: bbba.dsp
 // Name: bbba
 // Description: 
-// Author: 
+// Author: Klaus Scheuermann
 // Copyright: 
 // License: GPLv3+
-// Version: 
+// Version: 0.10
 //------------------------------------------------------------------------------
 
 
@@ -29,8 +29,41 @@
 
 enum Parameters {
     // inputs
+    kParameter_sb_strength,
+    kParameter_sb_target_spectrum_0,
+    kParameter_sb_target_spectrum_1,
+    kParameter_sb_target_spectrum_2,
+    kParameter_sb_target_spectrum_3,
+    kParameter_sb_target_spectrum_4,
+    kParameter_sb_target_spectrum_5,
+    kParameter_sb_target_spectrum_6,
+    kParameter_sb_target_spectrum_7,
+    kParameter_bypass,
+    kParameter_leveler_target,
+    kParameter_leveler_expander_offset,
+    kParameter_pre_lowcut,
     
     // outputs
+    kParameter_sb_expander,
+    kParameter_sb_meter__0,
+    kParameter_sb_meter__1,
+    kParameter_sb_meter__2,
+    kParameter_sb_meter__3,
+    kParameter_sb_meter__4,
+    kParameter_sb_meter__5,
+    kParameter_sb_meter__6,
+    kParameter_sb_meter__7,
+    kParameter_sb_gain__0,
+    kParameter_sb_gain__1,
+    kParameter_sb_gain__2,
+    kParameter_sb_gain__3,
+    kParameter_sb_gain__4,
+    kParameter_sb_gain__5,
+    kParameter_sb_gain__6,
+    kParameter_sb_gain__7,
+    kParameter_leveler_brake,
+    kParameter_leveler_gain,
+    kParameter_leveler_meter_minimum,
     
     // terminator
     kParameterCount
@@ -44,32 +77,165 @@ enum States {
     kStateCount
 };
 
-static constexpr const char* kParameterNames[0] = {
+static constexpr const char* kParameterNames[33] = {
     // inputs
+    "strength",
+    "spec 0",
+    "spec 1",
+    "spec 2",
+    "spec 3",
+    "spec 4",
+    "spec 5",
+    "spec 6",
+    "spec 7",
+    "bypass",
+    "target",
+    "thresh offset",
+    "preLowcut_freq",
     
     // ouputs
+    "sb_expander",
+    "band  0",
+    "band  1",
+    "band  2",
+    "band  3",
+    "band  4",
+    "band  5",
+    "band  6",
+    "band  7",
+    "sb_gain  0",
+    "sb_gain  1",
+    "sb_gain  2",
+    "sb_gain  3",
+    "sb_gain  4",
+    "sb_gain  5",
+    "sb_gain  6",
+    "sb_gain  7",
+    "brake",
+    "gain",
+    "min_track",
     
 };
 
-static constexpr const struct { float def, min, max; } kParameterRanges[0] = {
+static constexpr const struct { float def, min, max; } kParameterRanges[33] = {
     // inputs
+    { 50, 0, 100 },
+    { -10, -20, 0 },
+    { -5, -20, 0 },
+    { -5, -20, 0 },
+    { -8, -20, 0 },
+    { -9, -20, 0 },
+    { -10, -20, 0 },
+    { -7, -20, 0 },
+    { -3, -20, 0 },
+    { 0, 0, 1 },
+    { -23, -60, 0 },
+    { 6, 0, 40 },
+    { 80, 1, 400 },
     
     // ouputs
+    { 0, 0, 1 },
+    { 0, -40, 40 },
+    { 0, -40, 40 },
+    { 0, -40, 40 },
+    { 0, -40, 40 },
+    { 0, -40, 40 },
+    { 0, -40, 40 },
+    { 0, -40, 40 },
+    { 0, -40, 40 },
+    { 0, -12, 12 },
+    { 0, -12, 12 },
+    { 0, -12, 12 },
+    { 0, -12, 12 },
+    { 0, -12, 12 },
+    { 0, -12, 12 },
+    { 0, -12, 12 },
+    { 0, -12, 12 },
+    { 0, 0, 100 },
+    { 0, -50, 50 },
+    { 0, -100, 0 },
     
 };
 
-static constexpr const char* kParameterSymbols[0] = {
+static constexpr const char* kParameterSymbols[33] = {
     // inputs
+    "sb_strength",
+    "sb_target_spectrum_0",
+    "sb_target_spectrum_1",
+    "sb_target_spectrum_2",
+    "sb_target_spectrum_3",
+    "sb_target_spectrum_4",
+    "sb_target_spectrum_5",
+    "sb_target_spectrum_6",
+    "sb_target_spectrum_7",
+    "bypass",
+    "leveler_target",
+    "leveler_expander_offset",
+    "pre_lowcut",
     
     // ouputs
+    "sb_expander",
+    "sb_meter__0",
+    "sb_meter__1",
+    "sb_meter__2",
+    "sb_meter__3",
+    "sb_meter__4",
+    "sb_meter__5",
+    "sb_meter__6",
+    "sb_meter__7",
+    "sb_gain__0",
+    "sb_gain__1",
+    "sb_gain__2",
+    "sb_gain__3",
+    "sb_gain__4",
+    "sb_gain__5",
+    "sb_gain__6",
+    "sb_gain__7",
+    "leveler_brake",
+    "leveler_gain",
+    "leveler_meter_minimum",
     
 };
 
-static constexpr const char* kParameterUnits[0] = {
+static constexpr const char* kParameterUnits[33] = {
     // inputs
+    "%",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "dB",
+    "",
+    "",
     
     // ouputs
+    "",
+    "dB",
+    "dB",
+    "dB",
+    "dB",
+    "dB",
+    "dB",
+    "dB",
+    "dB",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "%",
+    "dB",
+    "",
     
 };
+
 
 
