@@ -10,7 +10,7 @@
 // -*-Faust-*-
 
 declare name "bbba";
-declare version "0.10";
+declare version "0.11";
 declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
@@ -160,11 +160,11 @@ crossover = fi.crossover8LR4(100,200,400,800,1600,3200,6400);
 //  |______\___| \_/ \___|_|\___|_|   
 
 //  Leveler GUI
-bp = 0; //checkbox("h:LevelerPro/[0]bypass_leveler"):si.smoo;
+bp = 0; //checkbox("h:LevelerPro/[0]bypass_leveler");
 target = gui_leveler(vslider("[1][unit:dB]target[symbol:leveler_target]", lev_target_init, -60, 0, 1));
 limit_pos = lev_maxboost_init;
 limit_neg = lev_maxcut_init : ma.neg;
-scale = lev_scale_init / 100; 
+scale = gui_leveler(vslider("leveler_scale[symbol:leveler_scale]", 1, 0, 1,0.1)); //lev_scale_init / 100; 
 leveler_speed = lev_speed_init / 100;
 leveler_brake_thresh = lev_brake_threshold_init + target;
 meter_leveler_brake = _*100 : gui_leveler(vbargraph("[7][unit:%]brake[symbol:leveler_brake]",0,100));
@@ -189,7 +189,7 @@ min_meter =  _ <: attach(_,vbargraph("min_track",-100,0));
 levelerMono(l) =
 
   (l):leveler_sc(target)~(_)
-                             ;
+                :(_*(1-bp)) , (l*bp)   :>(_,_) ;
 
 /*
 leveler(l,r) =

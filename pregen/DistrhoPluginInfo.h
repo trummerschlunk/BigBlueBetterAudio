@@ -40,6 +40,7 @@ enum Parameters {
     kParameter_sb_target_spectrum_7,
     kParameter_bypass,
     kParameter_leveler_target,
+    kParameter_leveler_scale,
     kParameter_leveler_expander_offset,
     kParameter_pre_lowcut,
     
@@ -77,7 +78,7 @@ enum States {
     kStateCount
 };
 
-static constexpr const char* kParameterNames[33] = {
+static constexpr const char* kParameterNames[34] = {
     // inputs
     "strength",
     "spec 0",
@@ -90,6 +91,7 @@ static constexpr const char* kParameterNames[33] = {
     "spec 7",
     "bypass",
     "target",
+    "leveler_scale",
     "thresh offset",
     "preLowcut_freq",
     
@@ -117,7 +119,7 @@ static constexpr const char* kParameterNames[33] = {
     
 };
 
-static constexpr const struct { float def, min, max; } kParameterRanges[33] = {
+static constexpr const struct { float def, min, max; } kParameterRanges[34] = {
     // inputs
     { 50, 0, 100 },
     { -10, -20, 0 },
@@ -130,6 +132,7 @@ static constexpr const struct { float def, min, max; } kParameterRanges[33] = {
     { -3, -20, 0 },
     { 0, 0, 1 },
     { -23, -60, 0 },
+    { 1, 0, 1 },
     { 6, 0, 40 },
     { 80, 1, 400 },
     
@@ -157,7 +160,7 @@ static constexpr const struct { float def, min, max; } kParameterRanges[33] = {
     
 };
 
-static constexpr const char* kParameterSymbols[33] = {
+static constexpr const char* kParameterSymbols[34] = {
     // inputs
     "sb_strength",
     "sb_target_spectrum_0",
@@ -170,6 +173,7 @@ static constexpr const char* kParameterSymbols[33] = {
     "sb_target_spectrum_7",
     "bypass",
     "leveler_target",
+    "leveler_scale",
     "leveler_expander_offset",
     "pre_lowcut",
     
@@ -197,7 +201,7 @@ static constexpr const char* kParameterSymbols[33] = {
     
 };
 
-static constexpr const char* kParameterUnits[33] = {
+static constexpr const char* kParameterUnits[34] = {
     // inputs
     "%",
     "",
@@ -210,6 +214,7 @@ static constexpr const char* kParameterUnits[33] = {
     "",
     "",
     "dB",
+    "",
     "",
     "",
     
