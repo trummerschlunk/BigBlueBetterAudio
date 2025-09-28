@@ -4,26 +4,28 @@
 Better Audio for [BigBlueButton](https://bigbluebutton.org/)!
 
 ## BigBlueButton
-[BigBlueButton](https://bigbluebutton.org/) is one of the most popular free and open source video conferencing systems. It is widely used in education, by NGOs, government and business.
+[BigBlueButton](https://bigbluebutton.org/) is one of the most popular free and open-source video conferencing systems. It is widely used in education settings, by NGOs, government and business units.
 
-## Audio Esthetics
+## Audio Aesthetics
 
-Regarding audio quality, not only technical aspects, such as error-free cature and transmission are crutial, but also the esthetics of audio experienced by the listener. Well-processed audio can make voices sound more natural, engaging, and pleasant, reducing fatigue and improving communication. Esthetic enhancements help create a more immersive and enjoyable environment, which is especially valuable in education and collaborative settings.
+Technical aspects such as error-free capture and transmission are essential for achieving high audio quality, but the aesthetic side of the listening experience is often overlooked. 
+
+Well-processed audio makes voices sound more natural, engaging, and pleasant, which reduces listener fatigue, supports concentration, and enhances overall communication. Aesthetic enhancements help create a more immersive and overall enjoyable environment, which is especially valuable in collaborative work and education settings.
 
 ## The Audio Process
-With over 20 years of audio engineering experience in mixing and mastering, we develop an audio DSP process focussed on enhancing perceived audio esthetics of recorded speech in real-time.
+Drawing on over 20 years of audio engineering experience in mixing and mastering, I have developed an audio DSP process that focuses on enhancing perceived audio aesthetics of recorded speech in real-time. 
 
-While technically prestine audio is the foundation, our process shapes recorded speech from an esthetic angle. We use a chain of carefully tuned conventional audio processes, as well as newly designed autonomous audio fx.
+While technically pristine audio remains the foundation, a chain of carefully tuned conventional audio processes combined with newly designed autonomous audio effects add a powerful aesthetic dimension to the listening experience.  
 
 ## Audio Flow
 
 ![Audio Flow Diagram](documentation/pics/BBBA_signalFlow_01.jpg)
 
 ## Injection
-As show in 'audio flow', BBBA's audio processing runs in the client's browser. This assures that the BBB server does not require any additional computing power.
+As shown in the audio flow diagram, BBBA's audio processing runs in the user's browser and does not require additional server capacity.
 
-BBBA's DSP processing is written in Faust, compiled to a wasm module via DPF and emscripten. The wasm module runs as an audio worklet inside BBB's html5 client.
+BBBA's DSP is written in Faust and compiled to a wasm module via DPF and emscripten. The wasm module runs as an audio worklet inside BBB's html5 client.
 
 ## Support and Funding
-Supported and funded by the PrototypeFund (class 01, June-November 2025)
+With support and funding from the PrototypeFund (class 01, June-November 2025).
 
