@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="">
+    <head>
+        <meta charset="utf-8">
+        <title>Better audio for BigBlueButton</title>
+        <script src="service.js" ></script>
+        <script>
+
+// load the wasm modules
+function init(callback) {
+    var err = [];
+
+    // check if audio is supported
+    if (typeof(AudioContext) === 'undefined') {
+        err.push('AudioContext unsupported');
+    }
+    if (navigator.mediaDevices === undefined || navigator.mediaDevices.getUserMedia === undefined) {
+        err.push('navigator.mediaDevices.getUserMedia unsupported');
+    }
+
+    // check if WebAssembly is properly supported
+    if (typeof(WebAssembly) === 'undefined') {
+        err.push('WebAssembly unsupported');
+    } else {
+        if (! WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,0,0,2,8,1,1,97,1,98,3,127,1,6,6,1,127,1,65,0,11,7,5,1,1,97,3,1])))
+            err.push('Importable/Exportable mutable globals unsupported');
+    }
+
+    // bail-out early if any errors happened
+    if (err.length !== 0) {
+        callback(err);
+        return;
+    }
+
+    loadWasmProcessor().then(function() {
+        callback();
+    }).catch(function(error) {
+        callback([error]);
+        return;
+    });
+};
+
+// custom global vars
+let delayNode = null;
+let gumStream = null;
+
+// restart the stream
+function restartStream() {
+    if (audioProcessor && delayNode) {
+        audioProcessor.disconnect(delayNode);
+        delayNode.disconnect(audioContext.destination);
+    }
+
+    audioProcessor = null;
+    delayNode = null;
+    gumStream = null;
+
+    var constraints = {
+        'audio': {
+            'autoGainControl': { 'ideal': document.getElementById('gum-autoGainControl').checked },
+            'echoCancellation': { 'ideal': document.getElementById('gum-echoCancellation').checked },
+            'noiseSuppression': { 'ideal': document.getElementById('gum-noiseSuppression').checked },
+            'channelCount': { 'min': 0, 'ideal': 1 },
+        },
+        'video': false,
+    };
+
+    var success = function(stream) {
+        document.getElementById('enable-input').style.setProperty('display', 'none');
+
+        gumStream = stream;
+        const wasmProcStream = createWasmProcessorStream(stream);
+
+        // initial setup matching live parameters
+        audioProcessor.port.onmessage = event => {
+            if (event.data?.type == 'loaded') {
+                set_wasm_enabled('bbba', document.getElementById('enable-bbba').checked);
+                set_wasm_enabled('renooice', document.getElementById('enable-rnnoise').checked);
+                set_wasm_param(0, document.getElementById('bbba-strength').value);
+            }
+        };
+
+        // create delay node just before the speakers
+        const delayOpts = {
+            channelCount: 1,
+            delayTime: document.getElementById('delay').value,
+            maxDelayTime: 1,
+        };
+        delayNode = new DelayNode(audioContext, delayOpts);
+
+        // connect processor to delay, then to speakers
+        audioProcessor.connect(delayNode);
+        delayNode.connect(audioContext.destination);
+    };
+    var fail = function(err) {
+        document.getElementById('error').setHTMLUnsafe('<h2>Error</h2><p>' + err + '</p>');
+        document.getElementById('error').style.removeProperty('display');
+        console.error(err);
+    };
+
+    navigator.mediaDevices.getUserMedia(constraints).then(success).catch(fail);
+};
+
+function maybeRestartStream() {
+    if (gumStream)
+        restartStream();
+}
+
+// keep waiting until audio worklet is loaded, then restart stream
+function waitForWorklet() {
+    if (workletLoaded) {
+        restartStream();
+        return;
+    }
+    setTimeout(waitForWorklet, 100);
+};
+
+window.addEventListener('DOMContentLoaded', function() {
+    // call init function and do setup processing once we have loaded the wasm modules
+    init(function(err) {
+        if (err) {
+            document.getElementById('error').setHTMLUnsafe('<h2>Error</h2><p>' + err.join('<br>') + '</p>');
+            return;
+        }
+
+        document.getElementById('error').style.setProperty('display', 'none');
+        document.getElementById('content').style.removeProperty('display');
+
+        // live parameters
+        var elems = {
+            strength: document.getElementById('bbba-strength'),
+            strengthVal: document.getElementById('bbba-strength-value'),
+            delay: document.getElementById('delay'),
+            delayVal: document.getElementById('delay-value'),
+        };
+        elems.strengthVal.textContent = elems.strength.value;
+        elems.delayVal.textContent = elems.delay.value;
+
+        document.getElementById('gum-autoGainControl').addEventListener('click', maybeRestartStream);
+        document.getElementById('gum-echoCancellation').addEventListener('click', maybeRestartStream);
+        document.getElementById('gum-noiseSuppression').addEventListener('click', maybeRestartStream);
+
+        document.getElementById('enable-bbba').addEventListener('click', function() {
+            set_wasm_enabled('bbba', this.checked);
+        });
+        document.getElementById('enable-rnnoise').addEventListener('click', function() {
+            set_wasm_enabled('renooice', this.checked);
+        });
+
+        elems.strength.addEventListener('input', function(event) {
+            elems.strengthVal.textContent = event.target.value;
+            set_wasm_param(0, event.target.value);
+        });
+        elems.delay.addEventListener('input', function(event) {
+            elems.delayVal.textContent = event.target.value;
+            if (delayNode)
+                delayNode.delayTime.value = event.target.value;
+        });
+
+        document.getElementById('enable-input').addEventListener('click', waitForWorklet);
+    });
+});
+
+        </script>
+        <style>
+            table {
+                text-align: center;
+            }
+            td {
+                min-width: 40px;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="error">Loading... (might need mouse click)</div>
+        <div id="content" style="display: none">
+            <div id="bbba">
+                <h2>Better audio for BigBlueButton</h2>
+                <div id="main">
+                    <input type="button" id="enable-input" value="Start (Enable Input)" />
+                </div>
+                <div>
+                    <input autocomplete="off" type="checkbox" id="gum-autoGainControl" value="gum-autoGainControl"></input>
+                    <label for="gum-autoGainControl">Browser Auto Gain Control</label>
+                </div>
+                <div>
+                    <input autocomplete="off" type="checkbox" id="gum-noiseSuppression" value="gum-noiseSuppression"></input>
+                    <label for="gum-noiseSuppression">Browser Noise Suppression</label>
+                </div>
+                <div>
+                    <input autocomplete="off" type="checkbox" id="gum-echoCancellation" value="gum-echoCancellation"></input>
+                    <label for="gum-echoCancellation">Browser Echo Cancellation</label>
+                </div>
+                <div>
+                    <input autocomplete="off" type="checkbox" id="enable-rnnoise" value="enable-rnnoise" checked></input>
+                    <label for="enable-rnnoise">RNNoise</label>
+                </div>
+                <div>
+                    <input autocomplete="off" type="checkbox" id="enable-bbba" value="enable-bbba" checked></input>
+                    <label for="enable-bbba">BBBA</label>
+                </div>
+                <table>
+                    <tr>
+                        <td>BBBA Strength:</td>
+                        <td><output id="bbba-strength-value"></output></td>
+                        <td><input autocomplete="off" id="bbba-strength" type="range" value="50" min="0" max="100" /></td>
+                    </tr>
+                    <tr>
+                        <td>Delay (s):</td>
+                        <td><output id="delay-value"></output></td>
+                        <td><input autocomplete="off" id="delay" type="range" value="0.5" min="0" max="1" step="0.1"/></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </body>
+</html>
