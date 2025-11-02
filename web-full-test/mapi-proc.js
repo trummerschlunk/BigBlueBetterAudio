@@ -43,10 +43,12 @@ class MapiProcessorInstance {
         module.HEAPU32[this.audioPtrs + (0 << 2) >> 2] = this.audioData;
     }
 
-    destructor() {
-        this.module._free(this.audioData);
-        this.module._free(this.audioPtrs);
+    destroy() {
+        console.log("MapiProcessorInstance::destroy start");
+        // this.module._free(this.audioData);
+        // this.module._free(this.audioPtrs);
         this.module._mapi_destroy(this.handle);
+        console.log("MapiProcessorInstance::destroy done");
     }
 
     param(index, value) {
@@ -78,6 +80,9 @@ class MapiWorkletProcessor extends AudioWorkletProcessor {
         if (options.numberOfInputs != 1)
             throw Error('Invalid IO, must be mono');
 
+        // helper for chromium-based browsers that destroy worklets once their `process` return false
+        this.destroyed = false;
+
         // instances of audio plugins (chain of FX)
         this.instances = {};
 
@@ -88,6 +93,9 @@ class MapiWorkletProcessor extends AudioWorkletProcessor {
             case 'init':
                 this.init(event.data);
                 break;
+            case 'destroy':
+                this.destroy();
+                break;
             case 'enabled':
                 this.enabled(event.data);
                 break;
@@ -96,6 +104,18 @@ class MapiWorkletProcessor extends AudioWorkletProcessor {
                 break;
             }
         };
+    }
+
+    destroy() {
+        console.log("MapiWorkletProcessor::destroy");
+        if (this.instances.bbba) {
+            this.instances.bbba.destroy();
+        }
+        if (this.instances.renooice) {
+            this.instances.renooice.destroy();
+        }
+        this.instances = {};
+        this.destroyed = true;
     }
 
     init(data) {
@@ -141,6 +161,11 @@ class MapiWorkletProcessor extends AudioWorkletProcessor {
     }
 
     process(inputs, outputs, parameters) {
+        if (this.destroyed) {
+            console.log("asked to be destroyed");
+            return false;
+        }
+
         if (!this.instances.bbba || !this.instances.renooice)
             return true;
 

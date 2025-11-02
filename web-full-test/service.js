@@ -31,6 +31,7 @@ const createWasmProcessorStream = (stream) => {
     const audioProcessorOptions = {
         numberOfInputs: 1,
         numberOfOutputs: 1,
+        channels: 1,
     };
     audioProcessor = new AudioWorkletNode(audioContext, 'mapi-proc', audioProcessorOptions);
     audioProcessor.port.postMessage({ type: 'init', ...loadedFiles });
@@ -42,6 +43,9 @@ const createWasmProcessorStream = (stream) => {
     console.log("---------------------------------------------------------------- createWasmProcessorStream ok!");
     return contextDestination.stream;
 };
+
+// const destroyWasmProcessor(stream) => {
+// };
 
 // load processor files, trigger Promise resolve when all done
 const loadWasmProcessor = () => {

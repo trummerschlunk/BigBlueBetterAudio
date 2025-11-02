@@ -41,18 +41,18 @@ function init(callback) {
 };
 
 // custom global vars
-let delayNode = null;
 let gumStream = null;
 
 // restart the stream
 function restartStream() {
-    if (audioProcessor && delayNode) {
-        audioProcessor.disconnect(delayNode);
-        delayNode.disconnect(audioContext.destination);
+    if (audioProcessor) {
+        audioProcessor.port.postMessage({type: 'destroy'});
+    }
+    if (gumStream) {
+        gumStream.getTracks().forEach(track => track.stop());
     }
 
     audioProcessor = null;
-    delayNode = null;
     gumStream = null;
 
     var constraints = {
@@ -86,7 +86,7 @@ function restartStream() {
             delayTime: document.getElementById('delay').value,
             maxDelayTime: 1,
         };
-        delayNode = new DelayNode(audioContext, delayOpts);
+        const delayNode = new DelayNode(audioContext, delayOpts);
 
         // connect processor to delay, then to speakers
         audioProcessor.connect(delayNode);
