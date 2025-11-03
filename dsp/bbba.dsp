@@ -69,6 +69,8 @@ gui_leveler(x) = gui_main(hgroup("leveler",x));
 
 bypass_switch = gui_main(checkbox("[0]bypass[symbol:bypass]"));
 
+sbmb_strength = gui_main(vslider("sbmb_strength[symbol:sbmb_strength]",100,0,100,1)) /100;
+
 //        _   _ _ _ _         
 //       | | (_) (_) |        
 //  _   _| |_ _| |_| |_ _   _ 
@@ -374,7 +376,7 @@ mbExpComp =
         xo6 = 3200;
         xo7 = 6400;
 
-        mb_strength = gui_mb(vslider("mb_strength[symbol:mb_strength]", 100,0,100,1)) / 100;
+        mb_strength = gui_mb(vslider("mb_strength[symbol:mb_strength]", 100,0,100,1)) / 100 : _*sbmb_strength;
 
         mb_makeup = 1.5;
 
@@ -509,6 +511,7 @@ ballancer(l) = l <:
         : sb_envelope(i)                                // gainchange smoothing (dependent on frequency band)
         : sb_limit                                      // limit gainchange
         : _*sb_strength                                 // apply strength
+        : _*sbmb_strength                               // apply overall strength
         : _*expander_sb(l) : ba.db2linear)     )        // multiply with expander (voice activity detection)
         : gainmeter_sb(i)),_))                          // meter the gainchange
         : par(i,SB_bands,gainchange(l))                    // do the actual gainchange to each band
