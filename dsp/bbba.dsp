@@ -10,25 +10,25 @@
 // -*-Faust-*-
 
 declare name "bbba";
-declare version "0.11";
+declare version "0.13";
 declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
 import("stdfaust.lib");
 
 Nch = 1;                            // bbba is mono
-MB_bands = 8;                         // number of bands of the multiband processing
+MB_bands = 8;                       // number of bands of the multiband processing
 SB_bands = 8;                       // number of bands of the spectral ballancer
 maxSR = 48000;                      // maximum samplerate
 Sliding_window_max = 480000;        // maximum size of the sliding window for noisefloor tracking
 
 
 
-lev_target_init = -23;
+lev_target_init = -25;
 lev_maxboost_init = 20;
 lev_maxcut_init = 20;
 lev_brake_threshold_init = -22;
-lev_speed_init = 60;
+lev_speed_init = 80;
 lev_scale_init =100;
 
 
@@ -53,6 +53,8 @@ process = si.bus(Nch)
             
             //: crossover
             : mbExpComp
+            
+            : limiter_mono
         )
         //<: si.bus(2)
         //: limiter_lookahead
@@ -107,14 +109,22 @@ ratio2strength(ratio) = 1-(1/ratio);
 // PRE FILTER
 preFilter = preHighpass : preLowpass with {
 
-    preHighpass = fi.highpass(3,preHighpass_freq);
-    preHighpass_freq = gui_mb(vslider("preLowcut_freq[scale:log][symbol:pre_lowcut]",80,1,400,1));
+    preHighpass = fi.highpass(1,preHighpass_freq);
+    preHighpass_freq = gui_main(vslider("preLowcut_freq[scale:log][symbol:pre_lowcut]",42,1,400,1));
 
     preLowpass = fi.lowpass(3,preLowpass_freq);
     preLowpass_freq = 22000;
 };
 
+// LIMITER MONO
 
+limiter_mono = co.limiter_lad_mono(lad, ceiling, att, hold, rel) with {
+    lad = 0.01;
+    ceiling = -3 : ba.db2linear;
+    att = 0.01;
+    hold = 0.01;
+    rel = 0.01;
+};
 
 
 // LIMITER with LOOKAHEAD
@@ -186,11 +196,14 @@ leveler_meter_gain = _; //vbargraph("h:[2]Controls/[8][unit:dB]gain",-50,50);
 expander_thresh_offset = 26; //hslider("thresh offset", 26,0,40,1);
 min_meter =  _ <: attach(_,vbargraph("min_track",-100,0));
 */
+
+/*
 levelerMono(l) =
 
   (l):leveler_sc(target)~(_)
                 :(_*(1-bp)) , (l*bp)   :>(_,_) ;
 
+*/
 /*
 leveler(l,r) =
 
@@ -345,10 +358,10 @@ mbExpComp =
     crossover
     // : gainMB_bands
     
-    : expander
-    : par(i,MB_bands,compressor)
+    // : expander
+    //: par(i,MB_bands,compressor)
     //: compressorN
-
+    : compressor8
     :> si.bus(1)
 
     with {
@@ -360,6 +373,10 @@ mbExpComp =
         xo5 = 1600;
         xo6 = 3200;
         xo7 = 6400;
+
+        mb_strength = gui_mb(vslider("mb_strength[symbol:mb_strength]", 100,0,100,1)) / 100;
+
+        mb_makeup = 1.5;
 
         // gainMB_bands = par(i,MB_bands,(_ * (gui_mb(vslider("gain %i[symbol:mb_comp_gain_%i]",0,-12,12,1) : ba.db2linear))));
 
@@ -402,13 +419,13 @@ mbExpComp =
         };
 
         compressor(l) = l * (l:co.peak_compression_gain_mono(strength,thresh,att,rel,knee,prePost):compressor_meter) with {
-            strength = ratio2strength(1.4); 
-            thresh = target -4;
-            att = 0.001;
-            rel = 0.1;
+            strength = ratio2strength(4); 
+            thresh = target -12;
+            att = 0.01;
+            rel = 0.03;
             knee = 6;
             prePost = 1;
-            compressor_meter = _;//_ <: attach(_,ba.linear2db:gui_mb(vbargraph("[2][unit:dB][symbol:mb_comp_gain]",-6,0)));
+            compressor_meter = _ <: attach(_,ba.linear2db:gui_mb(vbargraph("[2][unit:dB][symbol:mb_comp_gain]",-6,0)));
 
         };
 
@@ -423,6 +440,33 @@ mbExpComp =
             FBFF = 0.5;
             compressor_meter = _ <: attach(_,gui_mb(vbargraph("[2][unit:dB][symbol:mb_comp_gain]",-6,0)));
         };
+
+        compressor8 = par (i,8, compressor8_mono(i)) with {
+            compressor8_mono(i,l) = l * 
+                                (l:co.peak_compression_gain_mono(
+                                    ratio2strength(ratio : ba.selector(i,MB_bands)),
+                                    target + (thresh : ba.selector(i,MB_bands)),
+                                    att : ba.selector(i,MB_bands) : _*0.001,
+                                    rel : ba.selector(i,MB_bands) : _*0.001,
+                                    knee,
+                                    prePost)
+                                    : ba.linear2db + mb_makeup : ba.db2linear
+                                    : scale_by_mb_strength
+                                    :compressor_meter(i)
+                                );
+            ratio = 4,4,4,4,4,4,4,4;
+            thresh = -5,-6,-7,-8,-11,-12,-12,-13;
+            att = 30,25,20,15,10,5,3,2;
+            rel = 100,80,60,40,20,15,15,15;
+            knee = 1;
+            prePost= 1;
+
+            scale_by_mb_strength = ba.linear2db : _ * mb_strength : ba.db2linear;
+
+            compressor_meter(i) = _ <: attach(_,ba.linear2db:gui_mb(vbargraph("[2]MBgr%2i[unit:dB][symbol:mb_comp_gain%2i]",-6,6)));
+        };
+
+         
 
     };
 
