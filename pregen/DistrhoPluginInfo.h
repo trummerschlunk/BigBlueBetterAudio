@@ -9,7 +9,7 @@
 // Author: Klaus Scheuermann
 // Copyright: 
 // License: GPLv3+
-// Version: 0.11
+// Version: 0.13
 //------------------------------------------------------------------------------
 
 
@@ -42,7 +42,9 @@ enum Parameters {
     kParameter_leveler_target,
     kParameter_leveler_scale,
     kParameter_leveler_expander_offset,
+    kParameter_mb_strength,
     kParameter_pre_lowcut,
+    kParameter_sbmb_strength,
     
     // outputs
     kParameter_sb_expander,
@@ -65,6 +67,14 @@ enum Parameters {
     kParameter_leveler_brake,
     kParameter_leveler_gain,
     kParameter_leveler_meter_minimum,
+    kParameter_mb_comp_gain_0,
+    kParameter_mb_comp_gain_1,
+    kParameter_mb_comp_gain_2,
+    kParameter_mb_comp_gain_3,
+    kParameter_mb_comp_gain_4,
+    kParameter_mb_comp_gain_5,
+    kParameter_mb_comp_gain_6,
+    kParameter_mb_comp_gain_7,
     
     // terminator
     kParameterCount
@@ -78,7 +88,7 @@ enum States {
     kStateCount
 };
 
-static constexpr const char* kParameterNames[34] = {
+static constexpr const char* kParameterNames[44] = {
     // inputs
     "strength",
     "spec 0",
@@ -93,7 +103,9 @@ static constexpr const char* kParameterNames[34] = {
     "target",
     "leveler_scale",
     "thresh offset",
+    "mb_strength",
     "preLowcut_freq",
+    "sbmb_strength",
     
     // ouputs
     "sb_expander",
@@ -116,10 +128,18 @@ static constexpr const char* kParameterNames[34] = {
     "brake",
     "gain",
     "min_track",
+    "MBgr 0",
+    "MBgr 1",
+    "MBgr 2",
+    "MBgr 3",
+    "MBgr 4",
+    "MBgr 5",
+    "MBgr 6",
+    "MBgr 7",
     
 };
 
-static constexpr const struct { float def, min, max; } kParameterRanges[34] = {
+static constexpr const struct { float def, min, max; } kParameterRanges[44] = {
     // inputs
     { 50.0, 0.0, 100.0 },
     { -10.0, -20.0, 0.0 },
@@ -131,10 +151,12 @@ static constexpr const struct { float def, min, max; } kParameterRanges[34] = {
     { -7.0, -20.0, 0.0 },
     { -3.0, -20.0, 0.0 },
     { 0, 0, 1 },
-    { -23.0, -60.0, 0.0 },
+    { -25.0, -60.0, 0.0 },
     { 1.0, 0.0, 1.0 },
     { 6.0, 0.0, 40.0 },
-    { 80.0, 1.0, 400.0 },
+    { 100.0, 0.0, 100.0 },
+    { 42.0, 1.0, 400.0 },
+    { 100.0, 0.0, 100.0 },
     
     // ouputs
     { 0, 0.0, 1.0 },
@@ -157,10 +179,18 @@ static constexpr const struct { float def, min, max; } kParameterRanges[34] = {
     { 0, 0.0, 100.0 },
     { 0, -50.0, 50.0 },
     { 0, -100.0, 0.0 },
+    { 0, -6.0, 6.0 },
+    { 0, -6.0, 6.0 },
+    { 0, -6.0, 6.0 },
+    { 0, -6.0, 6.0 },
+    { 0, -6.0, 6.0 },
+    { 0, -6.0, 6.0 },
+    { 0, -6.0, 6.0 },
+    { 0, -6.0, 6.0 },
     
 };
 
-static constexpr const char* kParameterSymbols[34] = {
+static constexpr const char* kParameterSymbols[44] = {
     // inputs
     "sb_strength",
     "sb_target_spectrum_0",
@@ -175,7 +205,9 @@ static constexpr const char* kParameterSymbols[34] = {
     "leveler_target",
     "leveler_scale",
     "leveler_expander_offset",
+    "mb_strength",
     "pre_lowcut",
+    "sbmb_strength",
     
     // ouputs
     "sb_expander",
@@ -198,10 +230,18 @@ static constexpr const char* kParameterSymbols[34] = {
     "leveler_brake",
     "leveler_gain",
     "leveler_meter_minimum",
+    "mb_comp_gain_0",
+    "mb_comp_gain_1",
+    "mb_comp_gain_2",
+    "mb_comp_gain_3",
+    "mb_comp_gain_4",
+    "mb_comp_gain_5",
+    "mb_comp_gain_6",
+    "mb_comp_gain_7",
     
 };
 
-static constexpr const char* kParameterUnits[34] = {
+static constexpr const char* kParameterUnits[44] = {
     // inputs
     "%",
     "",
@@ -214,6 +254,8 @@ static constexpr const char* kParameterUnits[34] = {
     "",
     "",
     "dB",
+    "",
+    "",
     "",
     "",
     "",
@@ -239,6 +281,14 @@ static constexpr const char* kParameterUnits[34] = {
     "%",
     "dB",
     "",
+    "dB",
+    "dB",
+    "dB",
+    "dB",
+    "dB",
+    "dB",
+    "dB",
+    "dB",
     
 };
 

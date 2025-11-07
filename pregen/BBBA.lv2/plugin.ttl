@@ -269,7 +269,7 @@
     
         lv2:name "target" ;
         lv2:symbol "leveler_target" ;
-        lv2:default -23.0 ;
+        lv2:default -25.0 ;
         lv2:minimum -60.0 ;
         lv2:maximum 0.0 ;
         
@@ -329,9 +329,29 @@
         a lv2:InputPort, lv2:ControlPort ;
         lv2:index 15 ;
     
+        lv2:name "mb_strength" ;
+        lv2:symbol "mb_strength" ;
+        lv2:default 100.0 ;
+        lv2:minimum 0.0 ;
+        lv2:maximum 100.0 ;
+        
+        
+        
+        
+        
+        
+        
+        
+    
+    ] ;
+    
+    lv2:port [
+        a lv2:InputPort, lv2:ControlPort ;
+        lv2:index 16 ;
+    
         lv2:name "preLowcut_freq" ;
         lv2:symbol "pre_lowcut" ;
-        lv2:default 80.0 ;
+        lv2:default 42.0 ;
         lv2:minimum 1.0 ;
         lv2:maximum 400.0 ;
         
@@ -347,11 +367,31 @@
     
     ] ;
     
+    lv2:port [
+        a lv2:InputPort, lv2:ControlPort ;
+        lv2:index 17 ;
+    
+        lv2:name "sbmb_strength" ;
+        lv2:symbol "sbmb_strength" ;
+        lv2:default 100.0 ;
+        lv2:minimum 0.0 ;
+        lv2:maximum 100.0 ;
+        
+        
+        
+        
+        
+        
+        
+        
+    
+    ] ;
+    
 
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 16 ;
+        lv2:index 18 ;
         lv2:name "sb_expander" ;
         lv2:symbol "sb_expander" ;
         lv2:minimum 0.0 ;
@@ -367,7 +407,7 @@
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 17 ;
+        lv2:index 19 ;
         lv2:name "band  0" ;
         lv2:symbol "sb_meter__0" ;
         lv2:minimum -40.0 ;
@@ -385,7 +425,7 @@
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 18 ;
+        lv2:index 20 ;
         lv2:name "band  1" ;
         lv2:symbol "sb_meter__1" ;
         lv2:minimum -40.0 ;
@@ -403,7 +443,7 @@
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 19 ;
+        lv2:index 21 ;
         lv2:name "band  2" ;
         lv2:symbol "sb_meter__2" ;
         lv2:minimum -40.0 ;
@@ -421,7 +461,7 @@
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 20 ;
+        lv2:index 22 ;
         lv2:name "band  3" ;
         lv2:symbol "sb_meter__3" ;
         lv2:minimum -40.0 ;
@@ -439,7 +479,7 @@
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 21 ;
+        lv2:index 23 ;
         lv2:name "band  4" ;
         lv2:symbol "sb_meter__4" ;
         lv2:minimum -40.0 ;
@@ -457,7 +497,7 @@
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 22 ;
+        lv2:index 24 ;
         lv2:name "band  5" ;
         lv2:symbol "sb_meter__5" ;
         lv2:minimum -40.0 ;
@@ -475,7 +515,7 @@
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 23 ;
+        lv2:index 25 ;
         lv2:name "band  6" ;
         lv2:symbol "sb_meter__6" ;
         lv2:minimum -40.0 ;
@@ -493,7 +533,7 @@
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 24 ;
+        lv2:index 26 ;
         lv2:name "band  7" ;
         lv2:symbol "sb_meter__7" ;
         lv2:minimum -40.0 ;
@@ -511,7 +551,7 @@
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 25 ;
+        lv2:index 27 ;
         lv2:name "sb_gain  0" ;
         lv2:symbol "sb_gain__0" ;
         lv2:minimum -12.0 ;
@@ -527,7 +567,7 @@
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 26 ;
+        lv2:index 28 ;
         lv2:name "sb_gain  1" ;
         lv2:symbol "sb_gain__1" ;
         lv2:minimum -12.0 ;
@@ -543,7 +583,7 @@
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 27 ;
+        lv2:index 29 ;
         lv2:name "sb_gain  2" ;
         lv2:symbol "sb_gain__2" ;
         lv2:minimum -12.0 ;
@@ -559,7 +599,7 @@
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 28 ;
+        lv2:index 30 ;
         lv2:name "sb_gain  3" ;
         lv2:symbol "sb_gain__3" ;
         lv2:minimum -12.0 ;
@@ -575,7 +615,7 @@
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 29 ;
+        lv2:index 31 ;
         lv2:name "sb_gain  4" ;
         lv2:symbol "sb_gain__4" ;
         lv2:minimum -12.0 ;
@@ -591,7 +631,7 @@
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 30 ;
+        lv2:index 32 ;
         lv2:name "sb_gain  5" ;
         lv2:symbol "sb_gain__5" ;
         lv2:minimum -12.0 ;
@@ -607,7 +647,7 @@
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 31 ;
+        lv2:index 33 ;
         lv2:name "sb_gain  6" ;
         lv2:symbol "sb_gain__6" ;
         lv2:minimum -12.0 ;
@@ -623,7 +663,7 @@
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 32 ;
+        lv2:index 34 ;
         lv2:name "sb_gain  7" ;
         lv2:symbol "sb_gain__7" ;
         lv2:minimum -12.0 ;
@@ -639,7 +679,7 @@
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 33 ;
+        lv2:index 35 ;
         lv2:name "brake" ;
         lv2:symbol "leveler_brake" ;
         lv2:minimum 0.0 ;
@@ -657,7 +697,7 @@
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 34 ;
+        lv2:index 36 ;
         lv2:name "gain" ;
         lv2:symbol "leveler_gain" ;
         lv2:minimum -50.0 ;
@@ -675,7 +715,7 @@
     
     lv2:port [
         a lv2:OutputPort, lv2:ControlPort ;
-        lv2:index 35 ;
+        lv2:index 37 ;
         lv2:name "min_track" ;
         lv2:symbol "leveler_meter_minimum" ;
         lv2:minimum -100.0 ;
@@ -683,6 +723,150 @@
         
         
         
+        
+        
+        
+        
+    ] ;
+    
+    lv2:port [
+        a lv2:OutputPort, lv2:ControlPort ;
+        lv2:index 38 ;
+        lv2:name "MBgr 0" ;
+        lv2:symbol "mb_comp_gain_0" ;
+        lv2:minimum -6.0 ;
+        lv2:maximum 6.0 ;
+        
+        
+        
+        
+        unit:unit unit:db ;
+        
+        
+        
+        
+    ] ;
+    
+    lv2:port [
+        a lv2:OutputPort, lv2:ControlPort ;
+        lv2:index 39 ;
+        lv2:name "MBgr 1" ;
+        lv2:symbol "mb_comp_gain_1" ;
+        lv2:minimum -6.0 ;
+        lv2:maximum 6.0 ;
+        
+        
+        
+        
+        unit:unit unit:db ;
+        
+        
+        
+        
+    ] ;
+    
+    lv2:port [
+        a lv2:OutputPort, lv2:ControlPort ;
+        lv2:index 40 ;
+        lv2:name "MBgr 2" ;
+        lv2:symbol "mb_comp_gain_2" ;
+        lv2:minimum -6.0 ;
+        lv2:maximum 6.0 ;
+        
+        
+        
+        
+        unit:unit unit:db ;
+        
+        
+        
+        
+    ] ;
+    
+    lv2:port [
+        a lv2:OutputPort, lv2:ControlPort ;
+        lv2:index 41 ;
+        lv2:name "MBgr 3" ;
+        lv2:symbol "mb_comp_gain_3" ;
+        lv2:minimum -6.0 ;
+        lv2:maximum 6.0 ;
+        
+        
+        
+        
+        unit:unit unit:db ;
+        
+        
+        
+        
+    ] ;
+    
+    lv2:port [
+        a lv2:OutputPort, lv2:ControlPort ;
+        lv2:index 42 ;
+        lv2:name "MBgr 4" ;
+        lv2:symbol "mb_comp_gain_4" ;
+        lv2:minimum -6.0 ;
+        lv2:maximum 6.0 ;
+        
+        
+        
+        
+        unit:unit unit:db ;
+        
+        
+        
+        
+    ] ;
+    
+    lv2:port [
+        a lv2:OutputPort, lv2:ControlPort ;
+        lv2:index 43 ;
+        lv2:name "MBgr 5" ;
+        lv2:symbol "mb_comp_gain_5" ;
+        lv2:minimum -6.0 ;
+        lv2:maximum 6.0 ;
+        
+        
+        
+        
+        unit:unit unit:db ;
+        
+        
+        
+        
+    ] ;
+    
+    lv2:port [
+        a lv2:OutputPort, lv2:ControlPort ;
+        lv2:index 44 ;
+        lv2:name "MBgr 6" ;
+        lv2:symbol "mb_comp_gain_6" ;
+        lv2:minimum -6.0 ;
+        lv2:maximum 6.0 ;
+        
+        
+        
+        
+        unit:unit unit:db ;
+        
+        
+        
+        
+    ] ;
+    
+    lv2:port [
+        a lv2:OutputPort, lv2:ControlPort ;
+        lv2:index 45 ;
+        lv2:name "MBgr 7" ;
+        lv2:symbol "mb_comp_gain_7" ;
+        lv2:minimum -6.0 ;
+        lv2:maximum 6.0 ;
+        
+        
+        
+        
+        unit:unit unit:db ;
         
         
         
