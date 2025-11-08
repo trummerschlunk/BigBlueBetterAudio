@@ -2,42 +2,62 @@
 // SPDX-License-Identifier: ISC
 
 // known constants
-const maxBufferSize = 2048;
+const nominalBufferSize = 128;
 const sizeof_float = 4;
 const sizeof_ptr = 4;
 
+// function to setup wasm + emscripten module options for offline fetch
+const createWasmOpts = (wasmBlob, postRunCallback) => {
+    return {
+        // override to use previously retrieved blob data, as `fetch` is not allowed in worklets
+        instantiateWasm: (imports, successCallback) => {
+            WebAssembly.instantiate(wasmBlob, imports).then(output => {
+                // Taken from emscripten example:
+                // When overriding instantiateWasm, in asan builds, we also need
+                // to take care of creating the WasmOffsetConverter
+                if (typeof WasmOffsetConverter != "undefined") {
+                    wasmOffsetConverter = new WasmOffsetConverter(wasmBlob, output.module);
+                }
+
+                successCallback(output.instance, output.module);
+            }).catch(error => {
+                console.log('Failed to instantiate:', error);
+            });
+
+            return {};
+        },
+        postRun: postRunCallback,
+    };
+};
+
 // class that holds a mono audio plugin instance
+// see https://github.com/DISTRHO/MAPI for the API used here
 class MapiProcessorInstance {
     constructor(module) {
         this.module = module;
         this.handle = module._mapi_create(sampleRate);
+        this.enabled = true;
 
-        this.audioData = module._malloc(sizeof_float * maxBufferSize);
+        this.audioData = module._malloc(sizeof_float * nominalBufferSize);
         this.audioPtrs = module._malloc(sizeof_ptr);
         module.HEAPU32[this.audioPtrs + (0 << 2) >> 2] = this.audioData;
     }
 
-    destructor() {
-        module._free(this.audioData);
-        module._free(this.audioPtrs);
-        module._mapi_destroy(this.handle);
+    param(index, value) {
+        this.module._mapi_set_parameter(this.handle, index, value);
     }
 
-    process(input, output, channelOffset) {
-        // copy audio input into wasm buffers
-        let buffer = input[channelOffset];
-        for (var i = 0; i < buffer.length; ++i) {
-            this.module.HEAPF32[this.audioData + (i << 2) >> 2] = buffer[i];
-        }
+    process(buffer, bufferSize, bufferOffset) {
+        if (! this.enabled)
+            return;
 
-        // process wasm module
-        this.module._mapi_process(this.handle, this.audioPtrs, this.audioPtrs, buffer.length);
+        for (let i = 0; i < bufferSize; ++i)
+            this.module.HEAPF32[this.audioData + (i << 2) >> 2] = buffer[bufferOffset + i];
 
-        // copy wasm output to auto output
-        buffer = output[channelOffset];
-        for (var i = 0; i < buffer.length; ++i) {
-            buffer[i] = this.module.HEAPF32[this.audioData + (i << 2) >> 2];
-        }
+        this.module._mapi_process(this.handle, this.audioPtrs, this.audioPtrs, bufferSize);
+
+        for (let i = 0; i < bufferSize; ++i)
+            buffer[bufferOffset + i] = this.module.HEAPF32[this.audioData + (i << 2) >> 2];
     }
 };
 
@@ -46,14 +66,14 @@ class MapiWorkletProcessor extends AudioWorkletProcessor {
     constructor(options) {
         super(options);
 
-        // save for future use
-        this.numIO = Math.min(options.numberOfInputs, options.numberOfOutputs);
+        // validity checks
+        if (options.numberOfInputs != options.numberOfOutputs)
+            throw Error('Mis-matching IO, number of inputs must match outputs');
+        if (options.numberOfInputs != 1)
+            throw Error('Invalid IO, must be mono');
 
-        // the emscripten module
-        this.module = null;
-
-        // instances of audio plugins
-        this.instances = [];
+        // MAPI processor instance
+        this.bbba = null;
 
         // bi-directional port communication
         this.port.onmessage = event => {
@@ -61,6 +81,9 @@ class MapiWorkletProcessor extends AudioWorkletProcessor {
             {
             case 'init':
                 this.init(event.data);
+                break;
+            case 'enable':
+                this.enable(event.data);
                 break;
             case 'param':
                 this.param(event.data);
@@ -70,68 +93,60 @@ class MapiWorkletProcessor extends AudioWorkletProcessor {
     }
 
     init(data) {
-        // execute JS to expose the emscripten module function
-        const jsfn = new Function(data.js + 'return mapi_bbba;');
-        const create_module = jsfn.call();
+        // execute JS to expose the emscripten load module function
+        const jsfn_bbba = new Function(data.js + 'return mapi_bbba;');
+        const create_module_bbba = jsfn_bbba.call();
 
-        // create the wasm module
-        create_module({
-            // override instantiateWasm to use previously retrieved data, `fetch` is not allowed here
-            instantiateWasm: (imports, successCallback) => {
-                WebAssembly.instantiate(data.wasm, imports).then(output => {
-                    // Taken from emscripten example:
-                    // When overriding instantiateWasm, in asan builds, we also need
-                    // to take care of creating the WasmOffsetConverter
-                    if (typeof WasmOffsetConverter != "undefined") {
-                        wasmOffsetConverter = new WasmOffsetConverter(bytes, output.module);
-                    }
-
-                    successCallback(output.instance, output.module);
-                }).catch(error => {
-                    console.log('Failed to instantiate:', error);
-                });
-
-                return {};
-            },
-            postRun: module => {
-                this.module = module;
-
-                for (let i = 0; i < this.numIO; ++i) {
-                    this.instances.push(new MapiProcessorInstance(module));
-                }
-            },
+        // create wasm opts for offline loading
+        const opts = createWasmOpts(data.wasm, (module) => {
+            this.bbba = new MapiProcessorInstance(module);
+            this.port.postMessage({ type: 'loaded' });
         });
+
+        // create the wasm module and instance
+        create_module_bbba(opts);
     }
 
-    param(data) {
-        if (!this.module) {
+    enable(data) {
+        if (!this.bbba) {
+            console.error('BBBA wasm is not loaded yet!');
             return;
         }
 
-        for (let instance in this.instances) {
-            this.module._mapi_set_parameter(instance.handle, data.index, data.value);
+        this.bbba.enabled = !!data.enable;
+        console.log('BBBA status changed:', this.bbba.enabled);
+    }
+
+    param(data) {
+        if (!this.bbba) {
+            console.error('BBBA wasm is not loaded yet!');
+            return;
         }
+
+        this.bbba.param(data.index, data.value);
     }
 
     process(inputs, outputs, parameters) {
-        if (!this.module) {
+        if (!this.bbba)
             return false;
-        }
 
         const input = inputs[0];
         const output = outputs[0];
 
-        // IO check
-        if (input.length == 0 || output.length == 0) {
-            // can be zero if stream is not connected yet
+        // IO check, can be zero if stream is not connected yet
+        if (input.length == 0 || output.length == 0)
             return false;
-        }
 
-        for (var i = 0; i < this.numIO; ++i) {
-            this.instances[i].process(input, output, i);
-        }
+        // use in-place processing
+        const buffer = output[0];
+        // TODO use something like output.copyFrom(input);
+        for (let i = 0; i < buffer.length; ++i)
+            buffer[i] = input[0][i];
 
-        return true;
+        for (let offset = 0; offset < buffer.length; offset += nominalBufferSize)
+            this.bbba.process(buffer, Math.min(nominalBufferSize, buffer.length - offset), offset);
+
+        return false;
     }
 };
 

@@ -74,8 +74,7 @@ function restartStream() {
         // initial setup matching live parameters
         audioProcessor.port.onmessage = event => {
             if (event.data?.type == 'loaded') {
-                set_wasm_enabled('bbba', document.getElementById('enable-bbba').checked);
-                set_wasm_enabled('renooice', document.getElementById('enable-rnnoise').checked);
+                set_wasm_enabled(document.getElementById('enable-bbba').checked);
                 set_wasm_param(0, document.getElementById('bbba-strength').value);
             }
         };
@@ -108,7 +107,7 @@ function maybeRestartStream() {
 
 // keep waiting until audio worklet is loaded, then restart stream
 function waitForWorklet() {
-    if (workletLoaded) {
+    if (workletRunning) {
         restartStream();
         return;
     }
@@ -141,10 +140,7 @@ window.addEventListener('DOMContentLoaded', function() {
         document.getElementById('gum-noiseSuppression').addEventListener('click', maybeRestartStream);
 
         document.getElementById('enable-bbba').addEventListener('click', function() {
-            set_wasm_enabled('bbba', this.checked);
-        });
-        document.getElementById('enable-rnnoise').addEventListener('click', function() {
-            set_wasm_enabled('renooice', this.checked);
+            set_wasm_enabled(this.checked);
         });
 
         elems.strength.addEventListener('input', function(event) {
@@ -190,10 +186,6 @@ window.addEventListener('DOMContentLoaded', function() {
                 <div>
                     <input autocomplete="off" type="checkbox" id="gum-echoCancellation" value="gum-echoCancellation"></input>
                     <label for="gum-echoCancellation">Browser Echo Cancellation</label>
-                </div>
-                <div>
-                    <input autocomplete="off" type="checkbox" id="enable-rnnoise" value="enable-rnnoise" checked></input>
-                    <label for="enable-rnnoise">RNNoise</label>
                 </div>
                 <div>
                     <input autocomplete="off" type="checkbox" id="enable-bbba" value="enable-bbba" checked></input>

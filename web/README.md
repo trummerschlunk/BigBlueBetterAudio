@@ -14,11 +14,11 @@ source /path/to/emsdk/emsdk_env.sh
 # change dir to BBBA
 cd /path/to/BBBA
 
-# update DPF
+# update + checkout submodule dependencies
 git submodule update --init --recursive
 
-# re-gen C++ code from faust dsp files
-make pregen
+# optional: re-gen C++ code from faust dsp files, if modified
+# make pregen
 
 # build
 env CC=emcc CXX=em++ make NOOPT=true mapi

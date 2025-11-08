@@ -355,8 +355,10 @@ protected:
         const bool statsEnabled = extraParameters[kExtraParamEnableStats] > 0.5f;
         if (stats.enabled != statsEnabled)
         {
-            stats.reset();
             stats.enabled = statsEnabled;
+
+            if (statsEnabled)
+                stats.reset();
         }
 
         // pass this threshold to unmute
