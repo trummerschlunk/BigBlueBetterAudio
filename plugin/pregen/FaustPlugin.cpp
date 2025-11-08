@@ -14,7 +14,9 @@
 
 
 #include "DistrhoPlugin.hpp"
-#include "extra/ScopedPointer.hpp"
+
+#include <algorithm>
+#include <memory>
 
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -32,9 +34,6 @@
 // --------------------------------------------------------------------------------------------------------------------
 
 START_NAMESPACE_DISTRHO
-
-template <class T> inline T min(T a, T b) { return (a < b) ? a : b; }
-template <class T> inline T max(T a, T b) { return (a > b) ? a : b; }
 
 class dsp {
 public:
@@ -128,14 +127,10 @@ class mydsp : public dsp {
 	
 	FAUSTFLOAT fVslider0;
 	int fSampleRate;
-	float fConst0;
 	float fConst1;
 	int iConst2;
-	float fConst3;
 	float fConst4;
-	float fConst5;
 	float fConst6;
-	float fConst7;
 	float fConst8;
 	float fVec0[2];
 	FAUSTFLOAT fVslider1;
@@ -155,10 +150,10 @@ class mydsp : public dsp {
 	int iConst18;
 	float fVec1[3];
 	int iConst19;
-	float fVec2[5];
+	float fVec2[7];
 	int iConst20;
 	int iConst21;
-	float fVec3[12];
+	float fVec3[15];
 	int iConst22;
 	int iConst23;
 	int IOTA0;
@@ -211,7 +206,6 @@ class mydsp : public dsp {
 	FAUSTFLOAT fVbargraph0;
 	FAUSTFLOAT fVslider2;
 	float fConst54;
-	float fConst55;
 	float fConst56;
 	float fRec36[2];
 	float fConst57;
@@ -220,7 +214,6 @@ class mydsp : public dsp {
 	float fRec31[2];
 	float fRec32[2];
 	float fConst59;
-	float fConst60;
 	float fConst61;
 	float fRec28[2];
 	float fConst62;
@@ -231,10 +224,10 @@ class mydsp : public dsp {
 	int iConst63;
 	float fVec20[3];
 	int iConst64;
-	float fVec21[5];
+	float fVec21[7];
 	int iConst65;
 	int iConst66;
-	float fVec22[12];
+	float fVec22[15];
 	int iConst67;
 	int iConst68;
 	float fVec23[32];
@@ -255,26 +248,17 @@ class mydsp : public dsp {
 	float fConst79;
 	float fRec22[2];
 	FAUSTFLOAT fVbargraph1;
-	float fConst80;
 	int iConst81;
-	float fConst82;
-	float fConst83;
-	float fConst84;
 	float fConst85;
 	float fConst86;
 	float fConst87;
-	float fConst88;
 	float fConst89;
 	float fVec28[2];
-	float fConst90;
 	float fConst91;
 	float fConst92;
 	float fRec44[2];
 	float fRec43[2];
-	float fConst93;
-	float fConst94;
 	float fConst95;
-	float fConst96;
 	float fConst97;
 	float fVec29[2];
 	float fConst98;
@@ -284,10 +268,10 @@ class mydsp : public dsp {
 	float fVec31[3];
 	int iConst99;
 	int iConst100;
-	float fVec32[5];
+	float fVec32[7];
 	int iConst101;
 	int iConst102;
-	float fVec33[12];
+	float fVec33[15];
 	int iConst103;
 	int iConst104;
 	float fVec34[32];
@@ -314,8 +298,8 @@ class mydsp : public dsp {
 	float fVec39[2];
 	float fVec40[2];
 	float fVec41[3];
-	float fVec42[5];
-	float fVec43[12];
+	float fVec42[7];
+	float fVec43[15];
 	float fVec44[32];
 	float fVec45[64];
 	float fVec46[128];
@@ -325,7 +309,6 @@ class mydsp : public dsp {
 	float fRec10[2];
 	FAUSTFLOAT fVbargraph3;
 	float fConst116;
-	float fConst117;
 	float fConst118;
 	float fRec93[2];
 	float fConst119;
@@ -334,14 +317,12 @@ class mydsp : public dsp {
 	float fRec88[2];
 	float fRec89[2];
 	float fConst121;
-	float fConst122;
 	float fConst123;
 	float fRec84[2];
 	float fConst124;
 	float fRec85[2];
 	float fConst125;
 	float fConst126;
-	float fConst127;
 	float fConst128;
 	float fRec80[2];
 	float fConst129;
@@ -351,7 +332,6 @@ class mydsp : public dsp {
 	float fRec77[2];
 	float fConst131;
 	float fConst132;
-	float fConst133;
 	float fConst134;
 	float fRec71[2];
 	float fConst135;
@@ -360,14 +340,12 @@ class mydsp : public dsp {
 	float fRec66[2];
 	float fRec67[2];
 	float fConst137;
-	float fConst138;
 	float fConst139;
 	float fRec62[2];
 	float fConst140;
 	float fRec63[2];
 	float fConst141;
 	float fConst142;
-	float fConst143;
 	float fConst144;
 	float fRec57[2];
 	float fConst145;
@@ -652,9 +630,8 @@ class mydsp : public dsp {
 	float fRec348[2];
 	
  public:
-	mydsp() {
-	}
-	
+	mydsp() {}
+
 	void metadata(Meta* m) { 
 		m->declare("analyzers.lib/amp_follower_ar:author", "Jonatan Liljedahl, revised by Romain Michon");
 		m->declare("analyzers.lib/name", "Faust Analyzer Library");
@@ -668,8 +645,9 @@ class mydsp : public dsp {
 		m->declare("basics.lib/peakholder:author", "Dario Sanfilippo");
 		m->declare("basics.lib/peakholder:copyright", "Copyright (C) 2022 Dario Sanfilippo <sanfilippo.dario@gmail.com>");
 		m->declare("basics.lib/peakholder:license", "MIT-style STK-4.3 license");
-		m->declare("basics.lib/version", "1.21.0");
-		m->declare("compile_options", "-a /tmp/tmpptdo2wa4.cpp -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("basics.lib/tabulateNd", "Copyright (C) 2023 Bart Brouns <bart@magnetophon.nl>");
+		m->declare("basics.lib/version", "1.12.0");
+		m->declare("compile_options", "-a /tmp/tmp8cgzk1ad.cpp -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("compressors.lib/limiter_lad_N:author", "Dario Sanfilippo");
 		m->declare("compressors.lib/limiter_lad_N:copyright", "Copyright (C) 2020 Dario Sanfilippo       <sanfilippo.dario@gmail.com>");
 		m->declare("compressors.lib/limiter_lad_N:license", "GPLv3 license");
@@ -738,17 +716,17 @@ class mydsp : public dsp {
 		m->declare("filters.lib/tf2s:author", "Julius O. Smith III");
 		m->declare("filters.lib/tf2s:copyright", "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>");
 		m->declare("filters.lib/tf2s:license", "MIT-style STK-4.3 license");
-		m->declare("filters.lib/version", "1.7.1");
+		m->declare("filters.lib/version", "1.3.0");
 		m->declare("interpolators.lib/interpolate_linear:author", "Stéphane Letz");
 		m->declare("interpolators.lib/interpolate_linear:licence", "MIT");
 		m->declare("interpolators.lib/name", "Faust Interpolator Library");
-		m->declare("interpolators.lib/version", "1.4.0");
+		m->declare("interpolators.lib/version", "1.3.0");
 		m->declare("license", "GPLv3");
 		m->declare("maths.lib/author", "GRAME");
 		m->declare("maths.lib/copyright", "GRAME");
 		m->declare("maths.lib/license", "LGPL with exception");
 		m->declare("maths.lib/name", "Faust Math Library");
-		m->declare("maths.lib/version", "2.8.1");
+		m->declare("maths.lib/version", "2.7.0");
 		m->declare("name", "bbba");
 		m->declare("platform.lib/name", "Generic Platform Library");
 		m->declare("platform.lib/version", "1.3.0");
@@ -757,7 +735,7 @@ class mydsp : public dsp {
 		m->declare("signals.lib/name", "Faust Signal Routing Library");
 		m->declare("signals.lib/onePoleSwitching:author", "Jonatan Liljedahl, revised by Dario Sanfilippo");
 		m->declare("signals.lib/onePoleSwitching:licence", "STK-4.3");
-		m->declare("signals.lib/version", "1.6.0");
+		m->declare("signals.lib/version", "1.5.0");
 		m->declare("version", "0.13");
 	}
 
@@ -773,14 +751,14 @@ class mydsp : public dsp {
 	
 	FAUSTPP_VIRTUAL void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
-		fConst0 = std::min<float>(1.92e+05f, std::max<float>(1.0f, float(fSampleRate)));
+		float fConst0 = std::min<float>(1.92e+05f, std::max<float>(1.0f, float(fSampleRate)));
 		fConst1 = 0.01f * fConst0;
 		iConst2 = int(std::floor(fConst1)) % 2;
-		fConst3 = std::tan(69115.04f / fConst0);
+		float fConst3 = std::tan(69115.04f / fConst0);
 		fConst4 = 2.0f * (1.0f - 1.0f / mydsp_faustpower2_f(fConst3));
-		fConst5 = 1.0f / fConst3;
+		float fConst5 = 1.0f / fConst3;
 		fConst6 = (fConst5 + -1.0f) / fConst3 + 1.0f;
-		fConst7 = (fConst5 + 1.0f) / fConst3 + 1.0f;
+		float fConst7 = (fConst5 + 1.0f) / fConst3 + 1.0f;
 		fConst8 = 1.0f / fConst7;
 		fConst9 = 3.1415927f / fConst0;
 		fConst10 = 1.0f - fConst5;
@@ -828,12 +806,12 @@ class mydsp : public dsp {
 		iConst52 = iConst50 + 131072 * iConst49;
 		fConst53 = 1.0f - fConst14;
 		fConst54 = std::tan(879.64594f / fConst0);
-		fConst55 = fConst54 * (fConst54 + 1.4142135f) + 1.0f;
+		float fConst55 = fConst54 * (fConst54 + 1.4142135f) + 1.0f;
 		fConst56 = 2.0f / fConst55;
 		fConst57 = fConst54 / fConst55;
 		fConst58 = 1.0f / fConst55;
 		fConst59 = std::tan(1256.6371f / fConst0);
-		fConst60 = fConst59 * (fConst59 + 1.4142135f) + 1.0f;
+		float fConst60 = fConst59 * (fConst59 + 1.4142135f) + 1.0f;
 		fConst61 = 2.0f / fConst60;
 		fConst62 = fConst59 / fConst60;
 		iConst63 = int(std::floor(0.005f * fConst0)) % 2;
@@ -853,23 +831,23 @@ class mydsp : public dsp {
 		iConst77 = iConst75 + 128 * iConst74;
 		fConst78 = std::exp(-(5.0f / fConst0));
 		fConst79 = std::exp(-(1e+03f / fConst0));
-		fConst80 = std::rint(fConst1);
+		float fConst80 = std::rint(fConst1);
 		iConst81 = int(std::floor(0.5f * fConst80)) % 2;
-		fConst82 = std::tan(5283.415f / fConst0);
-		fConst83 = 1.7803667f * fConst82;
-		fConst84 = mydsp_faustpower2_f(fConst82);
+		float fConst82 = std::tan(5283.415f / fConst0);
+		float fConst83 = 1.7803667f * fConst82;
+		float fConst84 = mydsp_faustpower2_f(fConst82);
 		fConst85 = fConst84 + fConst83 + 1.5848527f;
 		fConst86 = 2.0f * (fConst84 + -1.0f);
 		fConst87 = fConst84 + (1.5848527f - fConst83);
-		fConst88 = 1.4142135f * fConst82;
+		float fConst88 = 1.4142135f * fConst82;
 		fConst89 = fConst84 + (1.0f - fConst88);
-		fConst90 = fConst84 + -1.5848527f;
+		float fConst90 = fConst84 + -1.5848527f;
 		fConst91 = 2.0f * fConst90;
 		fConst92 = 1.0f / (fConst84 + fConst88 + 1.0f);
-		fConst93 = std::tan(119.806114f / fConst0);
-		fConst94 = mydsp_faustpower2_f(fConst93);
+		float fConst93 = std::tan(119.806114f / fConst0);
+		float fConst94 = mydsp_faustpower2_f(fConst93);
 		fConst95 = 1.0006541f * (fConst94 + -1.0f);
-		fConst96 = 0.50032705f * (fConst94 + 1.0f);
+		float fConst96 = 0.50032705f * (fConst94 + 1.0f);
 		fConst97 = fConst96 - fConst93;
 		fConst98 = 1.0f / (fConst93 + fConst96);
 		iConst99 = int(std::floor(fConst80)) % 2;
@@ -890,33 +868,33 @@ class mydsp : public dsp {
 		fConst114 = 1.0f / std::max<float>(fConst80, 1.1920929e-07f);
 		fConst115 = std::exp(-(4e+01f / fConst0));
 		fConst116 = std::tan(2513.2742f / fConst0);
-		fConst117 = fConst116 * (fConst116 + 1.4142135f) + 1.0f;
+		float fConst117 = fConst116 * (fConst116 + 1.4142135f) + 1.0f;
 		fConst118 = 2.0f / fConst117;
 		fConst119 = fConst116 / fConst117;
 		fConst120 = 1.0f / fConst117;
 		fConst121 = std::tan(628.31854f / fConst0);
-		fConst122 = fConst121 * (fConst121 + 1.4142135f) + 1.0f;
+		float fConst122 = fConst121 * (fConst121 + 1.4142135f) + 1.0f;
 		fConst123 = 2.0f / fConst122;
 		fConst124 = fConst121 / fConst122;
 		fConst125 = 1.0f / fConst122;
 		fConst126 = std::tan(314.15927f / fConst0);
-		fConst127 = fConst126 * (fConst126 + 1.4142135f) + 1.0f;
+		float fConst127 = fConst126 * (fConst126 + 1.4142135f) + 1.0f;
 		fConst128 = 2.0f / fConst127;
 		fConst129 = fConst126 / fConst127;
 		fConst130 = 1.0f / fConst127;
 		fConst131 = 1.0f / fConst60;
 		fConst132 = std::tan(10053.097f / fConst0);
-		fConst133 = fConst132 * (fConst132 + 1.4142135f) + 1.0f;
+		float fConst133 = fConst132 * (fConst132 + 1.4142135f) + 1.0f;
 		fConst134 = 2.0f / fConst133;
 		fConst135 = fConst132 / fConst133;
 		fConst136 = 1.0f / fConst133;
 		fConst137 = std::tan(5026.5483f / fConst0);
-		fConst138 = fConst137 * (fConst137 + 1.4142135f) + 1.0f;
+		float fConst138 = fConst137 * (fConst137 + 1.4142135f) + 1.0f;
 		fConst139 = 2.0f / fConst138;
 		fConst140 = fConst137 / fConst138;
 		fConst141 = 1.0f / fConst138;
 		fConst142 = std::tan(20106.193f / fConst0);
-		fConst143 = fConst142 * (fConst142 + 1.4142135f) + 1.0f;
+		float fConst143 = fConst142 * (fConst142 + 1.4142135f) + 1.0f;
 		fConst144 = 2.0f / fConst143;
 		fConst145 = fConst142 / fConst143;
 		fConst146 = 1.0f / fConst143;
@@ -992,10 +970,10 @@ class mydsp : public dsp {
 		for (int l5 = 0; l5 < 3; l5 = l5 + 1) {
 			fVec1[l5] = 0.0f;
 		}
-		for (int l6 = 0; l6 < 5; l6 = l6 + 1) {
+		for (int l6 = 0; l6 < 7; l6 = l6 + 1) {
 			fVec2[l6] = 0.0f;
 		}
-		for (int l7 = 0; l7 < 12; l7 = l7 + 1) {
+		for (int l7 = 0; l7 < 15; l7 = l7 + 1) {
 			fVec3[l7] = 0.0f;
 		}
 		IOTA0 = 0;
@@ -1077,10 +1055,10 @@ class mydsp : public dsp {
 		for (int l33 = 0; l33 < 3; l33 = l33 + 1) {
 			fVec20[l33] = 0.0f;
 		}
-		for (int l34 = 0; l34 < 5; l34 = l34 + 1) {
+		for (int l34 = 0; l34 < 7; l34 = l34 + 1) {
 			fVec21[l34] = 0.0f;
 		}
-		for (int l35 = 0; l35 < 12; l35 = l35 + 1) {
+		for (int l35 = 0; l35 < 15; l35 = l35 + 1) {
 			fVec22[l35] = 0.0f;
 		}
 		for (int l36 = 0; l36 < 32; l36 = l36 + 1) {
@@ -1125,10 +1103,10 @@ class mydsp : public dsp {
 		for (int l49 = 0; l49 < 3; l49 = l49 + 1) {
 			fVec31[l49] = 0.0f;
 		}
-		for (int l50 = 0; l50 < 5; l50 = l50 + 1) {
+		for (int l50 = 0; l50 < 7; l50 = l50 + 1) {
 			fVec32[l50] = 0.0f;
 		}
-		for (int l51 = 0; l51 < 12; l51 = l51 + 1) {
+		for (int l51 = 0; l51 < 15; l51 = l51 + 1) {
 			fVec33[l51] = 0.0f;
 		}
 		for (int l52 = 0; l52 < 32; l52 = l52 + 1) {
@@ -1167,10 +1145,10 @@ class mydsp : public dsp {
 		for (int l63 = 0; l63 < 3; l63 = l63 + 1) {
 			fVec41[l63] = 0.0f;
 		}
-		for (int l64 = 0; l64 < 5; l64 = l64 + 1) {
+		for (int l64 = 0; l64 < 7; l64 = l64 + 1) {
 			fVec42[l64] = 0.0f;
 		}
-		for (int l65 = 0; l65 < 12; l65 = l65 + 1) {
+		for (int l65 = 0; l65 < 15; l65 = l65 + 1) {
 			fVec43[l65] = 0.0f;
 		}
 		for (int l66 = 0; l66 < 32; l66 = l66 + 1) {
@@ -2649,16 +2627,16 @@ class mydsp : public dsp {
 			float fRec253 = fConst136 * fTemp215;
 			float fRec254 = fTemp216;
 			float fTemp217 = fRec254 + fTemp212;
-			float fTemp218 = fRec253 + fTemp213;
-			float fTemp219 = 1.4142135f * fTemp218;
-			float fTemp220 = fTemp219 + fTemp208 + fTemp217;
-			float fTemp221 = fRec259[1] + fConst137 * (fRec9[0] - (fTemp220 + fRec260[1]));
+			float fTemp218 = fTemp208 + fTemp217;
+			float fTemp219 = fRec253 + fTemp213;
+			float fTemp220 = 1.4142135f * fTemp219;
+			float fTemp221 = fRec259[1] + fConst137 * (fRec9[0] - (fTemp220 + fTemp218 + fRec260[1]));
 			fRec259[0] = fConst139 * fTemp221 - fRec259[1];
 			float fTemp222 = fRec260[1] + fConst140 * fTemp221;
 			fRec260[0] = 2.0f * fTemp222 - fRec260[1];
 			float fRec261 = fConst141 * fTemp221;
 			float fTemp223 = 2.828427f * (fRec261 + fTemp207);
-			float fTemp224 = fTemp219 + fTemp217 + fTemp223;
+			float fTemp224 = fTemp220 + fTemp217 + fTemp223;
 			float fTemp225 = fRec255[1] + fConst142 * (fRec9[0] - (fTemp224 + fRec256[1]));
 			fRec255[0] = fConst144 * fTemp225 - fRec255[1];
 			float fTemp226 = fRec256[1] + fConst145 * fTemp225;
@@ -2666,7 +2644,7 @@ class mydsp : public dsp {
 			float fRec257 = fConst146 * fTemp225;
 			float fRec258 = fTemp226;
 			float fTemp227 = fRec258 + fTemp217;
-			float fTemp228 = fRec257 + fTemp218;
+			float fTemp228 = fRec257 + fTemp219;
 			float fTemp229 = 1.4142135f * fTemp228 + fTemp223 + fTemp227;
 			float fTemp230 = fRec262[1] + fConst142 * (fRec9[0] - (fTemp229 + fRec263[1]));
 			fRec262[0] = fConst144 * fTemp230 - fRec262[1];
@@ -2885,10 +2863,10 @@ class mydsp : public dsp {
 			fRec24[1] = fRec24[0];
 			fVec1[2] = fVec1[1];
 			fVec1[1] = fVec1[0];
-			for (int j0 = 4; j0 > 0; j0 = j0 - 1) {
+			for (int j0 = 6; j0 > 0; j0 = j0 - 1) {
 				fVec2[j0] = fVec2[j0 - 1];
 			}
-			for (int j1 = 11; j1 > 0; j1 = j1 - 1) {
+			for (int j1 = 14; j1 > 0; j1 = j1 - 1) {
 				fVec3[j1] = fVec3[j1 - 1];
 			}
 			IOTA0 = IOTA0 + 1;
@@ -2904,10 +2882,10 @@ class mydsp : public dsp {
 			fVec19[1] = fVec19[0];
 			fVec20[2] = fVec20[1];
 			fVec20[1] = fVec20[0];
-			for (int j2 = 4; j2 > 0; j2 = j2 - 1) {
+			for (int j2 = 6; j2 > 0; j2 = j2 - 1) {
 				fVec21[j2] = fVec21[j2 - 1];
 			}
-			for (int j3 = 11; j3 > 0; j3 = j3 - 1) {
+			for (int j3 = 14; j3 > 0; j3 = j3 - 1) {
 				fVec22[j3] = fVec22[j3 - 1];
 			}
 			fRec22[1] = fRec22[0];
@@ -2920,10 +2898,10 @@ class mydsp : public dsp {
 			fVec30[1] = fVec30[0];
 			fVec31[2] = fVec31[1];
 			fVec31[1] = fVec31[0];
-			for (int j4 = 4; j4 > 0; j4 = j4 - 1) {
+			for (int j4 = 6; j4 > 0; j4 = j4 - 1) {
 				fVec32[j4] = fVec32[j4 - 1];
 			}
-			for (int j5 = 11; j5 > 0; j5 = j5 - 1) {
+			for (int j5 = 14; j5 > 0; j5 = j5 - 1) {
 				fVec33[j5] = fVec33[j5 - 1];
 			}
 			fRec17[1] = fRec17[0];
@@ -2934,10 +2912,10 @@ class mydsp : public dsp {
 			fVec40[1] = fVec40[0];
 			fVec41[2] = fVec41[1];
 			fVec41[1] = fVec41[0];
-			for (int j6 = 4; j6 > 0; j6 = j6 - 1) {
+			for (int j6 = 6; j6 > 0; j6 = j6 - 1) {
 				fVec42[j6] = fVec42[j6 - 1];
 			}
-			for (int j7 = 11; j7 > 0; j7 = j7 - 1) {
+			for (int j7 = 14; j7 > 0; j7 = j7 - 1) {
 				fVec43[j7] = fVec43[j7 - 1];
 			}
 			fRec10[1] = fRec10[0];
@@ -3190,7 +3168,7 @@ START_NAMESPACE_DISTRHO
 class FaustGeneratedPlugin : public Plugin
 {
 protected:
-    ScopedPointer<mydsp> dsp;
+    std::unique_ptr<mydsp> dsp;
 
 public:
     FaustGeneratedPlugin(const uint32_t extraParameters = 0,
@@ -3198,7 +3176,7 @@ public:
                          const uint32_t extraStates = 0)
         : Plugin(kParameterCount + extraParameters, kProgramCount + extraPrograms, kStateCount + extraStates)
     {
-        dsp = new mydsp;
+        dsp = std::make_unique<mydsp>();
         dsp->init(getSampleRate());
 
         // passive controls are only updated on first run, make sure they have valid values now
@@ -3232,31 +3210,6 @@ public:
         dsp->fVbargraph20 = 0;
         
     }
-
-    /*
-    void printCurrentValues()
-    {
-        d_stdout("==== preset data start ===");
-        printf("%.12g,", dsp->fVslider6);
-        printf("%.12g,", dsp->fVslider13);
-        printf("%.12g,", dsp->fVslider12);
-        printf("%.12g,", dsp->fVslider11);
-        printf("%.12g,", dsp->fVslider10);
-        printf("%.12g,", dsp->fVslider9);
-        printf("%.12g,", dsp->fVslider8);
-        printf("%.12g,", dsp->fVslider7);
-        printf("%.12g,", dsp->fVslider4);
-        printf("%.12g,", dsp->fCheckbox0);
-        printf("%.12g,", dsp->fVslider0);
-        printf("%.12g,", dsp->fVslider3);
-        printf("%.12g,", dsp->fVslider2);
-        printf("%.12g,", dsp->fVslider14);
-        printf("%.12g,", dsp->fVslider1);
-        printf("%.12g,", dsp->fVslider5);
-        
-        d_stdout("\n==== preset data end ===");
-    }
-    */
 
 protected:
    /* -----------------------------------------------------------------------------------------------------------------
@@ -4173,19 +4126,6 @@ protected:
 
     DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FaustGeneratedPlugin)
 };
-
-// --------------------------------------------------------------------------------------------------------------------
-
-#if 0
-
-
-Plugin* createPlugin()
-{
-    return new FaustGeneratedPlugin();
-}
-
-
-#endif
 
 // --------------------------------------------------------------------------------------------------------------------
 

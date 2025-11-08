@@ -5,7 +5,7 @@
 #include "extra/ScopedDenormalDisable.hpp"
 
 // faustpp generated plugin template
-#include "../pregen/Plugin.cpp"
+#include "pregen/FaustPlugin.cpp"
 
 // checks to ensure things are still as we expect them to be from faust dsp side
 static_assert(DISTRHO_PLUGIN_NUM_INPUTS == 1, "has 1 audio input");

@@ -14,7 +14,9 @@
 {% endblock %}
 
 #include "DistrhoPlugin.hpp"
-#include "extra/ScopedPointer.hpp"
+
+#include <algorithm>
+#include <memory>
 
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -32,9 +34,6 @@
 // --------------------------------------------------------------------------------------------------------------------
 
 START_NAMESPACE_DISTRHO
-
-template <class T> inline T min(T a, T b) { return (a < b) ? a : b; }
-template <class T> inline T max(T a, T b) { return (a > b) ? a : b; }
 
 class dsp {
 public:
@@ -80,7 +79,7 @@ START_NAMESPACE_DISTRHO
 class FaustGeneratedPlugin : public Plugin
 {
 protected:
-    ScopedPointer<mydsp> dsp;
+    std::unique_ptr<mydsp> dsp;
 
 public:
     FaustGeneratedPlugin(const uint32_t extraParameters = 0,
@@ -88,23 +87,13 @@ public:
                          const uint32_t extraStates = 0)
         : Plugin(kParameterCount + extraParameters, kProgramCount + extraPrograms, kStateCount + extraStates)
     {
-        dsp = new mydsp;
+        dsp = std::make_unique<mydsp>();
         dsp->init(getSampleRate());
 
         // passive controls are only updated on first run, make sure they have valid values now
         {% for p in passive %}dsp->{{p.var}} = {{p.init}};
         {% endfor %}
     }
-
-    /*
-    void printCurrentValues()
-    {
-        d_stdout("==== preset data start ===");
-        {% for p in active %}printf("%.12g,", dsp->{{p.var}});
-        {% endfor %}
-        d_stdout("\n==== preset data end ===");
-    }
-    */
 
 protected:
    /* -----------------------------------------------------------------------------------------------------------------
@@ -280,19 +269,6 @@ protected:
 
     DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FaustGeneratedPlugin)
 };
-
-// --------------------------------------------------------------------------------------------------------------------
-
-#if 0
-{% if not skip_dpf_create_plugin %}
-
-Plugin* createPlugin()
-{
-    return new FaustGeneratedPlugin();
-}
-
-{% endif %}
-#endif
 
 // --------------------------------------------------------------------------------------------------------------------
 
