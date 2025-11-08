@@ -132,6 +132,10 @@ public:
 
         // initial sample rate setup
         sampleRateChanged(getSampleRate());
+
+        // set parameters matching defaults
+        setParameterValue(kParameterCount + kExtraParamThreshold, 0.f);
+        setParameterValue(kParameterCount + kExtraParamGracePeriod, 1000.f);
     }
 
    /**
@@ -186,7 +190,7 @@ protected:
             parameter.name   = "Threshold";
             parameter.symbol = "threshold";
             parameter.unit   = "%";
-            parameter.ranges.def = 60.f;
+            parameter.ranges.def = 0.f;
             parameter.ranges.min = 0.f;
             parameter.ranges.max = 100.f;
             break;
@@ -195,9 +199,9 @@ protected:
             parameter.name   = "Grace Period";
             parameter.symbol = "grace_period";
             parameter.unit   = "ms";
-            parameter.ranges.def = 0.f;
+            parameter.ranges.def = 1000.f;
             parameter.ranges.min = 0.f;
-            parameter.ranges.max = 1000.f;
+            parameter.ranges.max = 2000.f;
             break;
         case kExtraParamEnableStats:
             parameter.hints |= kParameterIsBoolean | kParameterIsInteger;
@@ -396,17 +400,25 @@ protected:
                 {
                     muteValue.setTargetValue(1.f);
                     numFramesUntilGracePeriodOver = gracePeriodInFrames;
+                    // TESTING
+                    muteValue.clearToTargetValue();
                 }
                 else if (gracePeriodInFrames == 0)
                 {
                     muteValue.setTargetValue(0.f);
+                    // TESTING
+                    muteValue.clearToTargetValue();
                 }
 
                 // scale back down to regular audio level, also apply mute as needed
                 for (uint32_t i = 0; i < denoiseFrameSize; ++i)
                 {
                     if (numFramesUntilGracePeriodOver != 0 && --numFramesUntilGracePeriodOver == 0)
+                    {
                         muteValue.setTargetValue(0.f);
+                        // TESTING
+                        muteValue.clearToTargetValue();
+                    }
 
                     bufferOut[i] *= kDenoiseScalingInv;
                     bufferOut[i] *= muteValue.next();

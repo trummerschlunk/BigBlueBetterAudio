@@ -86,7 +86,7 @@ class ReNooiceUI : public UI,
             sliderThreshold.slider.setRange(0, 100);
             sliderThreshold.slider.setStep(1);
             sliderThreshold.slider.setUnitLabel("%");
-            sliderThreshold.slider.setValue(60, false);
+            sliderThreshold.slider.setValue(0, false);
             sliderThreshold.label.setLabel("Threshold");
 
             sliderThresholdLabel.label.setCustomFontSize(smallFontSize);
@@ -94,10 +94,10 @@ class ReNooiceUI : public UI,
 
             sliderGracePeriod.slider.setCallback(ui);
             sliderGracePeriod.slider.setId(kParameterCount + kExtraParamGracePeriod);
-            sliderGracePeriod.slider.setRange(0, 1000);
+            sliderGracePeriod.slider.setRange(0, 2000);
             sliderGracePeriod.slider.setStep(1);
             sliderGracePeriod.slider.setUnitLabel("ms");
-            sliderGracePeriod.slider.setValue(0, false);
+            sliderGracePeriod.slider.setValue(1000, false);
             sliderGracePeriod.label.setLabel("Grace Period");
 
             sliderGracePeriodLabel.label.setCustomFontSize(smallFontSize);
