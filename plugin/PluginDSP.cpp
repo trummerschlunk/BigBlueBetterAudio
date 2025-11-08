@@ -45,7 +45,7 @@ class BBBAudioPlugin : public FaustGeneratedPlugin
     bool processing;
 
    #ifndef SIMPLIFIED_NOOICE
-    // translate Grace Period param (ms) into 48kHz frames
+    // translate Grace Period param (ms) into frames
     // updated when param changes
     uint32_t gracePeriodInFrames = 0;
 
@@ -128,16 +128,12 @@ public:
         muteValue.setTimeConstant(kMuteRelease);
         muteValue.setTargetValue(0.f);
 
-        extraParameters[kExtraParamThreshold] = 60.f;
-        extraParameters[kExtraParamMinimumVAD] = 100.f;
+        extraParameters[kExtraParamThreshold] = 0.f;
+        extraParameters[kExtraParamGracePeriod] = 1000.f;
        #endif
 
         // initial sample rate setup
         sampleRateChanged(getSampleRate());
-
-        // set parameters matching defaults
-        setParameterValue(kParameterCount + kExtraParamThreshold, 0.f);
-        setParameterValue(kParameterCount + kExtraParamGracePeriod, 1000.f);
     }
 
    /**
@@ -284,8 +280,7 @@ protected:
             dryValue.setTargetValue(value);
             break;
         case kExtraParamGracePeriod:
-            // 48 frames = 1ms (48000 kHz [1s] / 1000)
-            gracePeriodInFrames = d_roundToUnsignedInt(value * 48.f);
+            gracePeriodInFrames = d_roundToUnsignedInt(value * getSampleRate() / 1000.0);
             break;
         }
     }
@@ -311,7 +306,7 @@ protected:
        #ifndef SIMPLIFIED_NOOICE
         extraParameters[kExtraParamCurrentVAD] = 0.f;
         extraParameters[kExtraParamAverageVAD] = 0.f;
-        extraParameters[kExtraParamMinimumVAD] = 100.f;
+        extraParameters[kExtraParamMinimumVAD] = 0.f;
         extraParameters[kExtraParamMaximumVAD] = 0.f;
 
         dryValue.clearToTargetValue();
@@ -510,6 +505,8 @@ protected:
        #ifndef SIMPLIFIED_NOOICE
         dryValue.setSampleRate(sampleRate);
         muteValue.setSampleRate(sampleRate);
+        // update internal value that depends on sample rate
+        setParameterValue(kParameterCount + kExtraParamGracePeriod, extraParameters[kExtraParamGracePeriod]);
        #endif
         setLatency(denoiseFrameSize + d_roundToUnsignedInt(sampleRate * 0.005));
     }
