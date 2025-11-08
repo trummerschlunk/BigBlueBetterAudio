@@ -12,6 +12,8 @@ FILES_DSP = plugin/Plugin.cpp
 MAPI_MODULE_NAME = mapi_bbba
 
 # include dpf plugins makefile definitions
+DPF_TARGET_DIR = $(CURDIR)/bin
+DGL_BUILD_DIR = $(CURDIR)/build
 include deps/dpf/Makefile.plugins.mk
 
 # tweak build flags
