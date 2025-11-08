@@ -9,7 +9,7 @@
 // Author: Klaus Scheuermann
 // Copyright: 
 // License: GPLv3+
-// Version: 0.14
+// Version: 0.15
 //------------------------------------------------------------------------------
 
 
@@ -46,7 +46,6 @@ enum Parameters {
     kParameter_vad_ext,
     
     // outputs
-    kParameter_sb_expander,
     kParameter_sb_meter__0,
     kParameter_sb_meter__1,
     kParameter_sb_meter__2,
@@ -85,7 +84,7 @@ enum States {
     kStateCount
 };
 
-static constexpr const char* kParameterNames[42] = {
+static constexpr const char* kParameterNames[41] = {
     // inputs
     "strength",
     "spec 0",
@@ -105,7 +104,6 @@ static constexpr const char* kParameterNames[42] = {
     "vad_ext",
     
     // ouputs
-    "sb_expander",
     "band  0",
     "band  1",
     "band  2",
@@ -134,7 +132,7 @@ static constexpr const char* kParameterNames[42] = {
     
 };
 
-static constexpr const struct { float def, min, max; } kParameterRanges[42] = {
+static constexpr const struct { float def, min, max; } kParameterRanges[41] = {
     // inputs
     { 50.0, 0.0, 100.0 },
     { -10.0, -20.0, 0.0 },
@@ -146,15 +144,14 @@ static constexpr const struct { float def, min, max; } kParameterRanges[42] = {
     { -7.0, -20.0, 0.0 },
     { -3.0, -20.0, 0.0 },
     { 0, 0, 1 },
-    { -25.0, -60.0, 0.0 },
+    { -20.0, -60.0, 0.0 },
     { 1.0, 0.0, 1.0 },
     { 100.0, 0.0, 100.0 },
     { 42.0, 1.0, 400.0 },
     { 100.0, 0.0, 100.0 },
-    { 0.0, 0.0, 1.0 },
+    { 1.0, 0.0, 1.0 },
     
     // ouputs
-    { 0, 0.0, 1.0 },
     { 0, -40.0, 40.0 },
     { 0, -40.0, 40.0 },
     { 0, -40.0, 40.0 },
@@ -183,7 +180,7 @@ static constexpr const struct { float def, min, max; } kParameterRanges[42] = {
     
 };
 
-static constexpr const char* kParameterSymbols[42] = {
+static constexpr const char* kParameterSymbols[41] = {
     // inputs
     "sb_strength",
     "sb_target_spectrum_0",
@@ -203,7 +200,6 @@ static constexpr const char* kParameterSymbols[42] = {
     "vad_ext",
     
     // ouputs
-    "sb_expander",
     "sb_meter__0",
     "sb_meter__1",
     "sb_meter__2",
@@ -232,7 +228,7 @@ static constexpr const char* kParameterSymbols[42] = {
     
 };
 
-static constexpr const char* kParameterUnits[42] = {
+static constexpr const char* kParameterUnits[41] = {
     // inputs
     "%",
     "",
@@ -252,7 +248,6 @@ static constexpr const char* kParameterUnits[42] = {
     "",
     
     // ouputs
-    "",
     "dB",
     "dB",
     "dB",
