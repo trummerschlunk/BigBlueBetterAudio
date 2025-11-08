@@ -1,3 +1,12 @@
-[submodule "dpf"]
-	path = dpf
+[submodule "deps/dpf"]
+	path = deps/dpf
 	url = https://github.com/DISTRHO/DPF.git
+[submodule "deps/dpf-widgets"]
+	path = deps/dpf-widgets
+	url = https://github.com/DISTRHO/DPF-Widgets.git
+[submodule "deps/rnnoise"]
+	path = deps/rnnoise
+	url = https://github.com/xiph/rnnoise.git
+[submodule "deps/speexdsp"]
+	path = deps/speexdsp
+	url = https://github.com/xiph/speexdsp.git

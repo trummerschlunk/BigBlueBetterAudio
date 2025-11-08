@@ -12,7 +12,7 @@ FILES_DSP = plugin/Plugin.cpp
 MAPI_MODULE_NAME = mapi_bbba
 
 # include dpf plugins makefile definitions
-include dpf/Makefile.plugins.mk
+include deps/dpf/Makefile.plugins.mk
 
 # tweak build flags
 BUILD_CXX_FLAGS += -std=gnu++14
@@ -24,11 +24,11 @@ BUILD_CXX_FLAGS += -Iplugin
 all: au clap ladspa lv2_gen lv2_sep vst2 vst3
 
 ifneq ($(CROSS_COMPILING),true)
-lv2_gen: lv2_sep dpf/utils/lv2_ttl_generator
-	@$(CURDIR)/dpf/utils/generate-ttl.sh
+lv2_gen: lv2_sep deps/dpf/utils/lv2_ttl_generator
+	@$(CURDIR)/deps/dpf/utils/generate-ttl.sh
 
-dpf/utils/lv2_ttl_generator:
-	$(MAKE) -C dpf/utils/lv2-ttl-generator
+deps/dpf/utils/lv2_ttl_generator:
+	$(MAKE) -C deps/dpf/utils/lv2-ttl-generator
 else
 lv2_gen:
 endif
