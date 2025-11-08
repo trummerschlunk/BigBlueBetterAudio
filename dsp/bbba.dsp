@@ -10,7 +10,7 @@
 // -*-Faust-*-
 
 declare name "bbba";
-declare version "0.13";
+declare version "0.14";             // 0.14 has a VAD slider vad_ext to control voice activity from rnnoise
 declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
@@ -43,6 +43,7 @@ meter_expander_sb = vbargraph("h:[1]Spectral Ballancer/h:Parameters/[3]sb_expand
 
 sb_strength = vslider("h:[1]Spectral Ballancer/h:Parameters/[1][unit:%]strength[symbol:sb_strength]", sb_strength_init,0,100,1) : _/100;
 
+vad_ext = gui_main(vslider("vad_ext[symbol:vad_ext]",0,0,1,0.001));
 
 process = si.bus(Nch) 
         : bp1(bypass_switch,
@@ -253,8 +254,10 @@ with {
     +(prev_gain )
     :  limit(limit_neg,limit_pos)
     : dynamicSmoothing(
-      sensitivity * expander(abs(fl))
-    ,  basefreq * expander(abs(fl))
+    //  sensitivity * expander(abs(fl))
+    //,  basefreq * expander(abs(fl))
+      sensitivity * vad_ext
+    ,  basefreq * vad_ext
     )
     
     * scale
