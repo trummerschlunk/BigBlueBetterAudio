@@ -30,8 +30,8 @@ FILES_DSP = \
 	deps/rnnoise/src/parse_lpcnet_weights.c \
 	deps/rnnoise/src/pitch.c \
 	deps/rnnoise/src/rnn.c \
-	deps/rnnoise/src/rnnoise_data.c \
-	deps/rnnoise/src/rnnoise_tables.c
+	deps/rnnoise/src/rnnoise_tables.c \
+	deps/rnnoise-model-data/rnnoise_data.c
 
 ifeq ($(X86_RTCD),true)
 FILES_DSP += \
@@ -62,6 +62,7 @@ BASE_FLAGS += -DFLOAT_APPROX
 BASE_FLAGS += -DRNNOISE_EXPORT=
 BASE_FLAGS += -Ideps/rnnoise/include
 BASE_FLAGS += -Ideps/rnnoise/src
+BUILD_C_FLAGS += -Ideps/rnnoise-model-data
 BUILD_CXX_FLAGS += -std=gnu++14
 BUILD_CXX_FLAGS += -Ideps/dpf-widgets/opengl
 BUILD_CXX_FLAGS += -Iplugin
@@ -115,28 +116,6 @@ clean_bbba:
 	rm -f deps/speexdsp/libspeexdsp/*.d
 	rm -f deps/speexdsp/libspeexdsp/*.o
 	rm -rf bin build deps/dpf/build
-
-# ---------------------------------------------------------------------------------------------------------------------
-# auto-download model files
-
-au: models
-
-clap: models
-
-jack: models
-
-ladspa: models
-
-lv2_sep: models
-
-vst2: models
-
-vst3: models
-
-models: deps/rnnoise/src/rnnoise_data.h
-
-deps/rnnoise/src/rnnoise_data.h:
-	cd deps/rnnoise && sh download_model.sh
 
 # ---------------------------------------------------------------------------------------------------------------------
 # faustpp target, building it ourselves if not available from the system
