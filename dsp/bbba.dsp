@@ -24,7 +24,7 @@ Sliding_window_max = 480000;        // maximum size of the sliding window for no
 
 
 
-lev_target_init = -20;
+lev_target_init = -22;
 lev_maxboost_init = 30;
 lev_maxcut_init = 30;
 lev_brake_threshold_init = -22;
@@ -122,9 +122,9 @@ preFilter = preHighpass : preLowpass with {
 // LIMITER MONO
 
 limiter_mono = co.limiter_lad_mono(lad, ceiling, att, hold, rel) with {
-    lad = 0.01;
-    ceiling = -3 : ba.db2linear;
-    att = 0.01;
+    lad = 0.005;
+    ceiling = -1 : ba.db2linear;
+    att = 0.002;
     hold = 0.01;
     rel = 0.01;
 };
