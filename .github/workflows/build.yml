@@ -24,18 +24,23 @@ jobs:
       - uses: distrho/dpf-makefile-action@v1
         with:
           target: ${{ matrix.target }}
+          dpf_path: ./deps/dpf
           lto: true
 
   macos:
-    runs-on: macos-13
+    strategy:
+      matrix:
+        target: [macos-intel, macos-universal]
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
       - uses: distrho/dpf-makefile-action@v1
         with:
-          target: macos-universal
-          lto: true
+          target: ${{ matrix.target }}
+          dpf_path: ./deps/dpf
+          # lto: true
 
   windows:
     strategy:
@@ -49,9 +54,9 @@ jobs:
       - uses: distrho/dpf-makefile-action@v1
         with:
           target: ${{ matrix.target }}
-          lto: false
+          dpf_path: ./deps/dpf
 
-  plugin-validation:
+  pluginval:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -60,3 +65,4 @@ jobs:
       - uses: distrho/dpf-makefile-action@v1
         with:
           target: pluginval
+          dpf_path: ./deps/dpf

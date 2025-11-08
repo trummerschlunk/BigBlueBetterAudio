@@ -2,6 +2,7 @@
 /build/
 /faustpp/
 /.cache/
+/.vscode/
 .DS_Store
 compile_commands.json
 *~
