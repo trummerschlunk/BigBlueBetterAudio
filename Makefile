@@ -1,29 +1,84 @@
 #!/usr/bin/make -f
 
-# include version details
+# ---------------------------------------------------------------------------------------------------------------------
+# Version details
+
 include VERSION.mk
 VERSION = $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_MICRO)
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Include base dpf makefile for a few definitions
+
+include deps/dpf/Makefile.base.mk
+
+ifeq ($(CPU_I386_OR_X86_64),true)
+ifneq ($(WASM),true)
+X86_RTCD = true
+endif
+endif
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Files to build
+
+FILES_DSP = \
+	plugin/PluginDSP.cpp \
+	deps/rnnoise/src/celt_lpc.c \
+	deps/rnnoise/src/denoise.c \
+	deps/rnnoise/src/kiss_fft.c \
+	deps/rnnoise/src/nnet.c \
+	deps/rnnoise/src/nnet_default.c \
+	deps/rnnoise/src/parse_lpcnet_weights.c \
+	deps/rnnoise/src/pitch.c \
+	deps/rnnoise/src/rnn.c \
+	deps/rnnoise/src/rnnoise_data.c \
+	deps/rnnoise/src/rnnoise_tables.c
+
+ifeq ($(X86_RTCD),true)
+FILES_DSP += \
+	deps/rnnoise/src/x86/nnet_avx2.c \
+	deps/rnnoise/src/x86/nnet_sse4_1.c \
+	deps/rnnoise/src/x86/x86cpu.c \
+	deps/rnnoise/src/x86/x86_dnn_map.c
+endif
+
+FILES_UI = \
+	plugin/PluginUI.cpp \
+	deps/dpf-widgets/opengl/Quantum.cpp
 
 # ---------------------------------------------------------------------------------------------------------------------
 # dpf plugin config
 
 NAME = BBBA
-FILES_DSP = plugin/Plugin.cpp
 MAPI_MODULE_NAME = mapi_bbba
 
 # include dpf plugins makefile definitions
-DPF_TARGET_DIR = $(CURDIR)/bin
-DGL_BUILD_DIR = $(CURDIR)/build
+export DPF_BUILD_DIR = $(CURDIR)/build
+export DPF_TARGET_DIR = $(CURDIR)/bin
 include deps/dpf/Makefile.plugins.mk
 
 # tweak build flags
+BASE_FLAGS += -DDISABLE_DEBUG_FLOAT
+BASE_FLAGS += -DFLOAT_APPROX
+BASE_FLAGS += -DRNNOISE_EXPORT=
+BASE_FLAGS += -Ideps/rnnoise/include
+BASE_FLAGS += -Ideps/rnnoise/src
 BUILD_CXX_FLAGS += -std=gnu++14
+BUILD_CXX_FLAGS += -Ideps/dpf-widgets/opengl
 BUILD_CXX_FLAGS += -Iplugin
+
+ifeq ($(X86_RTCD),true)
+BASE_FLAGS += -DCPU_INFO_BY_ASM -DRNN_ENABLE_X86_RTCD
+
+$(BUILD_DIR)/deps/rnnoise/src/x86/nnet_avx2.c.o: BASE_FLAGS += -mavx -mfma -mavx2
+
+$(BUILD_DIR)/deps/rnnoise/src/x86/nnet_sse4_1.c.o: BASE_FLAGS += -msse4.1
+
+endif
 
 # ---------------------------------------------------------------------------------------------------------------------
 # default plugin targets
 
-all: au clap ladspa lv2_gen lv2_sep vst2 vst3
+all: au clap jack ladspa lv2_gen vst2 vst3
 
 ifneq ($(CROSS_COMPILING),true)
 lv2_gen: lv2_sep deps/dpf/utils/lv2_ttl_generator
@@ -38,11 +93,50 @@ endif
 # extra resources for mapi builds
 mapi: bin/index.html bin/mapi-proc.js
 
+mapi: BUILD_CXX_FLAGS += -DSIMPLIFIED_NOOICE
+
 bin/index.html: web/mapi-example-usage.html
 	cp $< $@
 
 bin/mapi-proc.js: web/mapi-proc.js
 	cp $< $@
+
+# ---------------------------------------------------------------------------------------------------------------------
+# clean target
+
+clean: clean_bbba
+
+clean_bbba:
+	$(MAKE) clean -C deps/dpf/utils/lv2-ttl-generator
+	rm -f deps/rnnoise/src/*.d
+	rm -f deps/rnnoise/src/*.o
+	rm -f deps/rnnoise/src/x86/*.d
+	rm -f deps/rnnoise/src/x86/*.o
+	rm -f deps/speexdsp/libspeexdsp/*.d
+	rm -f deps/speexdsp/libspeexdsp/*.o
+	rm -rf bin build deps/dpf/build
+
+# ---------------------------------------------------------------------------------------------------------------------
+# auto-download model files
+
+au: models
+
+clap: models
+
+jack: models
+
+ladspa: models
+
+lv2_sep: models
+
+vst2: models
+
+vst3: models
+
+models: deps/rnnoise/src/rnnoise_data.h
+
+deps/rnnoise/src/rnnoise_data.h:
+	cd deps/rnnoise && sh download_model.sh
 
 # ---------------------------------------------------------------------------------------------------------------------
 # faustpp target, building it ourselves if not available from the system
