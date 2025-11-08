@@ -56,6 +56,8 @@ class BBBAudioPlugin : public FaustGeneratedPlugin
     LinearValueSmoother dryValue;
 
     // smooth mute/unmute
+    static constexpr const float kMuteAttack = 0.005f;
+    static constexpr const float kMuteRelease = 0.1f;
     LinearValueSmoother muteValue;
 
     // cached parameter values
@@ -123,7 +125,7 @@ public:
         dryValue.setTimeConstant(0.02f);
         dryValue.setTargetValue(0.f);
 
-        muteValue.setTimeConstant(0.02f);
+        muteValue.setTimeConstant(kMuteRelease);
         muteValue.setTargetValue(0.f);
 
         extraParameters[kExtraParamThreshold] = 60.f;
@@ -314,6 +316,7 @@ protected:
 
         dryValue.clearToTargetValue();
 
+        muteValue.setTimeConstant(kMuteRelease);
         muteValue.setTargetValue(0.f);
         muteValue.clearToTargetValue();
 
@@ -398,16 +401,14 @@ protected:
                 // unmute according to threshold
                 if (vad >= threshold)
                 {
+                    muteValue.setTimeConstant(kMuteAttack);
                     muteValue.setTargetValue(1.f);
                     numFramesUntilGracePeriodOver = gracePeriodInFrames;
-                    // TESTING
-                    muteValue.clearToTargetValue();
                 }
                 else if (gracePeriodInFrames == 0)
                 {
+                    muteValue.setTimeConstant(kMuteRelease);
                     muteValue.setTargetValue(0.f);
-                    // TESTING
-                    muteValue.clearToTargetValue();
                 }
 
                 // scale back down to regular audio level, also apply mute as needed
@@ -415,9 +416,8 @@ protected:
                 {
                     if (numFramesUntilGracePeriodOver != 0 && --numFramesUntilGracePeriodOver == 0)
                     {
+                        muteValue.setTimeConstant(kMuteRelease);
                         muteValue.setTargetValue(0.f);
-                        // TESTING
-                        muteValue.clearToTargetValue();
                     }
 
                     bufferOut[i] *= kDenoiseScalingInv;
