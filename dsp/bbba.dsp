@@ -10,7 +10,7 @@
 // -*-Faust-*-
 
 declare name "bbba";
-declare version "0.14";             // 0.14 has a VAD slider vad_ext to control voice activity from rnnoise
+declare version "0.15";             // 0.15 has a VAD slider vad_ext to control voice activity from rnnoise (-> both leveler and sb)
 declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
@@ -24,9 +24,9 @@ Sliding_window_max = 480000;        // maximum size of the sliding window for no
 
 
 
-lev_target_init = -25;
-lev_maxboost_init = 20;
-lev_maxcut_init = 20;
+lev_target_init = -20;
+lev_maxboost_init = 30;
+lev_maxcut_init = 30;
 lev_brake_threshold_init = -22;
 lev_speed_init = 80;
 lev_scale_init =100;
@@ -43,7 +43,7 @@ meter_expander_sb = vbargraph("h:[1]Spectral Ballancer/h:Parameters/[3]sb_expand
 
 sb_strength = vslider("h:[1]Spectral Ballancer/h:Parameters/[1][unit:%]strength[symbol:sb_strength]", sb_strength_init,0,100,1) : _/100;
 
-vad_ext = gui_main(vslider("vad_ext[symbol:vad_ext]",0,0,1,0.001));
+vad_ext = gui_main(vslider("vad_ext[symbol:vad_ext]",1,0,1,0.001));
 
 process = si.bus(Nch) 
         : bp1(bypass_switch,
@@ -515,7 +515,8 @@ ballancer(l) = l <:
         : sb_limit                                      // limit gainchange
         : _*sb_strength                                 // apply strength
         : _*sbmb_strength                               // apply overall strength
-        : _*expander_sb(l) : ba.db2linear)     )        // multiply with expander (voice activity detection)
+        //: _*expander_sb(l) : ba.db2linear)     )        // multiply with expander (voice activity detection)
+        : _* vad_ext : ba.db2linear)     )              // multiply with external VAD (voice activity detection)
         : gainmeter_sb(i)),_))                          // meter the gainchange
         : par(i,SB_bands,gainchange(l))                    // do the actual gainchange to each band
         :> _                                            // sum bands together
