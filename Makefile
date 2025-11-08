@@ -79,7 +79,7 @@ endif
 # ---------------------------------------------------------------------------------------------------------------------
 # default plugin targets
 
-all: au clap jack ladspa lv2_gen vst2 vst3
+all: au clap jack ladspa lv2_gen vst3
 
 ifneq ($(CROSS_COMPILING),true)
 lv2_gen: lv2_sep deps/dpf/utils/lv2_ttl_generator

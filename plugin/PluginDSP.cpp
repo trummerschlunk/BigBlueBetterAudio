@@ -162,9 +162,21 @@ protected:
     */
     void initParameter(uint32_t index, Parameter& parameter) override
     {
+        // special case, not intended for the host
+        if (index == kParameter_vad_ext)
+        {
+            parameter.hints  = kParameterIsOutput|kParameterIsHidden;
+            parameter.name   = "vad_ext";
+            parameter.symbol = "vad_ext";
+            return;
+        }
+
+        if (index < kParameterCount)
+            return FaustGeneratedPlugin::initParameter(index, parameter);
+
         parameter.hints = kParameterIsAutomatable;
 
-        switch (index)
+        switch (index - kParameterCount)
         {
         case kExtraParamBypass:
             parameter.initDesignation(kParameterDesignationBypass);
@@ -413,6 +425,7 @@ protected:
 
                 // process denoise output on faust side
                 std::memcpy(bufferIn, bufferOut, denoiseFrameSizeF);
+                FaustGeneratedPlugin::setParameterValue(kParameter_vad_ext, vad);
                 dsp->compute(denoiseFrameSize, &bufferIn, &bufferOut);
 
                 // write output into ringbuffer
