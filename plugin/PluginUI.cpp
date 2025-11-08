@@ -78,11 +78,11 @@ class ReNooiceUI : public UI,
 
             switchEnable.switch_.setCallback(ui);
             switchEnable.switch_.setChecked(true, false);
-            switchEnable.switch_.setId(kExtraParamBypass);
+            switchEnable.switch_.setId(kParameterCount + kExtraParamBypass);
             switchEnable.switch_.setLabel("Enabled");
 
             sliderThreshold.slider.setCallback(ui);
-            sliderThreshold.slider.setId(kExtraParamThreshold);
+            sliderThreshold.slider.setId(kParameterCount + kExtraParamThreshold);
             sliderThreshold.slider.setRange(0, 100);
             sliderThreshold.slider.setStep(1);
             sliderThreshold.slider.setUnitLabel("%");
@@ -93,7 +93,7 @@ class ReNooiceUI : public UI,
             sliderThresholdLabel.label.setLabel("Auto-mute if voice detection is lower than this threshold");
 
             sliderGracePeriod.slider.setCallback(ui);
-            sliderGracePeriod.slider.setId(kExtraParamGracePeriod);
+            sliderGracePeriod.slider.setId(kParameterCount + kExtraParamGracePeriod);
             sliderGracePeriod.slider.setRange(0, 1000);
             sliderGracePeriod.slider.setStep(1);
             sliderGracePeriod.slider.setUnitLabel("ms");
@@ -105,7 +105,7 @@ class ReNooiceUI : public UI,
 
             switchEnableStats.switch_.setCallback(ui);
             switchEnableStats.switch_.setChecked(false, false);
-            switchEnableStats.switch_.setId(kExtraParamEnableStats);
+            switchEnableStats.switch_.setId(kParameterCount + kExtraParamEnableStats);
             switchEnableStats.switch_.setLabel("Enable VAD Stats");
 
             statsLabel.label.setCustomFontSize(smallFontSize);
@@ -235,7 +235,10 @@ protected:
     */
     void parameterChanged(uint32_t index, float value) override
     {
-        switch (index)
+        if (index < kParameterCount)
+            return;
+
+        switch (index - kParameterCount)
         {
         case kExtraParamBypass:
             ui.switchEnable.switch_.setChecked(value < 0.5f, false);
@@ -284,7 +287,7 @@ protected:
         const bool enabled = qswitch->isChecked();
         float value;
 
-        if (id == kExtraParamBypass)
+        if (id == kParameterCount + kExtraParamBypass)
         {
             // bypass switch, inverted operation
             value = enabled ? 0.f : 1.f;
