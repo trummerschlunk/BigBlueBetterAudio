@@ -511,7 +511,7 @@ protected:
         dryValue.setSampleRate(sampleRate);
         muteValue.setSampleRate(sampleRate);
        #endif
-        setLatency(d_roundToUnsignedInt(sampleRate / 48000.0 * denoiseFrameSize));
+        setLatency(denoiseFrameSize + d_roundToUnsignedInt(sampleRate * 0.005));
     }
 
     // ----------------------------------------------------------------------------------------------------------------
