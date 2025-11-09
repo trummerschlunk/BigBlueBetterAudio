@@ -97,12 +97,15 @@ mapi: bin/index.html bin/mapi-proc.js bin/service.js
 mapi: BUILD_CXX_FLAGS += -DSIMPLIFIED_NOOICE
 
 bin/index.html: web/index.html
+	mkdir -p bin
 	ln -sf $(abspath $<) $@
 
 bin/mapi-proc.js: web/mapi-proc.js
+	mkdir -p bin
 	ln -sf $(abspath $<) $@
 
 bin/service.js: web/service.js
+	mkdir -p bin
 	ln -sf $(abspath $<) $@
 
 # ---------------------------------------------------------------------------------------------------------------------

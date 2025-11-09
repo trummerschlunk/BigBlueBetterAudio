@@ -6,6 +6,10 @@
         <script src="service.js" ></script>
         <script>
 
+// known constants
+const kParameter_leveler_target = 10;
+const kParameter_mb_strength = 12;
+
 // load the wasm modules
 function init(callback) {
     var err = [];
@@ -42,6 +46,7 @@ function init(callback) {
 
 // custom global vars
 let gumStream = null;
+let delayNode = null;
 
 // restart the stream
 function restartStream() {
@@ -54,6 +59,7 @@ function restartStream() {
 
     audioProcessor = null;
     gumStream = null;
+    delayNode = null;
 
     var constraints = {
         'audio': {
@@ -75,7 +81,8 @@ function restartStream() {
         audioProcessor.port.onmessage = event => {
             if (event.data?.type == 'loaded') {
                 set_wasm_enabled(document.getElementById('enable-bbba').checked);
-                set_wasm_param(0, document.getElementById('bbba-strength').value);
+                set_wasm_param(kParameter_mb_strength, document.getElementById('bbba-strength').value);
+                set_wasm_param(kParameter_leveler_target, document.getElementById('bbba-target').value);
             }
         };
 
@@ -85,7 +92,7 @@ function restartStream() {
             delayTime: document.getElementById('delay').value,
             maxDelayTime: 1,
         };
-        const delayNode = new DelayNode(audioContext, delayOpts);
+        delayNode = new DelayNode(audioContext, delayOpts);
 
         // connect processor to delay, then to speakers
         audioProcessor.connect(delayNode);
@@ -107,7 +114,7 @@ function maybeRestartStream() {
 
 // keep waiting until audio worklet is loaded, then restart stream
 function waitForWorklet() {
-    if (workletRunning) {
+    if (workletModuleLoaded) {
         restartStream();
         return;
     }
@@ -129,10 +136,13 @@ window.addEventListener('DOMContentLoaded', function() {
         var elems = {
             strength: document.getElementById('bbba-strength'),
             strengthVal: document.getElementById('bbba-strength-value'),
+            target: document.getElementById('bbba-target'),
+            targetVal: document.getElementById('bbba-target-value'),
             delay: document.getElementById('delay'),
             delayVal: document.getElementById('delay-value'),
         };
         elems.strengthVal.textContent = elems.strength.value;
+        elems.targetVal.textContent = elems.target.value;
         elems.delayVal.textContent = elems.delay.value;
 
         document.getElementById('gum-autoGainControl').addEventListener('click', maybeRestartStream);
@@ -145,7 +155,11 @@ window.addEventListener('DOMContentLoaded', function() {
 
         elems.strength.addEventListener('input', function(event) {
             elems.strengthVal.textContent = event.target.value;
-            set_wasm_param(0, event.target.value);
+            set_wasm_param(kParameter_mb_strength, event.target.value);
+        });
+        elems.target.addEventListener('input', function(event) {
+            elems.targetVal.textContent = event.target.value;
+            set_wasm_param(kParameter_leveler_target, event.target.value);
         });
         elems.delay.addEventListener('input', function(event) {
             elems.delayVal.textContent = event.target.value;
@@ -175,34 +189,53 @@ window.addEventListener('DOMContentLoaded', function() {
                 <div id="main">
                     <input type="button" id="enable-input" value="Start (Enable Input)" />
                 </div>
-                <div>
-                    <input autocomplete="off" type="checkbox" id="gum-autoGainControl" value="gum-autoGainControl"></input>
-                    <label for="gum-autoGainControl">Browser Auto Gain Control</label>
-                </div>
-                <div>
-                    <input autocomplete="off" type="checkbox" id="gum-noiseSuppression" value="gum-noiseSuppression"></input>
-                    <label for="gum-noiseSuppression">Browser Noise Suppression</label>
-                </div>
-                <div>
-                    <input autocomplete="off" type="checkbox" id="gum-echoCancellation" value="gum-echoCancellation"></input>
-                    <label for="gum-echoCancellation">Browser Echo Cancellation</label>
-                </div>
-                <div>
-                    <input autocomplete="off" type="checkbox" id="enable-bbba" value="enable-bbba" checked></input>
-                    <label for="enable-bbba">BBBA</label>
-                </div>
-                <table>
-                    <tr>
-                        <td>BBBA Strength:</td>
-                        <td><output id="bbba-strength-value"></output></td>
-                        <td><input autocomplete="off" id="bbba-strength" type="range" value="50" min="0" max="100" /></td>
-                    </tr>
-                    <tr>
-                        <td>Delay (s):</td>
-                        <td><output id="delay-value"></output></td>
-                        <td><input autocomplete="off" id="delay" type="range" value="0.5" min="0" max="1" step="0.1"/></td>
-                    </tr>
-                </table>
+                <br/>
+                <fieldset>
+                    <legend>Web Browser constraints</legend>
+                    <div>
+                        <input autocomplete="off" type="checkbox" id="gum-autoGainControl" value="gum-autoGainControl"></input>
+                        <label for="gum-autoGainControl">Auto Gain Control</label>
+                    </div>
+                    <div>
+                        <input autocomplete="off" type="checkbox" id="gum-noiseSuppression" value="gum-noiseSuppression"></input>
+                        <label for="gum-noiseSuppression">Noise Suppression</label>
+                    </div>
+                    <div>
+                        <input autocomplete="off" type="checkbox" id="gum-echoCancellation" value="gum-echoCancellation"></input>
+                        <label for="gum-echoCancellation">Echo Cancellation</label>
+                    </div>
+                </fieldset>
+                <br/>
+                <fieldset>
+                    <legend>BBBA</legend>
+                    <div>
+                        <input autocomplete="off" type="checkbox" id="enable-bbba" value="enable-bbba" checked></input>
+                        <label for="enable-bbba">Active</label>
+                    </div>
+                    <table>
+                        <tr>
+                            <td>Strength:</td>
+                            <td><output id="bbba-strength-value"></output></td>
+                            <td><input autocomplete="off" id="bbba-strength" type="range" value="100" min="0" max="100" /></td>
+                        </tr>
+                        <tr>
+                            <td>Target Loudness (dB):</td>
+                            <td><output id="bbba-target-value"></output></td>
+                            <td><input autocomplete="off" id="bbba-target" type="range" value="-22" min="-60" max="0" /></td>
+                        </tr>
+                    </table>
+                </fieldset>
+                <br/>
+                <fieldset>
+                    <legend>Delay</legend>
+                    <table>
+                        <tr>
+                            <td>Amount (s):</td>
+                            <td><output id="delay-value"></output></td>
+                            <td><input autocomplete="off" id="delay" type="range" value="0.5" min="0" max="1" step="0.1"/></td>
+                        </tr>
+                    </table>
+                </fieldset>
             </div>
         </div>
     </body>

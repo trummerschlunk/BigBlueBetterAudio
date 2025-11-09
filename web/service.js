@@ -1,8 +1,8 @@
 
 // globals, assigned during loadWasmProcessor
 const loadedFiles = {};
-let workletLoaded = false;
-let workletRunning = false;
+let workletFilesLoaded = false;
+let workletModuleLoaded = false;
 
 // global audio context
 let audioContext = null;
@@ -27,7 +27,7 @@ const createWasmProcessorStream = (stream) => {
     const contextDestination = audioContext.createMediaStreamDestination();
 
     const maybeCreateProcessor = () => {
-        if (! workletRunning) {
+        if (! workletModuleLoaded) {
             setTimeout(maybeCreateProcessor, 1000);
             return;
         }
@@ -53,7 +53,7 @@ const createWasmProcessorStream = (stream) => {
 const loadWasmProcessor = () => {
     return new Promise((resolve, reject) => {
         const checkResolved = () => {
-            if (loadedFiles.js && loadedFiles.wasm && workletLoaded) {
+            if (loadedFiles.js && loadedFiles.wasm && workletFilesLoaded) {
                 resolve(true);
                 return true;
             }
@@ -77,7 +77,7 @@ const loadWasmProcessor = () => {
             resp.text().then(function(text) {
                 // NOTE it's not quite loaded yet,
                 // but we cannot wait for `audioWorklet.addModule` as that requires use interaction
-                workletLoaded = true;
+                workletFilesLoaded = true;
                 checkResolved();
 
                 // function to load audio worklet
@@ -87,7 +87,7 @@ const loadWasmProcessor = () => {
                     const processorBlob = new Blob([text], { type: 'text/javascript' });
                     const processorURL = URL.createObjectURL(processorBlob);
                     audioContext.audioWorklet.addModule(processorURL);
-                    workletRunning = true;
+                    workletModuleLoaded = true;
                 };
 
                 // can't load worklet while audio context is suspended
