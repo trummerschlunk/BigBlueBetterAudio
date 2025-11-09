@@ -10,7 +10,7 @@
 // -*-Faust-*-
 
 declare name "bbba";
-declare version "0.15";             // 0.15 has a VAD slider vad_ext to control voice activity from rnnoise (-> both leveler and sb)
+declare version "0.16";             // from 0.15 on bbba needs rnnoise for controlling VAD
 declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
@@ -49,8 +49,10 @@ process = si.bus(Nch)
         : bp1(bypass_switch,
             //: pregain(Nch) 
             preFilter
-            // : re.mono_freeverb(0.9, 0.9, 0.1, 5)
-            : (leveler_sc(target) : ballancer) ~_
+
+            : (leveler_sc(target) 
+            : ballancer 
+            <: par(i,SB_bands*2,_) :    (par(i,SB_bands,_):>_) , par(i,SB_bands,_) ) ~_  : (!,par(i,SB_bands,_))    
             
             //: crossover
             : mbExpComp
@@ -359,14 +361,14 @@ dynamicSmoothing(sensitivity, baseCF, x) = f ~ _ : ! , ! , _
 
 mbExpComp = 
     
-    //: fi.crossover8LR4(xo1,xo2,xo3,xo4,xo5,xo6,xo7)
-    crossover
+    
+    // crossover
     // : gainMB_bands
     
     // : expander
     //: par(i,MB_bands,compressor)
     //: compressorN
-    : compressor8
+    compressor8
     :> si.bus(1)
 
     with {
@@ -519,7 +521,7 @@ ballancer(l) = l <:
         : _* vad_ext : ba.db2linear)     )              // multiply with external VAD (voice activity detection)
         : gainmeter_sb(i)),_))                          // meter the gainchange
         : par(i,SB_bands,gainchange(l))                    // do the actual gainchange to each band
-        :> _                                            // sum bands together
+        //:> _                                            // sum bands together
         
         with {
         
