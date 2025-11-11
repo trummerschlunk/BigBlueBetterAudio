@@ -72,6 +72,9 @@ class MapiWorkletProcessor extends AudioWorkletProcessor {
         if (options.numberOfInputs != 1)
             throw Error('Invalid IO, must be mono');
 
+        // workaround for Chromium-based browsers, return true in `process` until disconnected
+        this.disconnected = false;
+
         // MAPI processor instance
         this.bbba = null;
 
@@ -87,6 +90,9 @@ class MapiWorkletProcessor extends AudioWorkletProcessor {
                 break;
             case 'param':
                 this.param(event.data);
+                break;
+            case 'destroy':
+                this.destroy();
                 break;
             }
         };
@@ -126,27 +132,36 @@ class MapiWorkletProcessor extends AudioWorkletProcessor {
         this.bbba.param(data.index, data.value);
     }
 
+    destroy() {
+        this.disconnected = true;
+        this.bbba = null;
+    }
+
     process(inputs, outputs, parameters) {
-        if (!this.bbba)
+        if (this.disconnected)
             return false;
+        if (!this.bbba)
+            return true;
 
         const input = inputs[0];
         const output = outputs[0];
 
         // IO check, can be zero if stream is not connected yet
         if (input.length == 0 || output.length == 0)
-            return false;
+            return true;
 
         // use in-place processing
         const buffer = output[0];
-        // TODO use something like output.copyFrom(input);
-        for (let i = 0; i < buffer.length; ++i)
-            buffer[i] = input[0][i];
+        buffer.set(input[0]);
 
         for (let offset = 0; offset < buffer.length; offset += nominalBufferSize)
             this.bbba.process(buffer, Math.min(nominalBufferSize, buffer.length - offset), offset);
 
-        return false;
+        // reuse mono buffer if stereo
+        if (output.length == 2)
+            output[1].set(buffer);
+
+        return true;
     }
 };
 

@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "DistrhoPlugin.hpp"
-#include "DistrhoPluginInfo.h"
 #include "extra/RingBuffer.hpp"
 #include "extra/ScopedDenormalDisable.hpp"
 #include "extra/ValueSmoother.hpp"

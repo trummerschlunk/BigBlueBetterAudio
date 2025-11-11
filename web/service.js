@@ -26,6 +26,12 @@ const createWasmProcessorStream = (stream) => {
     const contextSource = audioContext.createMediaStreamSource(stream);
     const contextDestination = audioContext.createMediaStreamDestination();
 
+    // cleanup old processor
+    if (audioProcessor) {
+        audioProcessor.port.postMessage({type: 'destroy'});
+        audioProcessor = null;
+    }
+
     const maybeCreateProcessor = () => {
         if (! workletModuleLoaded) {
             setTimeout(maybeCreateProcessor, 1000);
