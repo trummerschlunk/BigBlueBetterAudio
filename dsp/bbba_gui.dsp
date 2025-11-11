@@ -70,12 +70,12 @@ mb_strength = gui_mb(vslider("mb_strength[symbol:mb_strength]", 100,0,100,1)) / 
 
 // METERS
 
-lev_meter_gain = _;//_ <: attach(_,gui_leveler(vbargraph("[8][unit:dB]gain[symbol:leveler_gain]",-50,50)));
+lev_meter_gain = _ <: attach(_,gui_leveler(vbargraph("[8][unit:dB]gain[symbol:leveler_gain]",-50,50)));
 
-sb_meter(i) = _;//_ <: attach(_, vbargraph("h:[1]Spectral Ballancer/h:[2]loudness normalized spectrum/[1][unit:dB]band %2i[symbol:sb_meter_%2i]",-40,40));
-sb_gainmeter(i) = _;//_ <: attach(_, (ba.linear2db:vbargraph("h:[1]Spectral Ballancer/h:[3]resulting gain/[1]sb_gain %2i[symbol:sb_gain_%2i]",-12,12)));
+sb_meter(i) = _ <: attach(_, vbargraph("h:[1]Spectral Ballancer/h:[2]loudness normalized spectrum/[1][unit:dB]band %2i[symbol:sb_meter_%2i]",-40,40));
+sb_gainmeter(i) = _ <: attach(_, (ba.linear2db:vbargraph("h:[1]Spectral Ballancer/h:[3]resulting gain/[1]sb_gain %2i[symbol:sb_gain_%2i]",-12,12)));
 
-compressor_meter(i) = _;//_ <: attach(_,ba.linear2db:gui_mb(vbargraph("[2]MBgr%2i[unit:dB][symbol:mb_comp_gain%2i]",-6,6)));
+compressor_meter(i) = _ <: attach(_,ba.linear2db:gui_mb(vbargraph("[2]MBgr%2i[unit:dB][symbol:mb_comp_gain%2i]",-6,6)));
 
 
 // external VAD from RNNOISE
