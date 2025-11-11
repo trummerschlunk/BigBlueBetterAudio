@@ -94,7 +94,7 @@ endif
 # extra resources for mapi builds
 mapi: bin/index.html bin/mapi-proc.js bin/service.js
 
-mapi: BUILD_CXX_FLAGS += -DSIMPLIFIED_NOOICE
+mapi: BUILD_CXX_FLAGS += -DSIMPLIFIED_MAPI_BUILD
 
 bin/index.html: web/index.html
 	mkdir -p bin
@@ -179,11 +179,12 @@ FAUSTPP_RUN = \
 	-Dlv2uri="https://github.com/trummerschlunk/BigBlueBetterAudio" \
 	-Dversion_major=$(VERSION_MAJOR) \
 	-Dversion_minor=$(VERSION_MINOR) \
-	-Dversion_micro=$(VERSION_MICRO) \
-	dsp/bbba.dsp
+	-Dversion_micro=$(VERSION_MICRO)
 
 pregen: faustpp
-	$(FAUSTPP_RUN) $(FAUSTPP_OPTS) -a plugin/template/FaustPluginInfo.h -o plugin/pregen/FaustPluginInfo.h
-	$(FAUSTPP_RUN) $(FAUSTPP_OPTS) -a plugin/template/FaustPlugin.cpp   -o plugin/pregen/FaustPlugin.cpp
+	$(FAUSTPP_RUN) $(FAUSTPP_OPTS) dsp/bbba.dsp -a plugin/template/FaustPluginInfo.h -o plugin/pregen/FaustPluginInfo.h
+	$(FAUSTPP_RUN) $(FAUSTPP_OPTS) dsp/bbba.dsp -a plugin/template/FaustPlugin.cpp   -o plugin/pregen/FaustPlugin.cpp
+	$(FAUSTPP_RUN) $(FAUSTPP_OPTS) dsp/bbba_gui.dsp -a plugin/template/FaustPluginInfo.h -o plugin/pregen-gui/FaustPluginInfo.h
+	$(FAUSTPP_RUN) $(FAUSTPP_OPTS) dsp/bbba_gui.dsp -a plugin/template/FaustPlugin.cpp   -o plugin/pregen-gui/FaustPlugin.cpp
 
 .PHONY: pregen

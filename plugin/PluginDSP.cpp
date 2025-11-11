@@ -8,9 +8,14 @@
 #include "extra/ValueSmoother.hpp"
 
 // faustpp generated plugin template
-#include "pregen/FaustPlugin.cpp"
-
+#ifdef SIMPLIFIED_MAPI_BUILD
 #include "pregen/FaustPluginInfo.h"
+#include "pregen/FaustPlugin.cpp"
+#else
+#include "pregen-gui/FaustPluginInfo.h"
+#include "pregen-gui/FaustPlugin.cpp"
+#endif
+
 #include "rnnoise.h"
 
 // checks to ensure things are still as we expect them to be from faust dsp side
@@ -44,7 +49,7 @@ class BBBAudioPlugin : public FaustGeneratedPlugin
     // whether we received enough latent audio frames
     bool processing;
 
-   #ifndef SIMPLIFIED_NOOICE
+   #ifndef SIMPLIFIED_MAPI_BUILD
     // translate Grace Period param (ms) into frames
     // updated when param changes
     uint32_t gracePeriodInFrames = 0;
@@ -121,7 +126,7 @@ public:
     BBBAudioPlugin()
         : FaustGeneratedPlugin(kExtraParamCount)
     {
-       #ifndef SIMPLIFIED_NOOICE
+       #ifndef SIMPLIFIED_MAPI_BUILD
         dryValue.setTimeConstant(0.02f);
         dryValue.setTargetValue(0.f);
 
@@ -157,7 +162,7 @@ protected:
         Plugin::initAudioPort(input, index, port);
     }
 
-   #ifndef SIMPLIFIED_NOOICE
+   #ifndef SIMPLIFIED_MAPI_BUILD
    /**
       Initialize the parameter @a index.
       This function will be called once, shortly after the plugin is created.
@@ -303,7 +308,7 @@ protected:
         bufferInPos = 0;
         processing = false;
 
-       #ifndef SIMPLIFIED_NOOICE
+       #ifndef SIMPLIFIED_MAPI_BUILD
         extraParameters[kExtraParamCurrentVAD] = 0.f;
         extraParameters[kExtraParamAverageVAD] = 0.f;
         extraParameters[kExtraParamMinimumVAD] = 0.f;
@@ -350,7 +355,7 @@ protected:
                 __builtin_unreachable();
         }
 
-       #ifndef SIMPLIFIED_NOOICE
+       #ifndef SIMPLIFIED_MAPI_BUILD
         // reset stats if enabled status changed
         const bool statsEnabled = extraParameters[kExtraParamEnableStats] > 0.5f;
         if (stats.enabled != statsEnabled)
@@ -390,7 +395,7 @@ protected:
                 // run denoise
                 const float vad = rnnoise_process_frame(denoise, bufferOut, bufferIn);
 
-               #ifdef SIMPLIFIED_NOOICE
+               #ifdef SIMPLIFIED_MAPI_BUILD
                 // scale back down to regular audio level
                 for (uint32_t i = 0; i < denoiseFrameSize; ++i)
                     bufferOut[i] *= kDenoiseScalingInv;
@@ -445,7 +450,7 @@ protected:
             // we have enough audio frames in the ring buffer, can give back audio to host
             if (processing)
             {
-               #ifndef SIMPLIFIED_NOOICE
+               #ifndef SIMPLIFIED_MAPI_BUILD
                 // apply smooth bypass
                 if (d_isNotEqual(dryValue.getCurrentValue(), dryValue.getTargetValue()))
                 {
@@ -504,7 +509,7 @@ protected:
     */
     void sampleRateChanged(const double sampleRate) override
     {
-       #ifndef SIMPLIFIED_NOOICE
+       #ifndef SIMPLIFIED_MAPI_BUILD
         dryValue.setSampleRate(sampleRate);
         muteValue.setSampleRate(sampleRate);
         // update internal value that depends on sample rate

@@ -4,14 +4,18 @@
 #pragma once
 
 // faustpp generated plugin template
+#ifdef SIMPLIFIED_MAPI_BUILD
 #include "pregen/FaustPluginInfo.h"
+#else
+#include "pregen-gui/FaustPluginInfo.h"
+#endif
 
 /**
    Extra parameters not part of faust dsp.
    Stored in a common header file for convenience
  */
 enum ExtraParameters {
-   #ifndef SIMPLIFIED_NOOICE
+   #ifndef SIMPLIFIED_MAPI_BUILD
     kExtraParamBypass,
     kExtraParamThreshold,
     kExtraParamGracePeriod,
