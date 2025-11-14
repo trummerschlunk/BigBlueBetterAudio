@@ -12,9 +12,10 @@
 // from 0.15 on bbba needs rnnoise for controlling VAD
 // 0.17 looses all internal VAD (minimum tracking, expanders)
 // 0.18 has in and out meters, lookahead limiter, etc
+// 0.19 is a fake stereo version for making the plugin GUI
 
 declare name "bbba";
-declare version "0.18";             
+declare version "0.19";             
 declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
@@ -109,7 +110,7 @@ vad_ext = gui_main(vslider("[3]vad_ext[symbol:vad_ext]",1,0,1,0.001));
 
 // MAIN
 
-process = si.bus(Nch) 
+process = _,_ :> si.bus(Nch) 
         : peakmeter_in
         : bp1(bypass,
               pregain(1)
@@ -123,6 +124,7 @@ process = si.bus(Nch)
             
             //: limiter_mono
             : limiter_lookahead
+            <: _,_
         )
         : peakmeter_out
         : lufs_out_meter
