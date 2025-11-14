@@ -13,7 +13,7 @@
 // 0.17 looses all internal VAD (minimum tracking, expanders)
 
 declare name "bbba";
-declare version "0.17";             
+declare version "0.22";             
 declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
@@ -26,7 +26,9 @@ Nch = 1;                            // bbba is mono
 Nbands = 8;                         // number of bands of the multiband processing and the spectral ballancer
 maxSR = 48000;                      // maximum samplerate
 
-lev_target_init = -22;
+sbmb_strength_init = 80;
+
+lev_target_init = -23;
 lev_maxboost_init = 30;
 lev_maxcut_init = 30;
 lev_brake_threshold_init = -22;
@@ -34,7 +36,11 @@ lev_speed_init = 80;
 lev_scale_init =100;
 
 sb_strength_init = 50;
-sb_target_spectrum_init = -10, -5, -5, -8, -9, -10, -7, -3;
+sb_target_spectrum_init = -10, -5, -5, -8, -9, -10, -7, -4;
+
+mb_strength_init = 80;
+
+meters_minimum = -70;
 
 
 // GUI
@@ -58,14 +64,14 @@ lev_speed = lev_speed_init / 100;
 lev_brake_thresh = lev_brake_threshold_init + target;
 
 
-sbmb_strength = gui_main(vslider("[2]sbmb_strength[symbol:sbmb_strength]",100,0,100,1)) /100;      // strength of spectral ballancer and multiband compressor
+sbmb_strength = gui_main(vslider("[2]sbmb_strength[symbol:sbmb_strength]",sbmb_strength_init,0,100,1)) /100;      // strength of spectral ballancer and multiband compressor
 
 
 sb_strength = vslider("h:[1]Spectral Ballancer/h:Parameters/[1][unit:%]sb_strength[symbol:sb_strength]", sb_strength_init,0,100,1) : _/100;    // strength of the spectral ballancer
 sb_target_spectrum = par(i,Nbands, vslider("h:[1]Spectral Ballancer/h:Target Curve/spec %i[symbol:sb_target_spectrum_%i]", (sb_target_spectrum_init : ba.selector(i,Nbands)),-20,0,1));
 
 
-mb_strength = gui_mb(vslider("mb_strength[symbol:mb_strength]", 100,0,100,1)) / 100 : _*sbmb_strength;
+mb_strength = gui_mb(vslider("mb_strength[symbol:mb_strength]", mb_strength_init,0,100,1)) / 100 : _*sbmb_strength;
 
 
 // METERS
@@ -96,7 +102,9 @@ process = si.bus(Nch)
             
             : mbExpComp
             
-            : limiter_mono
+            //: limiter_mono
+            : limiter_lookahead
+
         );
 
 
@@ -160,15 +168,15 @@ limiter_mono = co.limiter_lad_mono(lad, ceiling, att, hold, rel) with {
 
 // LIMITER with LOOKAHEAD
 
-Latency_limiter = 0.01; // in ms
+Latency_limiter = 0.01; // in s
 limiter_thresh = -1 : ba.db2linear;
 
-limiter_lookahead = limiter_lad_stereo(Latency_limiter,limiter_thresh, Latency_limiter/twopi, .1, 1/twopi)
+limiter_lookahead = limiter_lad_mono(Latency_limiter,limiter_thresh, Latency_limiter/twopi, .01, 1/twopi)
 with {
     twopi = 2 * ma.PI;
 };
 
-limiter_lad_stereo(LD) = limiter_lad_N(2, LD);
+limiter_lad_mono(LD) = limiter_lad_N(1, LD);
 
 limiter_lad_N(N, LD, ceiling, attack, hold, release) = 
       si.bus(N) <: par(i, N, @(LD * ma.SR)), 
@@ -182,8 +190,9 @@ limiter_lad_N(N, LD, ceiling, attack, hold, release) =
            maxN(1) = _;
            maxN(2) = max;
            maxN(N) = max(maxN(N - 1));
-           limiter_meter = _ <: attach(_,abs : ba.linear2db : gui_mb(vbargraph("[99]LimiterGR",-12,0)));
+           limiter_meter = _ <: attach(_,abs : ba.linear2db : gui_main(vbargraph("[99][symbol:limiter_gain]LimiterGR",-12,0)));
       };
+
 
 
 

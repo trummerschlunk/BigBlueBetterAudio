@@ -16,7 +16,7 @@
 // 0.21 finally correct fake stereo
 
 declare name "bbba";
-declare version "0.21";             
+declare version "0.22";             
 declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
@@ -39,7 +39,7 @@ lev_speed_init = 80;
 lev_scale_init =100;
 
 sb_strength_init = 50;
-sb_target_spectrum_init = -10, -5, -5, -8, -9, -10, -7, -3;
+sb_target_spectrum_init = -10, -5, -5, -8, -9, -10, -7, -4;
 
 mb_strength_init = 80;
 
