@@ -15,7 +15,7 @@
 // 0.19 is a fake stereo version for making the plugin GUI
 
 declare name "bbba";
-declare version "0.19";             
+declare version "0.20";             
 declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
@@ -86,20 +86,20 @@ sb_gainmeter(i) = _ <: attach(_, (ba.linear2db:vbargraph("h:[1]Spectral Ballance
 compressor_meter(i) = _ <: attach(_,ba.linear2db:gui_mb(vbargraph("[2]MBgr%2i[unit:dB][symbol:mb_comp_gain%2i]",-6,6)));
 
 // ----------------------- peak meters -----------------------
-peakmeter_in = in_meter_l with {
+peakmeter_in = in_meter_l,in_meter_r with {
     envelop = abs : max(ba.db2linear(meters_minimum)) : ba.linear2db : min(12)  : max ~ -(20.0/ma.SR);
     in_meter_l(x) = attach(x, envelop(x) : gui_main(vbargraph("[symbol:input_peak_channel_0]In 0", meters_minimum, 0)));
     in_meter_r(x) = attach(x, envelop(x) : gui_main(vbargraph("[symbol:input_peak_channel_1]In 1", meters_minimum, 0)));
 };
 
-peakmeter_out = out_meter_l with {
+peakmeter_out = out_meter_l,out_meter_r with {
     envelop = abs : max(ba.db2linear(meters_minimum)) : ba.linear2db : min(12)  : max ~ -(20.0/ma.SR);
     out_meter_l(x) = attach(x, envelop(x) : gui_main(vbargraph("[symbol:output_peak_channel_0]Out 0", meters_minimum, 0)));
     out_meter_r(x) = attach(x, envelop(x) : gui_main(vbargraph("[symbol:output_peak_channel_1]Out 1", meters_minimum, 0)));
 };
 
 // ------------------------ LUFS out meter -------------------
-lufs_out_meter(l) = l <: attach(l, (lk2_short :  gui_main(vbargraph("[symbol:lufs_out_meter][unit:dB]lufs",meters_minimum,0))));
+lufs_out_meter(l,r) = l,r <: l, attach(r, (lk2_short : gui_main(vbargraph("[symbol:lufs_out_meter][unit:dB]lufs_out",meters_minimum,0)))) : _,_;
 lk2_short = lk2_fixed(3);
 
 // external VAD from RNNOISE
@@ -110,8 +110,9 @@ vad_ext = gui_main(vslider("[3]vad_ext[symbol:vad_ext]",1,0,1,0.001));
 
 // MAIN
 
-process = _,_ :> si.bus(Nch) 
+process = _,_  
         : peakmeter_in
+        :> si.bus(Nch)
         : bp1(bypass,
               pregain(1)
             : preFilter
@@ -124,9 +125,10 @@ process = _,_ :> si.bus(Nch)
             
             //: limiter_mono
             : limiter_lookahead
-            <: _,_
+            
         )
-        : peakmeter_out
+        
+        <: peakmeter_out
         : lufs_out_meter
         ;
 
@@ -236,16 +238,24 @@ basefreq =
 sensitivity =
   it.interpolate_linear(lev_speed:pow(0.5), 0.00000025, 0.0000025);
 
-lk2_fixed(Tg)= kfilter : zi : 4.342944819 * log(max(1e-12)) : -(0.691) with {
+lk1_fixed(Tg)= kfilter : zi : 4.342944819 * log(max(1e-12)) : -(0.691) with {
   sump(n) = ba.slidingSump(n, Tg*maxSR)/max(n,ma.EPSILON);
   envelope(period, x) = x * x :  sump(rint(period * ma.SR));
   zi = envelope(Tg); // mean square: average power = energy/Tg = integral of squared signal / Tg
 };
 
+lk2_fixed(Tg)= par(i,2,kfilter : zi) :> 4.342944819 * log(max(1e-12)) : -(0.691) with {
+  sump(n) = ba.slidingSump(n, Tg*maxSR)/max(n,ma.EPSILON);
+  envelope(period, x) = x * x :  sump(rint(period * ma.SR));
+  zi = envelope(Tg); // mean square: average power = energy/Tg = integral of squared signal / Tg
+};
+
+
+
 kfilter = fi.itu_r_bs_1770_4_kfilter;
    
 leveler_sc(target,fl,l) =
-                calc(lk2_fixed(0.01,fl))
+                calc(lk1_fixed(0.01,fl))
                 <: (_*l)
                     with {
                         calc(lufs) = FB(lufs)~_: ba.db2linear;
