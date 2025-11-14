@@ -13,9 +13,10 @@
 // 0.17 looses all internal VAD (minimum tracking, expanders)
 // 0.18 has in and out meters, lookahead limiter, etc
 // 0.19 is a fake stereo version for making the plugin GUI
+// 0.21 finally correct fake stereo
 
 declare name "bbba";
-declare version "0.20";             
+declare version "0.21";             
 declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
@@ -112,7 +113,8 @@ vad_ext = gui_main(vslider("[3]vad_ext[symbol:vad_ext]",1,0,1,0.001));
 
 process = _,_  
         : peakmeter_in
-        :> si.bus(Nch)
+        : stereo2mono
+        : si.bus(Nch)
         : bp1(bypass,
               pregain(1)
             : preFilter
@@ -128,7 +130,8 @@ process = _,_
             
         )
         
-        <: peakmeter_out
+        <: _,_
+        : peakmeter_out
         : lufs_out_meter
         ;
 
@@ -144,6 +147,10 @@ process = _,_
 //                       __/ |
 //                      |___/ 
 
+// mono2stereo2mono
+
+momo2stereo = _ <: _,_;
+stereo2mono = _,_ :> _ *0.5;
 
 // pre and post gain
 
