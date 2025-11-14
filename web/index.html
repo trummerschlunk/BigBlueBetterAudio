@@ -14,20 +14,9 @@ const kParameter_mb_strength = 15;
 function init(callback) {
     var err = [];
 
-    // check if audio is supported
-    if (typeof(AudioContext) === 'undefined') {
-        err.push('AudioContext unsupported');
-    }
+    // check if supported
     if (navigator.mediaDevices === undefined || navigator.mediaDevices.getUserMedia === undefined) {
         err.push('navigator.mediaDevices.getUserMedia unsupported');
-    }
-
-    // check if WebAssembly is properly supported
-    if (typeof(WebAssembly) === 'undefined') {
-        err.push('WebAssembly unsupported');
-    } else {
-        if (! WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,0,0,2,8,1,1,97,1,98,3,127,1,6,6,1,127,1,65,0,11,7,5,1,1,97,3,1])))
-            err.push('Importable/Exportable mutable globals unsupported');
     }
 
     // bail-out early if any errors happened
@@ -36,7 +25,7 @@ function init(callback) {
         return;
     }
 
-    loadWasmProcessor().then(function() {
+    loadWasmProcessorFiles().then(function() {
         callback();
     }).catch(function(error) {
         callback([error]);
@@ -48,20 +37,22 @@ function init(callback) {
 let gumStream = null;
 let delayNode = null;
 
-// restart the stream
-function restartStream() {
-    if (audioProcessor) {
-        audioProcessor.port.postMessage({type: 'destroy'});
+function changeAudioConstraints() {
+    if (gumStream) {
+        enableStream();
     }
+}
+
+// restart the stream
+function enableStream() {
     if (gumStream) {
         gumStream.getTracks().forEach(track => track.stop());
+        gumStream = null;
     }
 
-    audioProcessor = null;
-    gumStream = null;
     delayNode = null;
 
-    var constraints = {
+    const constraints = {
         'audio': {
             'autoGainControl': { 'ideal': document.getElementById('gum-autoGainControl').checked },
             'echoCancellation': { 'ideal': document.getElementById('gum-echoCancellation').checked },
@@ -70,55 +61,38 @@ function restartStream() {
         },
         'video': false,
     };
-
-    var success = function(stream) {
-        document.getElementById('enable-input').style.setProperty('display', 'none');
-
-        gumStream = stream;
-        const wasmProcStream = createWasmProcessorStream(stream);
-
-        // initial setup matching live parameters
-        audioProcessor.port.onmessage = event => {
-            if (event.data?.type == 'loaded') {
-                set_wasm_enabled(document.getElementById('enable-bbba').checked);
-                set_wasm_param(kParameter_mb_strength, document.getElementById('bbba-strength').value);
-                set_wasm_param(kParameter_leveler_target, document.getElementById('bbba-target').value);
-            }
-        };
-
-        // create delay node just before the speakers
-        const delayOpts = {
-            channelCount: 1,
-            delayTime: document.getElementById('delay').value,
-            maxDelayTime: 1,
-        };
-        delayNode = new DelayNode(audioContext, delayOpts);
-
-        // connect processor to delay, then to speakers
-        audioProcessor.connect(delayNode);
-        delayNode.connect(audioContext.destination);
-    };
-    var fail = function(err) {
+    const handleError = function(err) {
         document.getElementById('error').setHTMLUnsafe('<h2>Error</h2><p>' + err + '</p>');
         document.getElementById('error').style.removeProperty('display');
         console.error(err);
     };
 
-    navigator.mediaDevices.getUserMedia(constraints).then(success).catch(fail);
-};
+    navigator.mediaDevices.getUserMedia(constraints).then(async function(stream) {
+        document.getElementById('enable-input').style.setProperty('display', 'none');
 
-function maybeRestartStream() {
-    if (gumStream)
-        restartStream();
-}
+        gumStream = stream;
 
-// keep waiting until audio worklet is loaded, then restart stream
-function waitForWorklet() {
-    if (workletModuleLoaded) {
-        restartStream();
-        return;
-    }
-    setTimeout(waitForWorklet, 100);
+        createWasmProcessorStream(stream).then(function(wasmProcStream, audioProcessor, audioContext) {
+            // initial setup matching live parameters
+            setWasmProcessorEnabled(document.getElementById('enable-bbba').checked);
+            setWasmProcessorParameter(kParameter_mb_strength, document.getElementById('bbba-strength').value);
+            setWasmProcessorParameter(kParameter_leveler_target, document.getElementById('bbba-target').value);
+
+            // create delay node just before the speakers
+            const delayOpts = {
+                channelCount: 1,
+                delayTime: document.getElementById('delay').value,
+                maxDelayTime: 1,
+            };
+            delayNode = new DelayNode(audioContext, delayOpts);
+
+            // connect processor to delay, then to speakers
+            audioProcessor.connect(delayNode);
+            delayNode.connect(audioContext.destination);
+        }).catch(function(err) {
+        });
+    }).catch(function(err) {
+    });
 };
 
 window.addEventListener('DOMContentLoaded', function() {
@@ -145,21 +119,21 @@ window.addEventListener('DOMContentLoaded', function() {
         elems.targetVal.textContent = elems.target.value;
         elems.delayVal.textContent = elems.delay.value;
 
-        document.getElementById('gum-autoGainControl').addEventListener('click', maybeRestartStream);
-        document.getElementById('gum-echoCancellation').addEventListener('click', maybeRestartStream);
-        document.getElementById('gum-noiseSuppression').addEventListener('click', maybeRestartStream);
+        document.getElementById('gum-autoGainControl').addEventListener('click', changeAudioConstraints);
+        document.getElementById('gum-echoCancellation').addEventListener('click', changeAudioConstraints);
+        document.getElementById('gum-noiseSuppression').addEventListener('click', changeAudioConstraints);
 
         document.getElementById('enable-bbba').addEventListener('click', function() {
-            set_wasm_enabled(this.checked);
+            setWasmProcessorEnabled(this.checked);
         });
 
         elems.strength.addEventListener('input', function(event) {
             elems.strengthVal.textContent = event.target.value;
-            set_wasm_param(kParameter_mb_strength, event.target.value);
+            setWasmProcessorParameter(kParameter_mb_strength, event.target.value);
         });
         elems.target.addEventListener('input', function(event) {
             elems.targetVal.textContent = event.target.value;
-            set_wasm_param(kParameter_leveler_target, event.target.value);
+            setWasmProcessorParameter(kParameter_leveler_target, event.target.value);
         });
         elems.delay.addEventListener('input', function(event) {
             elems.delayVal.textContent = event.target.value;
@@ -167,7 +141,7 @@ window.addEventListener('DOMContentLoaded', function() {
                 delayNode.delayTime.value = event.target.value;
         });
 
-        document.getElementById('enable-input').addEventListener('click', waitForWorklet);
+        document.getElementById('enable-input').addEventListener('click', enableStream);
     });
 });
 
