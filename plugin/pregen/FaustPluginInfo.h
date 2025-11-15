@@ -9,7 +9,7 @@
 // Author: Klaus Scheuermann
 // Copyright: 
 // License: GPLv3+
-// Version: 0.17
+// Version: 0.22
 //------------------------------------------------------------------------------
 
 
@@ -47,6 +47,7 @@ enum Parameters {
     kParameter_pre_lowcut,
     
     // outputs
+    kParameter_limiter_gain,
     
     // terminator
     kParameterCount
@@ -60,7 +61,7 @@ enum States {
     kStateCount
 };
 
-static constexpr const char* kParameterNames[17] = {
+static constexpr const char* kParameterNames[18] = {
     // inputs
     "sb_strength",
     "spec 0",
@@ -81,10 +82,11 @@ static constexpr const char* kParameterNames[17] = {
     "preLowcut_freq",
     
     // ouputs
+    "LimiterGR",
     
 };
 
-static constexpr const struct { float def, min, max; } kParameterRanges[17] = {
+static constexpr const struct { float def, min, max; } kParameterRanges[18] = {
     // inputs
     { 50.0, 0.0, 100.0 },
     { -10.0, -20.0, 0.0 },
@@ -94,21 +96,22 @@ static constexpr const struct { float def, min, max; } kParameterRanges[17] = {
     { -9.0, -20.0, 0.0 },
     { -10.0, -20.0, 0.0 },
     { -7.0, -20.0, 0.0 },
-    { -3.0, -20.0, 0.0 },
+    { -4.0, -20.0, 0.0 },
     { 0, 0, 1 },
     { 0.0, -20.0, 20.0 },
-    { 100.0, 0.0, 100.0 },
+    { 80.0, 0.0, 100.0 },
     { 1.0, 0.0, 1.0 },
-    { -22.0, -60.0, 0.0 },
+    { -23.0, -60.0, 0.0 },
     { 1.0, 0.0, 1.0 },
-    { 100.0, 0.0, 100.0 },
+    { 80.0, 0.0, 100.0 },
     { 42.0, 1.0, 400.0 },
     
     // ouputs
+    { 0, -12.0, 0.0 },
     
 };
 
-static constexpr const char* kParameterSymbols[17] = {
+static constexpr const char* kParameterSymbols[18] = {
     // inputs
     "sb_strength",
     "sb_target_spectrum_0",
@@ -129,10 +132,11 @@ static constexpr const char* kParameterSymbols[17] = {
     "pre_lowcut",
     
     // ouputs
+    "limiter_gain",
     
 };
 
-static constexpr const char* kParameterUnits[17] = {
+static constexpr const char* kParameterUnits[18] = {
     // inputs
     "%",
     "",
@@ -153,6 +157,7 @@ static constexpr const char* kParameterUnits[17] = {
     "",
     
     // ouputs
+    "",
     
 };
 

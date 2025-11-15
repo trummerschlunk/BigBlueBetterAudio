@@ -9,7 +9,7 @@
 // Author: Klaus Scheuermann
 // Copyright: 
 // License: GPLv3+
-// Version: 0.17
+// Version: 0.22
 //------------------------------------------------------------------------------
 
 
@@ -432,13 +432,17 @@ class mydsp : public dsp {
 	float fRec222[2];
 	float fConst106;
 	float fRec223[2];
-	float fVec35[1024];
+	float fVec35[2048];
 	int iConst107;
+	float fConst108;
 	int iRec226[2];
 	float fRec227[2];
-	float fConst108;
+	float fConst109;
 	float fRec225[2];
+	float fConst110;
+	float fConst111;
 	float fRec224[2];
+	FAUSTFLOAT fVbargraph0;
 	FAUSTFLOAT fCheckbox0;
 	float fRec228[2];
 	
@@ -459,13 +463,7 @@ class mydsp : public dsp {
 		m->declare("basics.lib/peakholder:copyright", "Copyright (C) 2022 Dario Sanfilippo <sanfilippo.dario@gmail.com>");
 		m->declare("basics.lib/peakholder:license", "MIT-style STK-4.3 license");
 		m->declare("basics.lib/version", "1.21.0");
-		m->declare("compile_options", "-a /tmp/tmp5l4ms70s.cpp -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
-		m->declare("compressors.lib/limiter_lad_N:author", "Dario Sanfilippo");
-		m->declare("compressors.lib/limiter_lad_N:copyright", "Copyright (C) 2020 Dario Sanfilippo       <sanfilippo.dario@gmail.com>");
-		m->declare("compressors.lib/limiter_lad_N:license", "GPLv3 license");
-		m->declare("compressors.lib/limiter_lad_mono:author", "Dario Sanfilippo");
-		m->declare("compressors.lib/limiter_lad_mono:copyright", "Copyright (C) 2020 Dario Sanfilippo       <sanfilippo.dario@gmail.com>");
-		m->declare("compressors.lib/limiter_lad_mono:license", "GPLv3 license");
+		m->declare("compile_options", "-a /tmp/tmp0gv16zn5.cpp -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("compressors.lib/name", "Faust Compressor Effect Library");
 		m->declare("compressors.lib/peak_compression_gain_mono:author", "Bart Brouns");
 		m->declare("compressors.lib/peak_compression_gain_mono:license", "GPLv3");
@@ -525,7 +523,7 @@ class mydsp : public dsp {
 		m->declare("signals.lib/onePoleSwitching:author", "Jonatan Liljedahl, revised by Dario Sanfilippo");
 		m->declare("signals.lib/onePoleSwitching:licence", "STK-4.3");
 		m->declare("signals.lib/version", "1.6.0");
-		m->declare("version", "0.17");
+		m->declare("version", "0.22");
 	}
 
 	FAUSTPP_VIRTUAL int getNumInputs() {
@@ -647,18 +645,21 @@ class mydsp : public dsp {
 		fConst104 = std::exp(-(16.666666f / fConst0));
 		fConst105 = std::exp(-(12.5f / fConst0));
 		fConst106 = std::exp(-(33.333332f / fConst0));
-		iConst107 = int(0.005f * fConst0);
-		fConst108 = 1.0f - fConst98;
+		iConst107 = int(fConst6);
+		fConst108 = std::exp(-(628.31854f / fConst0));
+		fConst109 = 1.0f - fConst108;
+		fConst110 = std::exp(-(6.2831855f / fConst0));
+		fConst111 = 1.0f - fConst110;
 	}
 	
 	FAUSTPP_VIRTUAL void instanceResetUserInterface() {
-		fVslider0 = FAUSTFLOAT(-22.0f);
+		fVslider0 = FAUSTFLOAT(-23.0f);
 		fVslider1 = FAUSTFLOAT(1.0f);
 		fVslider2 = FAUSTFLOAT(1.0f);
 		fVslider3 = FAUSTFLOAT(0.0f);
 		fVslider4 = FAUSTFLOAT(42.0f);
-		fVslider5 = FAUSTFLOAT(-3.0f);
-		fVslider6 = FAUSTFLOAT(1e+02f);
+		fVslider5 = FAUSTFLOAT(-4.0f);
+		fVslider6 = FAUSTFLOAT(8e+01f);
 		fVslider7 = FAUSTFLOAT(5e+01f);
 		fVslider8 = FAUSTFLOAT(-7.0f);
 		fVslider9 = FAUSTFLOAT(-1e+01f);
@@ -667,7 +668,7 @@ class mydsp : public dsp {
 		fVslider12 = FAUSTFLOAT(-5.0f);
 		fVslider13 = FAUSTFLOAT(-5.0f);
 		fVslider14 = FAUSTFLOAT(-1e+01f);
-		fVslider15 = FAUSTFLOAT(1e+02f);
+		fVslider15 = FAUSTFLOAT(8e+01f);
 		fCheckbox0 = FAUSTFLOAT(0.0f);
 	}
 	
@@ -1219,7 +1220,7 @@ class mydsp : public dsp {
 		for (int l181 = 0; l181 < 2; l181 = l181 + 1) {
 			fRec223[l181] = 0.0f;
 		}
-		for (int l182 = 0; l182 < 1024; l182 = l182 + 1) {
+		for (int l182 = 0; l182 < 2048; l182 = l182 + 1) {
 			fVec35[l182] = 0.0f;
 		}
 		for (int l183 = 0; l183 < 2; l183 = l183 + 1) {
@@ -1284,7 +1285,7 @@ class mydsp : public dsp {
 		ui_interface->declare(&fVslider8, "symbol", "sb_target_spectrum_6");
 		ui_interface->addVerticalSlider("spec 6", &fVslider8, FAUSTFLOAT(-7.0f), FAUSTFLOAT(-2e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f));
 		ui_interface->declare(&fVslider5, "symbol", "sb_target_spectrum_7");
-		ui_interface->addVerticalSlider("spec 7", &fVslider5, FAUSTFLOAT(-3.0f), FAUSTFLOAT(-2e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f));
+		ui_interface->addVerticalSlider("spec 7", &fVslider5, FAUSTFLOAT(-4.0f), FAUSTFLOAT(-2e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f));
 		ui_interface->closeBox();
 		ui_interface->closeBox();
 		ui_interface->openHorizontalBox("main");
@@ -1296,21 +1297,24 @@ class mydsp : public dsp {
 		ui_interface->addVerticalSlider("PreGain", &fVslider3, FAUSTFLOAT(0.0f), FAUSTFLOAT(-2e+01f), FAUSTFLOAT(2e+01f), FAUSTFLOAT(0.1f));
 		ui_interface->declare(&fVslider6, "2", "");
 		ui_interface->declare(&fVslider6, "symbol", "sbmb_strength");
-		ui_interface->addVerticalSlider("sbmb_strength", &fVslider6, FAUSTFLOAT(1e+02f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+02f), FAUSTFLOAT(1.0f));
+		ui_interface->addVerticalSlider("sbmb_strength", &fVslider6, FAUSTFLOAT(8e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+02f), FAUSTFLOAT(1.0f));
 		ui_interface->declare(&fVslider1, "3", "");
 		ui_interface->declare(&fVslider1, "symbol", "vad_ext");
 		ui_interface->addVerticalSlider("vad_ext", &fVslider1, FAUSTFLOAT(1.0f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f), FAUSTFLOAT(0.001f));
+		ui_interface->declare(&fVbargraph0, "99", "");
+		ui_interface->declare(&fVbargraph0, "symbol", "limiter_gain");
+		ui_interface->addVerticalBargraph("LimiterGR", &fVbargraph0, FAUSTFLOAT(-12.0f), FAUSTFLOAT(0.0f));
 		ui_interface->openHorizontalBox("leveler");
 		ui_interface->declare(&fVslider0, "1", "");
 		ui_interface->declare(&fVslider0, "symbol", "leveler_target");
 		ui_interface->declare(&fVslider0, "unit", "dB");
-		ui_interface->addVerticalSlider("target", &fVslider0, FAUSTFLOAT(-22.0f), FAUSTFLOAT(-6e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f));
+		ui_interface->addVerticalSlider("target", &fVslider0, FAUSTFLOAT(-23.0f), FAUSTFLOAT(-6e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f));
 		ui_interface->declare(&fVslider2, "symbol", "leveler_scale");
 		ui_interface->addVerticalSlider("leveler_scale", &fVslider2, FAUSTFLOAT(1.0f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f), FAUSTFLOAT(0.1f));
 		ui_interface->closeBox();
 		ui_interface->openHorizontalBox("mbExpComp");
 		ui_interface->declare(&fVslider15, "symbol", "mb_strength");
-		ui_interface->addVerticalSlider("mb_strength", &fVslider15, FAUSTFLOAT(1e+02f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+02f), FAUSTFLOAT(1.0f));
+		ui_interface->addVerticalSlider("mb_strength", &fVslider15, FAUSTFLOAT(8e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+02f), FAUSTFLOAT(1.0f));
 		ui_interface->closeBox();
 		ui_interface->declare(&fVslider4, "scale", "log");
 		ui_interface->declare(&fVslider4, "symbol", "pre_lowcut");
@@ -1764,16 +1768,18 @@ class mydsp : public dsp {
 			float fTemp153 = ((-(0.75f * fTemp152) > fRec223[1]) ? fConst82 : fConst106);
 			fRec223[0] = fRec223[1] * fTemp153 - 0.75f * fTemp152 * (1.0f - fTemp153);
 			float fTemp154 = fRec2 * std::pow(1e+01f, fSlow19 * std::log10(std::max<float>(1.1754944e-38f, std::pow(1e+01f, 0.05f * (2e+01f * std::log10(std::max<float>(1.1754944e-38f, std::pow(1e+01f, 0.05f * fRec223[0]))) + 1.5f))))) + fRec3 * std::pow(1e+01f, fSlow19 * std::log10(std::max<float>(1.1754944e-38f, std::pow(1e+01f, 0.05f * (2e+01f * std::log10(std::max<float>(1.1754944e-38f, std::pow(1e+01f, 0.05f * fRec222[0]))) + 1.5f))))) + fRec4 * std::pow(1e+01f, fSlow19 * std::log10(std::max<float>(1.1754944e-38f, std::pow(1e+01f, 0.05f * (2e+01f * std::log10(std::max<float>(1.1754944e-38f, std::pow(1e+01f, 0.05f * fRec221[0]))) + 1.5f))))) + fRec5 * std::pow(1e+01f, fSlow19 * std::log10(std::max<float>(1.1754944e-38f, std::pow(1e+01f, 0.05f * (2e+01f * std::log10(std::max<float>(1.1754944e-38f, std::pow(1e+01f, 0.05f * fRec220[0]))) + 1.5f))))) + fRec6 * std::pow(1e+01f, fSlow19 * std::log10(std::max<float>(1.1754944e-38f, std::pow(1e+01f, 0.05f * (2e+01f * std::log10(std::max<float>(1.1754944e-38f, std::pow(1e+01f, 0.05f * fRec219[0]))) + 1.5f))))) + fRec7 * std::pow(1e+01f, fSlow19 * std::log10(std::max<float>(1.1754944e-38f, std::pow(1e+01f, 0.05f * (2e+01f * std::log10(std::max<float>(1.1754944e-38f, std::pow(1e+01f, 0.05f * fRec218[0]))) + 1.5f))))) + fRec8 * std::pow(1e+01f, fSlow19 * std::log10(std::max<float>(1.1754944e-38f, std::pow(1e+01f, 0.05f * (2e+01f * std::log10(std::max<float>(1.1754944e-38f, std::pow(1e+01f, 0.05f * fRec217[0]))) + 1.5f))))) + fRec9 * std::pow(1e+01f, fSlow19 * std::log10(std::max<float>(1.1754944e-38f, std::pow(1e+01f, 0.05f * (2e+01f * std::log10(std::max<float>(1.1754944e-38f, std::pow(1e+01f, 0.05f * fRec0[0]))) + 1.5f)))));
-			fVec35[IOTA0 & 1023] = fTemp154;
+			fVec35[IOTA0 & 2047] = fTemp154;
 			float fTemp155 = std::fabs(fTemp154);
 			int iTemp156 = (fTemp155 >= fRec227[1]) | (float(iRec226[1]) >= fConst6);
 			iRec226[0] = ((iTemp156) ? 0 : iRec226[1] + 1);
 			fRec227[0] = ((iTemp156) ? fTemp155 : fRec227[1]);
-			fRec225[0] = fConst108 * fRec227[0] + fConst98 * fRec225[1];
+			fRec225[0] = fConst109 * fRec227[0] + fConst108 * fRec225[1];
 			float fTemp157 = std::fabs(fRec225[0]);
-			fRec224[0] = std::max<float>(fTemp157, fConst2 * fRec224[1] + fConst84 * fTemp157);
+			fRec224[0] = std::max<float>(fTemp157, fConst110 * fRec224[1] + fConst111 * fTemp157);
+			float fTemp158 = std::min<float>(1.0f, 0.8912509f / std::max<float>(fRec224[0], 1.1920929e-07f));
+			fVbargraph0 = FAUSTFLOAT(2e+01f * std::log10(std::max<float>(1.1754944e-38f, std::fabs(fTemp158))));
 			fRec228[0] = fSlow26 + fConst43 * fRec228[1];
-			output0[i0] = FAUSTFLOAT(fTemp15 * fRec228[0] + (1.0f - fRec228[0]) * std::min<float>(1.0f, 0.8912509f / std::max<float>(fRec224[0], 1.1920929e-07f)) * fVec35[(IOTA0 - iConst107) & 1023]);
+			output0[i0] = FAUSTFLOAT(fTemp15 * fRec228[0] + (1.0f - fRec228[0]) * fTemp158 * fVec35[(IOTA0 - iConst107) & 2047]);
 			fVec0[1] = fVec0[0];
 			fRec74[1] = fRec74[0];
 			fRec73[1] = fRec73[0];
@@ -1997,6 +2003,7 @@ public:
         dsp->init(getSampleRate());
 
         // passive controls are only updated on first run, make sure they have valid values now
+        dsp->fVbargraph0 = 0;
         
     }
 
@@ -2319,6 +2326,20 @@ protected:
             param.ranges.max = kParameterRanges[16].max;
             break;
         
+        case kParameter_limiter_gain:
+            param.hints = kParameterIsAutomatable|kParameterIsOutput
+            
+            
+            
+            ;
+            param.name = kParameterNames[17];
+            param.unit = kParameterUnits[17];
+            param.symbol = kParameterSymbols[17];
+            param.shortName = "";
+            param.ranges.def = kParameterRanges[17].def;
+            param.ranges.min = kParameterRanges[17].min;
+            param.ranges.max = kParameterRanges[17].max;
+            break;
         
         }
     }
@@ -2364,6 +2385,8 @@ protected:
             return dsp->fVslider15;
         case kParameter_pre_lowcut:
             return dsp->fVslider4;
+        case kParameter_limiter_gain:
+            return dsp->fVbargraph0;
         
         default:
             return 0.0f;

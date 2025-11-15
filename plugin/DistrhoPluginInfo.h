@@ -30,8 +30,12 @@ enum ExtraParameters {
 
 /**
    Whether the plugin has a custom UI.
- */
+   */
+#ifdef SIMPLIFIED_MAPI_BUILD
+#define DISTRHO_PLUGIN_HAS_UI 0
+#else
 #define DISTRHO_PLUGIN_HAS_UI 1
+#endif
 
 /**
    Whether the plugin introduces latency during audio or midi processing.

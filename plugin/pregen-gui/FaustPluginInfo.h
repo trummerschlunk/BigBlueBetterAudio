@@ -9,7 +9,7 @@
 // Author: Klaus Scheuermann
 // Copyright: 
 // License: GPLv3+
-// Version: 0.18
+// Version: 0.22
 //------------------------------------------------------------------------------
 
 
@@ -23,8 +23,8 @@
 #define DISTRHO_PLUGIN_URI  "https://github.com/trummerschlunk/BigBlueBetterAudio"
 
 #define DISTRHO_PLUGIN_IS_RT_SAFE      1
-#define DISTRHO_PLUGIN_NUM_INPUTS      1
-#define DISTRHO_PLUGIN_NUM_OUTPUTS     1
+#define DISTRHO_PLUGIN_NUM_INPUTS      2
+#define DISTRHO_PLUGIN_NUM_OUTPUTS     2
 
 enum Parameters {
     // inputs
@@ -65,8 +65,10 @@ enum Parameters {
     kParameter_sb_gain__7,
     kParameter_limiter_gain,
     kParameter_input_peak_channel_0,
+    kParameter_input_peak_channel_1,
     kParameter_lufs_out_meter,
     kParameter_output_peak_channel_0,
+    kParameter_output_peak_channel_1,
     kParameter_leveler_gain,
     kParameter_mb_comp_gain_0,
     kParameter_mb_comp_gain_1,
@@ -89,7 +91,7 @@ enum States {
     kStateCount
 };
 
-static constexpr const char* kParameterNames[46] = {
+static constexpr const char* kParameterNames[48] = {
     // inputs
     "sb_strength",
     "spec 0",
@@ -128,8 +130,10 @@ static constexpr const char* kParameterNames[46] = {
     "sb_gain  7",
     "LimiterGR",
     "In 0",
-    "lufs",
+    "In 1",
+    "lufs_out",
     "Out 0",
+    "Out 1",
     "gain",
     "MBgr 0",
     "MBgr 1",
@@ -142,7 +146,7 @@ static constexpr const char* kParameterNames[46] = {
     
 };
 
-static constexpr const struct { float def, min, max; } kParameterRanges[46] = {
+static constexpr const struct { float def, min, max; } kParameterRanges[48] = {
     // inputs
     { 50.0, 0.0, 100.0 },
     { -10.0, -20.0, 0.0 },
@@ -152,7 +156,7 @@ static constexpr const struct { float def, min, max; } kParameterRanges[46] = {
     { -9.0, -20.0, 0.0 },
     { -10.0, -20.0, 0.0 },
     { -7.0, -20.0, 0.0 },
-    { -3.0, -20.0, 0.0 },
+    { -4.0, -20.0, 0.0 },
     { 0, 0, 1 },
     { 0.0, -20.0, 20.0 },
     { 80.0, 0.0, 100.0 },
@@ -183,6 +187,8 @@ static constexpr const struct { float def, min, max; } kParameterRanges[46] = {
     { 0, -70.0, 0.0 },
     { 0, -70.0, 0.0 },
     { 0, -70.0, 0.0 },
+    { 0, -70.0, 0.0 },
+    { 0, -70.0, 0.0 },
     { 0, -50.0, 50.0 },
     { 0, -6.0, 6.0 },
     { 0, -6.0, 6.0 },
@@ -195,7 +201,7 @@ static constexpr const struct { float def, min, max; } kParameterRanges[46] = {
     
 };
 
-static constexpr const char* kParameterSymbols[46] = {
+static constexpr const char* kParameterSymbols[48] = {
     // inputs
     "sb_strength",
     "sb_target_spectrum_0",
@@ -207,7 +213,7 @@ static constexpr const char* kParameterSymbols[46] = {
     "sb_target_spectrum_6",
     "sb_target_spectrum_7",
     "bypass",
-    "lv2_port_12",
+    "lv2_port_14",
     "sbmb_strength",
     "vad_ext",
     "leveler_target",
@@ -234,8 +240,10 @@ static constexpr const char* kParameterSymbols[46] = {
     "sb_gain__7",
     "limiter_gain",
     "input_peak_channel_0",
+    "input_peak_channel_1",
     "lufs_out_meter",
     "output_peak_channel_0",
+    "output_peak_channel_1",
     "leveler_gain",
     "mb_comp_gain_0",
     "mb_comp_gain_1",
@@ -248,7 +256,7 @@ static constexpr const char* kParameterSymbols[46] = {
     
 };
 
-static constexpr const char* kParameterUnits[46] = {
+static constexpr const char* kParameterUnits[48] = {
     // inputs
     "%",
     "",
@@ -287,7 +295,9 @@ static constexpr const char* kParameterUnits[46] = {
     "",
     "",
     "",
+    "",
     "dB",
+    "",
     "",
     "dB",
     "dB",

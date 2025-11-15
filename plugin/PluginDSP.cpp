@@ -18,8 +18,13 @@
 #include "rnnoise.h"
 
 // checks to ensure things are still as we expect them to be from faust dsp side
+#ifdef SIMPLIFIED_MAPI_BUILD
 static_assert(DISTRHO_PLUGIN_NUM_INPUTS == 1, "has 1 audio input");
 static_assert(DISTRHO_PLUGIN_NUM_OUTPUTS == 1, "has 1 audio output");
+#else
+static_assert(DISTRHO_PLUGIN_NUM_INPUTS == 2, "has 2 audio inputs");
+static_assert(DISTRHO_PLUGIN_NUM_OUTPUTS == 2, "has 2 audio outputs");
+#endif
 
 START_NAMESPACE_DISTRHO
 
@@ -37,6 +42,9 @@ class BBBAudioPlugin : public FaustGeneratedPlugin
 
     // denoise handle, keep it const so we never modify it
     DenoiseState* const denoise = rnnoise_create(nullptr);
+   #ifndef SIMPLIFIED_MAPI_BUILD
+    DenoiseState* const denoise2 = rnnoise_create(nullptr);
+   #endif
 
     // buffers for latent processing
     float* bufferIn;
@@ -44,6 +52,13 @@ class BBBAudioPlugin : public FaustGeneratedPlugin
     HeapRingBuffer ringBufferDry;
     HeapRingBuffer ringBufferOut;
     uint32_t bufferInPos;
+   #ifndef SIMPLIFIED_MAPI_BUILD
+    // stereo variant
+    float* bufferIn2;
+    float* bufferOut2;
+    HeapRingBuffer ringBufferDry2;
+    HeapRingBuffer ringBufferOut2;
+   #endif
 
     // whether we received enough latent audio frames
     bool processing;
@@ -146,6 +161,9 @@ public:
     ~BBBAudioPlugin()
     {
         rnnoise_destroy(denoise);
+       #ifndef SIMPLIFIED_MAPI_BUILD
+        rnnoise_destroy(denoise2);
+       #endif
     }
 
 protected:
@@ -308,6 +326,11 @@ protected:
         processing = false;
 
        #ifndef SIMPLIFIED_MAPI_BUILD
+        ringBufferDry2.createBuffer(ringBufferSize);
+        ringBufferOut2.createBuffer(ringBufferSize);
+        bufferIn2 = new float[denoiseFrameSize];
+        bufferOut2 = new float[denoiseFrameSize];
+
         extraParameters[kExtraParamCurrentVAD] = 0.f;
         extraParameters[kExtraParamAverageVAD] = 0.f;
         extraParameters[kExtraParamMinimumVAD] = 0.f;
@@ -333,6 +356,14 @@ protected:
 
         ringBufferDry.deleteBuffer();
         ringBufferOut.deleteBuffer();
+
+       #ifndef SIMPLIFIED_MAPI_BUILD
+        delete[] bufferIn2;
+        delete[] bufferOut2;
+
+        ringBufferDry2.deleteBuffer();
+        ringBufferOut2.deleteBuffer();
+       #endif
     }
 
    /**
@@ -341,11 +372,11 @@ protected:
     */
     void run(const float** const inputs, float** const outputs, const uint32_t frames) override
     {
+       #ifdef SIMPLIFIED_MAPI_BUILD
         const float* input = inputs[0];
         /* */ float* output = outputs[0];
 
         // optimize for non-denormal usage
-        const ScopedDenormalDisable sdd;
         for (uint32_t i = 0; i < frames; ++i)
         {
             if (!std::isfinite(input[i]))
@@ -353,8 +384,20 @@ protected:
             if (!std::isfinite(output[i]))
                 __builtin_unreachable();
         }
+       #else
+        // optimize for non-denormal usage
+        const ScopedDenormalDisable sdd;
+        for (uint32_t c = 0; c < DISTRHO_PLUGIN_NUM_INPUTS; ++c)
+        {
+            for (uint32_t i = 0; i < frames; ++i)
+            {
+                if (!std::isfinite(inputs[c][i]))
+                    __builtin_unreachable();
+                if (!std::isfinite(outputs[c][i]))
+                    __builtin_unreachable();
+            }
+        }
 
-       #ifndef SIMPLIFIED_MAPI_BUILD
         // reset stats if enabled status changed
         const bool statsEnabled = extraParameters[kExtraParamEnableStats] > 0.5f;
         if (stats.enabled != statsEnabled)
@@ -376,7 +419,12 @@ protected:
             const uint32_t framesCycleF = framesCycle * sizeof(float);
 
             // copy input data into buffer
+           #ifdef SIMPLIFIED_MAPI_BUILD
             std::memcpy(bufferIn + bufferInPos, input, framesCycleF);
+           #else
+            std::memcpy(bufferIn + bufferInPos, inputs[0] + offset, framesCycleF);
+            std::memcpy(bufferIn2 + bufferInPos, inputs[1] + offset, framesCycleF);
+           #endif
 
             // run denoise once input buffer is full
             if ((bufferInPos += framesCycle) == denoiseFrameSize)
@@ -392,7 +440,17 @@ protected:
                     bufferIn[i] *= kDenoiseScaling;
 
                 // run denoise
-                const float vad = rnnoise_process_frame(denoise, bufferOut, bufferIn);
+                float vad = rnnoise_process_frame(denoise, bufferOut, bufferIn);
+
+               #ifndef SIMPLIFIED_MAPI_BUILD
+                // stereo
+                ringBufferDry2.writeCustomData(bufferIn2, denoiseFrameSizeF);
+                ringBufferDry2.commitWrite();
+                for (uint32_t i = 0; i < denoiseFrameSize; ++i)
+                    bufferIn2[i] *= kDenoiseScaling;
+
+                vad = std::max(vad, rnnoise_process_frame(denoise2, bufferOut2, bufferIn2));
+               #endif
 
                #ifdef SIMPLIFIED_MAPI_BUILD
                 // scale back down to regular audio level
@@ -421,8 +479,13 @@ protected:
                         muteValue.setTargetValue(0.f);
                     }
 
+                    const float muteNextValue = muteValue.next();
                     bufferOut[i] *= kDenoiseScalingInv;
-                    bufferOut[i] *= muteValue.next();
+                    bufferOut[i] *= muteNextValue;
+                   #ifndef SIMPLIFIED_MAPI_BUILD
+                    bufferOut2[i] *= kDenoiseScalingInv;
+                    bufferOut2[i] *= muteNextValue;
+                   #endif
                 }
 
                 // stats are a bit expensive, so they are optional
@@ -437,68 +500,106 @@ protected:
                #endif
 
                 // process denoise output on faust side
-                std::memcpy(bufferIn, bufferOut, denoiseFrameSizeF);
                 FaustGeneratedPlugin::setParameterValue(kParameter_vad_ext, vad);
-                dsp->compute(denoiseFrameSize, &bufferIn, &bufferOut);
+
+                // we previously wrote to bufferOut, so use that as faust input
+                float* ins[] = {
+                    bufferOut,
+                   #ifndef SIMPLIFIED_MAPI_BUILD
+                    bufferOut2,
+                   #endif
+                };
+                // reuse bufferIn as faust output
+                float* outs[] = {
+                    bufferIn,
+                   #ifndef SIMPLIFIED_MAPI_BUILD
+                    bufferIn2,
+                   #endif
+                };
+                dsp->compute(denoiseFrameSize, ins, outs);
 
                 // write output into ringbuffer
-                ringBufferOut.writeCustomData(bufferOut, denoiseFrameSizeF);
+                ringBufferOut.writeCustomData(outs[0], denoiseFrameSizeF);
                 ringBufferOut.commitWrite();
+               #ifndef SIMPLIFIED_MAPI_BUILD
+                ringBufferOut2.writeCustomData(outs[1], denoiseFrameSizeF);
+                ringBufferOut2.commitWrite();
+               #endif
             }
 
             // we have enough audio frames in the ring buffer, can give back audio to host
             if (processing)
             {
-               #ifndef SIMPLIFIED_MAPI_BUILD
+               #ifdef SIMPLIFIED_MAPI_BUILD
+                // copy processed buffer directly into output
+                ringBufferOut.readCustomData(output, framesCycleF);
+
+                // retrieve dry buffer (doing nothing with it)
+                ringBufferDry.readCustomData(bufferOut, framesCycleF);
+               #else
                 // apply smooth bypass
                 if (d_isNotEqual(dryValue.getCurrentValue(), dryValue.getTargetValue()))
                 {
                     // copy processed buffer directly into output
-                    ringBufferOut.readCustomData(output, framesCycleF);
+                    ringBufferOut.readCustomData(outputs[0] + offset, framesCycleF);
+                    ringBufferOut2.readCustomData(outputs[1] + offset, framesCycleF);
 
                     // retrieve dry buffer
                     ringBufferDry.readCustomData(bufferOut, framesCycleF);
+                    ringBufferDry2.readCustomData(bufferOut2, framesCycleF);
 
                     for (uint32_t i = 0; i < framesCycle; ++i)
                     {
                         const float dry = dryValue.next();
                         const float wet = 1.f - dry;
-                        output[i] = output[i] * wet + bufferOut[i] * dry;
+                        outputs[0][i + offset] = outputs[0][i + offset] * wet + bufferOut[i] * dry;
+                        outputs[1][i + offset] = outputs[1][i + offset] * wet + bufferOut2[i] * dry;
                     }
                 }
                 // disable (bypass on)
                 else if (d_isNotZero(dryValue.getTargetValue()))
                 {
                     // copy dry buffer directly into output
-                    ringBufferDry.readCustomData(output, framesCycleF);
+                    ringBufferDry.readCustomData(outputs[0] + offset, framesCycleF);
+                    ringBufferDry2.readCustomData(outputs[1] + offset, framesCycleF);
 
                     // retrieve processed buffer (doing nothing with it)
                     ringBufferOut.readCustomData(bufferOut, framesCycleF);
+                    ringBufferOut2.readCustomData(bufferOut2, framesCycleF);
                 }
                 // enabled (bypass off)
                 else
-               #endif
                 {
                     // copy processed buffer directly into output
-                    ringBufferOut.readCustomData(output, framesCycleF);
+                    ringBufferOut.readCustomData(outputs[0] + offset, framesCycleF);
+                    ringBufferOut2.readCustomData(outputs[1] + offset, framesCycleF);
 
                     // retrieve dry buffer (doing nothing with it)
                     ringBufferDry.readCustomData(bufferOut, framesCycleF);
+                    ringBufferDry2.readCustomData(bufferOut2, framesCycleF);
                 }
+               #endif
             }
             // capture more audio frames until it fits 1 denoise block
             else
             {
                 // mute output while still capturing audio frames
+               #ifdef SIMPLIFIED_MAPI_BUILD
                 std::memset(output, 0, framesCycleF);
+               #else
+                std::memset(outputs[0] + offset, 0, framesCycleF);
+                std::memset(outputs[1] + offset, 0, framesCycleF);
+               #endif
 
                 if (ringBufferOut.getReadableDataSize() >= denoiseFrameSizeF)
                     processing = true;
             }
 
             offset += framesCycle;
+           #ifdef SIMPLIFIED_MAPI_BUILD
             input += framesCycle;
             output += framesCycle;
+           #endif
         }
     }
 
