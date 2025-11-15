@@ -39,7 +39,18 @@ let delayNode = null;
 
 function changeAudioConstraints() {
     if (gumStream) {
-        enableStream();
+        // NOTE chrome does not support this
+        if (!!window.chrome) {
+            enableStream();
+            return;
+        }
+        const constraints = {
+            'autoGainControl': { 'ideal': document.getElementById('gum-autoGainControl').checked },
+            'echoCancellation': { 'ideal': document.getElementById('gum-echoCancellation').checked },
+            'noiseSuppression': { 'ideal': document.getElementById('gum-noiseSuppression').checked },
+        };
+        console.log("dynamic reapply contraints!", constraints);
+        gumStream.getAudioTracks()[0].applyConstraints(constraints);
     }
 }
 
@@ -72,8 +83,9 @@ function enableStream() {
 
         gumStream = stream;
 
-        createWasmProcessorStream(stream).then(function(wasmProcStream, audioProcessor, audioContext) {
+        createWasmProcessorStream(stream).then(function([wasmProcStream, audioProcessor, audioContext]) {
             // initial setup matching live parameters
+            console.log("createWasmProcessorStream callback", wasmProcStream, audioProcessor, audioContext);
             setWasmProcessorEnabled(document.getElementById('enable-bbba').checked);
             setWasmProcessorParameter(kParameter_mb_strength, document.getElementById('bbba-strength').value);
             setWasmProcessorParameter(kParameter_leveler_target, document.getElementById('bbba-target').value);
@@ -89,10 +101,10 @@ function enableStream() {
             // connect processor to delay, then to speakers
             audioProcessor.connect(delayNode);
             delayNode.connect(audioContext.destination);
-        }).catch(function(err) {
-        });
-    }).catch(function(err) {
-    });
+
+            console.log("createWasmProcessorStream final action done!");
+        }).catch(handleError);
+    }).catch(handleError);
 };
 
 window.addEventListener('DOMContentLoaded', function() {

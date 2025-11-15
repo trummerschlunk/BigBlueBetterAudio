@@ -58,7 +58,8 @@ const createWasmProcessorStream = (stream) => {
                 audioProcessor = new AudioWorkletNode(audioContext, 'mapi-proc', audioProcessorOptions);
                 audioProcessor.port.onmessage = event => {
                     if (event.data?.type == 'loaded') {
-                        resolve(contextDestination.stream, audioProcessor, audioContext);
+                        console.log("audioProcessor has been loaded, triggering callback now");
+                        resolve([contextDestination.stream, audioProcessor, audioContext]);
                     }
                 };
                 audioProcessor.port.postMessage({ type: 'init', wasm: loadedFiles.wasmBlob, js: loadedFiles.wasmJS });
