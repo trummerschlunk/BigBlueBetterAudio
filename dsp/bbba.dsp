@@ -51,7 +51,7 @@ gui_leveler(x) = gui_main(hgroup("leveler",x));
 
 bypass = gui_main(checkbox("[0]bypass[symbol:bypass]"));    // global bypass
 
-preGainSlider = gui_main(vslider("[1][unit:dB]PreGain[symbol:pre_gain", 0, -20, 20, 0.1));
+preGainSlider = gui_main(vslider("[1][unit:dB]PreGain[symbol:pre_gain]", 0, -20, 20, 0.1));
 postGainSlider = gui_main(vslider("[9][unit:dB]PostGain[symbol:post_gain]", 0, -20, 20, 0.1));
 
 preFilter_hp_freq = gui_main(vslider("preLowcut_freq[scale:log][symbol:pre_lowcut]",42,1,400,1));
@@ -81,7 +81,7 @@ lev_meter_gain = _;//_ <: attach(_,gui_leveler(vbargraph("[8][unit:dB]gain[symbo
 sb_meter(i) = _;//_ <: attach(_, vbargraph("h:[1]Spectral Ballancer/h:[2]loudness normalized spectrum/[1][unit:dB]band %2i[symbol:sb_meter_%2i]",-40,40));
 sb_gainmeter(i) = _;//_ <: attach(_, (ba.linear2db:vbargraph("h:[1]Spectral Ballancer/h:[3]resulting gain/[1]sb_gain %2i[symbol:sb_gain_%2i]",-12,12)));
 
-compressor_meter(i) = _;//_ <: attach(_,ba.linear2db:gui_mb(vbargraph("[2]MBgr%2i[unit:dB][symbol:mb_comp_gain%2i]",-6,6)));
+compressor_meter(i) = _;//_ <: attach(_,ba.linear2db:gui_mb(vbargraph("[2]MBgr%2i[unit:dB][symbol:mb_comp_gain%2i]",-12,12)));
 
 
 // external VAD from RNNOISE

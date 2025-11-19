@@ -14,13 +14,34 @@
 // 0.18 has in and out meters, lookahead limiter, etc
 // 0.19 is a fake stereo version for making the plugin GUI
 // 0.21 finally correct fake stereo
+// 0.22 adds the correct symbols for the plugin GUI and lists them at the top
 
 declare name "bbba";
-declare version "0.22";             
+declare version "0.23";             
 declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
 import("stdfaust.lib");
+
+// SYMBOLS FOR PLUGIN GUI
+// [symbol:bypass]                  Global Enable 0/1 (or 1/0 ???)
+// [symbol:pre_gain]                Input Gain -20/+20 dB
+// [symbol:leveler_target]          Targel Loudness -60/0 lufs
+// [symbol:leveler_scale]           Leveler On/Off 1/0
+// [symbol:sbmb_strength]           Sound Shaping Enable 100 / 0
+// [symbol:sb_strength]             Spectral Ballancer Strength 0/100 %
+// [symbol:mb_strength]             Multiband Dynamics Strength 0/100 %
+
+// SYMBOLS FOR PLUGIN METERS
+// [symbol:input_peak_channel_0]    Left Input Peak Meter -70 / 0 dbFS
+// [symbol:input_peak_channel_2]    Right Input Peak Meter -70 / 0 dbFS
+// [symbol:output_peak_channel_0]   Left Output Peak Meter -70 / 0 dbFS
+// [symbol:output_peak_channel_2]   Right Output Peak Meter -70 / 0 dbFS
+// [symbol:lufs_out_meter]          LUFS Output Meter -70 / 0 lufs
+// [symbol:leveler_gain]            Leveler Gain -50/+50 dB
+// [symbol:sb_gain_%2i]             8 meters for Spectral Ballancer -12/+12 (%2i = 00-07)
+// [symbol:mb_comp_gain%2i]         8 meters for Multiband Dynamics -12/+12 (%2i = 00-07)
+// [symbol:limiter_gain]            Limiter Gain Reduction -12/0 dB
 
 
 // INIT VALUES
@@ -29,7 +50,7 @@ Nch = 1;                            // bbba is mono
 Nbands = 8;                         // number of bands of the multiband processing and the spectral ballancer
 maxSR = 48000;                      // maximum samplerate
 
-sbmb_strength_init = 80;
+sbmb_strength_init = 100;
 
 lev_target_init = -23;
 lev_maxboost_init = 30;
@@ -54,7 +75,7 @@ gui_leveler(x) = gui_main(hgroup("leveler",x));
 
 bypass = gui_main(checkbox("[0]bypass[symbol:bypass]"));    // global bypass
 
-preGainSlider = gui_main(vslider("[1][unit:dB]PreGain[symbol:pre_gain", 0, -20, 20, 0.1));
+preGainSlider = gui_main(vslider("[1][unit:dB]PreGain[symbol:pre_gain]", 0, -20, 20, 0.1));
 postGainSlider = gui_main(vslider("[9][unit:dB]PostGain[symbol:post_gain]", 0, -20, 20, 0.1));
 
 preFilter_hp_freq = gui_main(vslider("preLowcut_freq[scale:log][symbol:pre_lowcut]",42,1,400,1));
@@ -84,7 +105,10 @@ lev_meter_gain = _ <: attach(_,gui_leveler(vbargraph("[8][unit:dB]gain[symbol:le
 sb_meter(i) = _ <: attach(_, vbargraph("h:[1]Spectral Ballancer/h:[2]loudness normalized spectrum/[1][unit:dB]band %2i[symbol:sb_meter_%2i]",-40,40));
 sb_gainmeter(i) = _ <: attach(_, (ba.linear2db:vbargraph("h:[1]Spectral Ballancer/h:[3]resulting gain/[1]sb_gain %2i[symbol:sb_gain_%2i]",-12,12)));
 
-compressor_meter(i) = _ <: attach(_,ba.linear2db:gui_mb(vbargraph("[2]MBgr%2i[unit:dB][symbol:mb_comp_gain%2i]",-6,6)));
+compressor_meter(i) = _ <: attach(_,ba.linear2db:gui_mb(vbargraph("[2]MBgr%2i[unit:dB][symbol:mb_comp_gain%2i]",-12,12)));
+
+limiter_meter = _ <: attach(_,abs : ba.linear2db : gui_main(vbargraph("[99][symbol:limiter_gain]LimiterGR",-12,0)));
+
 
 // ----------------------- peak meters -----------------------
 peakmeter_in = in_meter_l,in_meter_r with {
@@ -222,7 +246,6 @@ limiter_lad_N(N, LD, ceiling, attack, hold, release) =
            maxN(1) = _;
            maxN(2) = max;
            maxN(N) = max(maxN(N - 1));
-           limiter_meter = _ <: attach(_,abs : ba.linear2db : gui_main(vbargraph("[99][symbol:limiter_gain]LimiterGR",-12,0)));
       };
 
 
