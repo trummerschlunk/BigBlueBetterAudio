@@ -66,3 +66,18 @@ jobs:
         with:
           target: pluginval
           dpf_path: ./deps/dpf
+
+  wasm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: build for wasm
+        run: ./build-for-wasm.sh
+    - uses: actions/upload-artifact@v4
+      with:
+        name: wasm
+        path: |
+          bin/BBBA-mapi.*
+          bin-nosimd/BBBA-mapi.*

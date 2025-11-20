@@ -1,5 +1,7 @@
 /bin/
+/bin-nosimd/
 /build/
+/emsdk/
 /faustpp/
 /.cache/
 /.vscode/
