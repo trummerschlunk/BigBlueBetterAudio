@@ -73,11 +73,15 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - name: build for wasm
+      - name: Build for wasm
         run: ./build-for-wasm.sh
+      - name: Set sha8
+        run: echo "SHA8=$(echo ${{ github.sha }} | cut -c1-8)" >> $GITHUB_ENV
+      - name: Set basenames
+        run: echo "ARTIFACT_BASENAME=BigBlueBetterAudio-wasm-${{ github.event.pull_request.number || env.SHA8 }}" >> $GITHUB_ENV
       - uses: actions/upload-artifact@v4
         with:
-          name: wasm
+          name: ${{ env.ARTIFACT_BASENAME }}
           path: |
             bin/BBBA-mapi.*
             bin-nosimd/BBBA-mapi.*
