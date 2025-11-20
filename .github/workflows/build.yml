@@ -73,6 +73,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+      - uses: actions/cache@v4
+        with:
+          path: emsdk
+          key: emsdk
       - name: Build for wasm
         run: ./build-for-wasm.sh
       - name: Set sha8
