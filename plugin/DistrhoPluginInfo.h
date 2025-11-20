@@ -52,7 +52,7 @@ enum ExtraParameters {
 
    When this macro is defined, the companion DISTRHO_UI_DEFAULT_HEIGHT macro must be defined as well.
  */
-#define DISTRHO_UI_DEFAULT_WIDTH 612
+#define DISTRHO_UI_DEFAULT_WIDTH 900
 
 /**
    Default UI height to use when creating initial and temporary windows.

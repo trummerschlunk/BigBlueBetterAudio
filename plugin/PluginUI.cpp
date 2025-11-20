@@ -5,227 +5,148 @@
  */
 
 #include "DistrhoUI.hpp"
+#include "DistrhoStandaloneUtils.hpp"
 
 #include "QuantumLayouts.hpp"
+#include "pregen-gui/FaustPluginInfo.h"
 
 START_NAMESPACE_DISTRHO
 
 // --------------------------------------------------------------------------------------------------------------------
 
-class ReNooiceUI : public UI,
+class BBBAudioUI : public UI,
                    public ButtonEventHandler::Callback,
                    public KnobEventHandler::Callback
 {
-    struct Theme : QuantumTheme {
-        Theme(NanoTopLevelWidget* const parent)
-        {
-            const double scaleFactor = parent->getScaleFactor() * 1.25;
+    QuantumTheme theme;
 
-            borderSize = 2;
-            padding = 7;
+    // group of widgets
+    InputMeterGroup inputGroup;
+    InputLevelerGroup inputLevelerGroup;
+    NoiseReductionGroup noiseReductionGroup;
+    SoundShapingGroup soundShapingGroup;
+    OutputMeterGroup outputGroup;
 
-            borderSize *= scaleFactor;
-            padding *= scaleFactor;
-            fontSize *= scaleFactor;
-            textHeight *= scaleFactor;
-            knobIndicatorSize *= scaleFactor;
-            widgetLineSize *= scaleFactor;
-            textPixelRatioWidthCompensation = padding + borderSize + 6 * scaleFactor;
+   #ifndef __MOD_DEVICES__
+    // global enable
+    QuantumLabel globalEnableLabel;
+    QuantumRadioSwitch globalEnableSwitch;
+   #endif
 
-            windowPadding = borderSize + padding;
-        }
-    };
+    // standalone widgets
+    QuantumButton standaloneInput;
 
-    struct Widgets : VerticallyStackedHorizontalLayout {
-        Theme theme;
-        QuantumFrameWithLabel frame;
-        QuantumSingleSwitch switchEnable;
-        QuantumSingleSeparatorLine separator1;
-        QuantumValueSliderWithLabel sliderThreshold;
-        QuantumSingleLabel sliderThresholdLabel;
-        QuantumValueSliderWithLabel sliderGracePeriod;
-        QuantumSingleLabel sliderGracePeriodLabel;
-        QuantumSingleSeparatorLine separator2;
-        QuantumSingleSwitch switchEnableStats;
-        QuantumSingleLabel statsLabel;
-        QuantumValueMeterWithLabel statCurrent;
-        QuantumValueMeterWithLabel statAverage;
-        QuantumValueMeterWithLabel statMinimum;
-        QuantumValueMeterWithLabel statMaximum;
-
-        Widgets(ReNooiceUI* const ui)
-            : theme(ui),
-              frame(ui, theme),
-              switchEnable(&frame, theme),
-              separator1(&frame, theme),
-              sliderThreshold(&frame, theme),
-              sliderThresholdLabel(&frame, theme),
-              sliderGracePeriod(&frame, theme),
-              sliderGracePeriodLabel(&frame, theme),
-              separator2(&frame, theme),
-              switchEnableStats(&frame, theme),
-              statsLabel(&frame, theme),
-              statCurrent(&frame, theme),
-              statAverage(&frame, theme),
-              statMinimum(&frame, theme),
-              statMaximum(&frame, theme)
-        {
-            const double scaleFactor = ui->getScaleFactor() * 1.25;
-            const uint smallFontSize = d_roundToUnsignedInt(theme.fontSize - 1.5 * scaleFactor);
-
-            frame.mainWidget.setAlignment(ALIGN_CENTER|ALIGN_BOTTOM);
-            frame.mainWidget.setLabel("Re:Nooice");
-
-            switchEnable.switch_.setCallback(ui);
-            switchEnable.switch_.setChecked(true, false);
-            switchEnable.switch_.setId(kParameterCount + kExtraParamBypass);
-            switchEnable.switch_.setLabel("Enabled");
-
-            sliderThreshold.slider.setCallback(ui);
-            sliderThreshold.slider.setId(kParameterCount + kExtraParamThreshold);
-            sliderThreshold.slider.setRange(0, 100);
-            sliderThreshold.slider.setStep(1);
-            sliderThreshold.slider.setUnitLabel("%");
-            sliderThreshold.slider.setValue(0, false);
-            sliderThreshold.label.setLabel("Threshold");
-
-            sliderThresholdLabel.label.setCustomFontSize(smallFontSize);
-            sliderThresholdLabel.label.setLabel("Auto-mute if voice detection is lower than this threshold");
-
-            sliderGracePeriod.slider.setCallback(ui);
-            sliderGracePeriod.slider.setId(kParameterCount + kExtraParamGracePeriod);
-            sliderGracePeriod.slider.setRange(0, 2000);
-            sliderGracePeriod.slider.setStep(1);
-            sliderGracePeriod.slider.setUnitLabel("ms");
-            sliderGracePeriod.slider.setValue(1000, false);
-            sliderGracePeriod.label.setLabel("Grace Period");
-
-            sliderGracePeriodLabel.label.setCustomFontSize(smallFontSize);
-            sliderGracePeriodLabel.label.setLabel("How long auto-mute waits after voice detection falls below threshold");
-
-            switchEnableStats.switch_.setCallback(ui);
-            switchEnableStats.switch_.setChecked(false, false);
-            switchEnableStats.switch_.setId(kParameterCount + kExtraParamEnableStats);
-            switchEnableStats.switch_.setLabel("Enable VAD Stats");
-
-            statsLabel.label.setCustomFontSize(smallFontSize);
-            statsLabel.label.setLabel("Voice activity detection statistics, running over a period of 2s in round-robin fashion");
-
-            statCurrent.label.setLabel("Current");
-            statCurrent.meter.setRange(0, 100);
-            statCurrent.meter.setUnitLabel("%");
-            statCurrent.meter.setValue(0);
-            statCurrent.meter.setValueCentered(false);
-
-            statAverage.label.setLabel("Average");
-            statAverage.meter.setRange(0, 100);
-            statAverage.meter.setUnitLabel("%");
-            statAverage.meter.setValue(0);
-            statAverage.meter.setValueCentered(false);
-
-            statMinimum.label.setLabel("Minimum");
-            statMinimum.meter.setRange(0, 100);
-            statMinimum.meter.setUnitLabel("%");
-            statMinimum.meter.setValue(100);
-            statMinimum.meter.setValueCentered(false);
-
-            statMaximum.label.setLabel("Maximum");
-            statMaximum.meter.setRange(0, 100);
-            statMaximum.meter.setUnitLabel("%");
-            statMaximum.meter.setValue(0);
-            statMaximum.meter.setValueCentered(false);
-
-            items.push_back(&switchEnable);
-            items.push_back(&separator1);
-            items.push_back(&sliderThreshold);
-            items.push_back(&sliderThresholdLabel);
-            items.push_back(&sliderGracePeriod);
-            items.push_back(&sliderGracePeriodLabel);
-            items.push_back(&separator2);
-            items.push_back(&switchEnableStats);
-            items.push_back(&statsLabel);
-            items.push_back(&statCurrent);
-            items.push_back(&statAverage);
-            items.push_back(&statMinimum);
-            items.push_back(&statMaximum);
-
-            adjustSize(DISTRHO_UI_DEFAULT_WIDTH, DISTRHO_UI_DEFAULT_HEIGHT);
-            updateColors();
-        }
-
-        void adjustSize(const uint width, const uint height)
-        {
-            const QuantumMetrics metrics(theme);
-
-            frame.setSize(width, height);
-            frame.adjustMainWidgetSize();
-            frame.mainWidget.setWidth(width);
-
-            switchEnable.adjustSize();
-            separator1.adjustSize(metrics);
-            sliderThreshold.adjustSize(metrics);
-            sliderThresholdLabel.adjustSize();
-            sliderGracePeriod.adjustSize(metrics);
-            sliderGracePeriodLabel.adjustSize();
-            separator2.adjustSize(metrics);
-            switchEnableStats.adjustSize();
-            statsLabel.adjustSize();
-            statCurrent.adjustSize(metrics);
-            statAverage.adjustSize(metrics);
-            statMinimum.adjustSize(metrics);
-            statMaximum.adjustSize(metrics);
-
-            Size<uint> size = VerticallyStackedHorizontalLayout::adjustSize(theme.padding);
-            d_stdout("Default size: %ux%u",
-                     size.getWidth() + theme.padding * 2 + theme.borderSize * 2,
-                     frame.getOffset() + size.getHeight() + theme.padding * 4 + theme.borderSize * 2);
-
-            VerticallyStackedHorizontalLayout::setAbsolutePos(theme.padding,
-                                                              frame.getOffset() + theme.padding,
-                                                              theme.padding);
-        }
-
-        void updateColors()
-        {
-            const bool enabled = switchEnable.switch_.isChecked();
-            const bool enabledStats = enabled && switchEnableStats.switch_.isChecked();
-
-            const Color& sliderTextColor = enabled ? theme.textLightColor : theme.textDarkColor;
-            const Color& statsTextColor = enabledStats ? theme.textLightColor : theme.textDarkColor;
-
-            sliderThreshold.slider.setTextColor(sliderTextColor);
-            sliderThreshold.label.setLabelColor(sliderTextColor);
-            sliderThresholdLabel.label.setLabelColor(sliderTextColor);
-            sliderGracePeriod.slider.setTextColor(sliderTextColor);
-            sliderGracePeriod.label.setLabelColor(sliderTextColor);
-            sliderGracePeriodLabel.label.setLabelColor(sliderTextColor);
-
-            statsLabel.label.setLabelColor(statsTextColor);
-            statCurrent.meter.setTextColor(statsTextColor);
-            statCurrent.label.setLabelColor(statsTextColor);
-            statAverage.meter.setTextColor(statsTextColor);
-            statAverage.label.setLabelColor(statsTextColor);
-            statMinimum.meter.setTextColor(statsTextColor);
-            statMinimum.label.setLabelColor(statsTextColor);
-            statMaximum.meter.setTextColor(statsTextColor);
-            statMaximum.label.setLabelColor(statsTextColor);
-        }
-    } ui;
+    // cached enabled state
+    struct {
+        bool global = true;
+        bool leveler = true;
+        bool noiseReduction = true;
+        bool soundShaping = true;
+    } enabled;
 
 public:
    /**
       UI class constructor.
       The UI should be initialized to a default state that matches the plugin side.
     */
-    ReNooiceUI()
+    BBBAudioUI()
         : UI(),
-          ui(this)
+          inputGroup(this, this, theme),
+          inputLevelerGroup(this, this, this, theme),
+          noiseReductionGroup(this, this, this, theme),
+          soundShapingGroup(this, theme),
+          outputGroup(this, theme),
+         #ifndef __MOD_DEVICES__
+          globalEnableLabel(this, theme),
+          globalEnableSwitch(this, theme),
+         #endif
+          standaloneInput(this, theme)
     {
+        loadSharedResources();
+
         const double scaleFactor = getScaleFactor();
+
+       #ifndef __MOD_DEVICES__
+        globalEnableLabel.setLabel("Global Enable");
+        globalEnableLabel.setName("Global Enable Label");
+
+        globalEnableSwitch.setCallback(this);
+        globalEnableSwitch.setCheckable(true);
+        globalEnableSwitch.setChecked(true, false);
+        globalEnableSwitch.setId(kParameterCount + kExtraParamBypass);
+        globalEnableSwitch.setName("Global Enable Button");
+       #endif
+
+        if (isUsingNativeAudio() && supportsAudioInput() && !isAudioInputEnabled())
+        {
+            standaloneInput.setLabel("Enable Input");
+            standaloneInput.setName("Enable Input");
+            standaloneInput.setCallback(this);
+        }
+        else
+        {
+            standaloneInput.hide();
+        }
+
         setGeometryConstraints(DISTRHO_UI_DEFAULT_WIDTH * scaleFactor, DISTRHO_UI_DEFAULT_HEIGHT * scaleFactor);
+
+        // initial resize and reposition
+        resizeWidgets(getWidth(), getHeight());
     }
 
 protected:
+    void repositionWidgets()
+    {
+        const QuantumMetrics metrics(theme);
+
+        const uint width = getWidth();
+        const uint startY = theme.windowPadding * 2 + metrics.button.getHeight();
+        const uint midY = startY * 0.5f;
+
+       #ifndef __MOD_DEVICES__
+        globalEnableSwitch.setAbsolutePos(theme.windowPadding, midY - globalEnableSwitch.getHeight() * 0.5f);
+        globalEnableLabel.setAbsolutePos(globalEnableSwitch.getAbsoluteX() + globalEnableSwitch.getWidth() + theme.padding,
+                                         midY - globalEnableLabel.getHeight() * 0.5f);
+       #endif
+
+        inputGroup.setAbsolutePos(theme.windowPadding, startY);
+        inputLevelerGroup.setAbsolutePos(theme.windowPadding + inputGroup.getWidth() + theme.padding, startY);
+        noiseReductionGroup.setAbsolutePos(inputLevelerGroup.getAbsoluteX() + inputLevelerGroup.getWidth() + theme.padding, startY);
+        soundShapingGroup.setAbsolutePos(noiseReductionGroup.getAbsoluteX() + noiseReductionGroup.getWidth() + theme.padding, startY);
+        outputGroup.setAbsolutePos(width - outputGroup.getWidth() - theme.windowPadding - theme.padding, startY);
+
+        standaloneInput.setAbsolutePos(getWidth() * 0.5f - standaloneInput.getWidth() * 0.5f,
+                                       midY - standaloneInput.getHeight() * 0.5f);
+    }
+
+    void resizeWidgets(const uint width, const uint height)
+    {
+        const QuantumMetrics metrics(theme);
+
+        const uint startY = theme.windowPadding * 2 + metrics.button.getHeight();
+        const uint contentHeight = height - startY - theme.windowPadding;
+
+       #ifndef __MOD_DEVICES__
+        globalEnableLabel.adjustSize();
+        globalEnableSwitch.adjustSize();
+       #endif
+
+        standaloneInput.adjustSize();
+
+        inputGroup.adjustSize(metrics, contentHeight);
+        inputLevelerGroup.adjustSize(metrics, contentHeight);
+        outputGroup.adjustSize(metrics, contentHeight);
+
+        const uint leftoverWidth = getWidth() - theme.windowPadding * 2
+            - inputGroup.getWidth()
+            - inputLevelerGroup.getWidth()
+            - outputGroup.getWidth();
+        noiseReductionGroup.adjustSize(leftoverWidth * 3 / 5, contentHeight);
+        soundShapingGroup.adjustSize(leftoverWidth - noiseReductionGroup.getWidth() - theme.padding * 5, contentHeight);
+
+        repositionWidgets();
+    }
+
     // ----------------------------------------------------------------------------------------------------------------
     // DSP/Plugin Callbacks
 
@@ -235,9 +156,84 @@ protected:
     */
     void parameterChanged(uint32_t index, float value) override
     {
-        if (index < kParameterCount)
+        switch (index)
+        {
+        // inputs
+        case kParameter_sb_strength:
+        case kParameter_sb_target_spectrum_0:
+        case kParameter_sb_target_spectrum_1:
+        case kParameter_sb_target_spectrum_2:
+        case kParameter_sb_target_spectrum_3:
+        case kParameter_sb_target_spectrum_4:
+        case kParameter_sb_target_spectrum_5:
+        case kParameter_sb_target_spectrum_6:
+        case kParameter_sb_target_spectrum_7:
+        case kParameter_bypass:
+        case kParameter_pre_gain:
+            inputGroup.gainKnob.setValue(value, false);
             return;
+        case kParameter_sbmb_strength:
+        case kParameter_vad_ext:
+            return;
+        case kParameter_leveler_target:
+            inputLevelerGroup.targetKnob.setValue(value, false);
+            return;
+        case kParameter_leveler_scale:
+        case kParameter_mb_strength:
+        case kParameter_pre_lowcut:
+            return;
+        // outputs
+        case kParameter_sb_meter__0:
+        case kParameter_sb_meter__1:
+        case kParameter_sb_meter__2:
+        case kParameter_sb_meter__3:
+        case kParameter_sb_meter__4:
+        case kParameter_sb_meter__5:
+        case kParameter_sb_meter__6:
+        case kParameter_sb_meter__7:
+        case kParameter_sb_gain__0:
+        case kParameter_sb_gain__1:
+        case kParameter_sb_gain__2:
+        case kParameter_sb_gain__3:
+        case kParameter_sb_gain__4:
+        case kParameter_sb_gain__5:
+        case kParameter_sb_gain__6:
+        case kParameter_sb_gain__7:
+        case kParameter_limiter_gain:
+            outputGroup.meter.setValueLimiter(value);
+            return;
+        case kParameter_input_peak_channel_0:
+            inputGroup.meter.setValueL(value);
+            return;
+        case kParameter_input_peak_channel_1:
+            inputGroup.meter.setValueR(value);
+            return;
+        case kParameter_lufs_out_meter:
+            outputGroup.meter.setValueLufs(value);
+            return;
+        case kParameter_output_peak_channel_0:
+            outputGroup.meter.setValueL(value);
+            return;
+        case kParameter_output_peak_channel_1:
+            outputGroup.meter.setValueR(value);
+            return;
+        case kParameter_leveler_gain:
+            inputLevelerGroup.leveler.setValue(value);
+            return;
+        case kParameter_mb_comp_gain_0:
+        case kParameter_mb_comp_gain_1:
+        case kParameter_mb_comp_gain_2:
+        case kParameter_mb_comp_gain_3:
+        case kParameter_mb_comp_gain_4:
+        case kParameter_mb_comp_gain_5:
+        case kParameter_mb_comp_gain_6:
+        case kParameter_mb_comp_gain_7:
+            return;
+        }
 
+        DISTRHO_SAFE_ASSERT_RETURN(index >= kParameterCount,);
+
+#if 0
         switch (index - kParameterCount)
         {
         case kExtraParamBypass:
@@ -268,6 +264,7 @@ protected:
             ui.statMaximum.meter.setValue(value);
             break;
         }
+#endif
     }
 
     // ----------------------------------------------------------------------------------------------------------------
@@ -275,10 +272,60 @@ protected:
 
     void onNanoDisplay() override
     {
+        const uint width = getWidth();
+        const uint widthBy3 = width / 3;
+        const uint height = getHeight();
+
+        beginPath();
+        rect(0, 0, width, getHeight());
+        fillColor(theme.windowBackgroundColor);
+        fill();
+
+        // if (theme.useBackgroundGradient)
+        {
+            const Color color2(Color(theme.widgetBackgroundColor, theme.windowBackgroundColor, 0.5f).withAlpha(0.5f));
+            const Color color1(color2.withAlpha(0.f));
+
+            beginPath();
+            rect(0, 0, widthBy3, height);
+            fillPaint(linearGradient(0, 0, widthBy3, 0, color2, color1));
+            fill();
+
+            beginPath();
+            rect(width - widthBy3, 0, widthBy3, height);
+            fillPaint(linearGradient(width - widthBy3, 0, width, 0, color1, color2));
+            fill();
+
+            beginPath();
+            rect(widthBy3 - 1, 0, widthBy3 + 2, height);
+            fillColor(color1);
+            fill();
+        }
+
+        // // image name
+        // const Size<uint> imgSize = imageName.getSize();
+        // const double imgScaleFactor = imageNameArea.getHeight() / imgSize.getHeight();
+        //
+        // beginPath();
+        // rect(imageNameArea.getX(), imageNameArea.getY(), imageNameArea.getWidth(), imageNameArea.getHeight());
+        // fillPaint(imagePattern(imageNameArea.getX(),
+        //                        imageNameArea.getY(),
+        //                        imageNameArea.getWidth(),
+        //                        imgSize.getHeight() * imgScaleFactor, 0, imageName, 1.f));
+        // fill();
+
     }
 
     void buttonClicked(SubWidget* const widget, int) override
     {
+        if (widget == &standaloneInput)
+        {
+            if (requestAudioInput())
+                standaloneInput.hide();
+            return;
+        }
+
+#if 0
         const uint id = widget->getId();
 
         QuantumSwitch* const qswitch = reinterpret_cast<QuantumSwitch*>(widget);
@@ -308,6 +355,7 @@ protected:
 
         // update UI colors
         ui.updateColors();
+#endif
     }
 
     void knobDragStarted(SubWidget* const widget) override
@@ -332,19 +380,22 @@ protected:
     {
         UI::onResize(ev);
 
+        resizeWidgets(ev.size.getWidth(), ev.size.getHeight());
+#if 0
         ui.adjustSize(ev.size.getWidth(), ev.size.getHeight());
+#endif
     }
 
     // ----------------------------------------------------------------------------------------------------------------
 
-    DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ReNooiceUI)
+    DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BBBAudioUI)
 };
 
 // --------------------------------------------------------------------------------------------------------------------
 
 UI* createUI()
 {
-    return new ReNooiceUI();
+    return new BBBAudioUI();
 }
 
 // --------------------------------------------------------------------------------------------------------------------

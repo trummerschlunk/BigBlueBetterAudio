@@ -76,6 +76,11 @@ $(BUILD_DIR)/deps/rnnoise/src/x86/nnet_sse4_1.c.o: BASE_FLAGS += -msse4.1
 
 endif
 
+ifeq ($(WASM),true)
+LINK_FLAGS += -sINITIAL_MEMORY=32Mb
+LINK_FLAGS += -sSTACK_SIZE=4MB
+endif
+
 # ---------------------------------------------------------------------------------------------------------------------
 # default plugin targets
 
