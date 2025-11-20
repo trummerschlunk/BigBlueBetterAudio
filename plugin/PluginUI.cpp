@@ -87,7 +87,7 @@ public:
           inputGroup(this, this, theme),
           inputLevelerGroup(this, this, this, theme),
           noiseReductionGroup(this, this, this, theme),
-          soundShapingGroup(this, theme),
+          soundShapingGroup(this, this, this, theme),
           outputGroup(this, theme),
          #ifndef __MOD_DEVICES__
           globalEnableLabel(this, theme),
@@ -133,7 +133,7 @@ protected:
         const QuantumMetrics metrics(theme);
 
         const uint width = getWidth();
-        const uint startY = theme.windowPadding * 2 + metrics.button.getHeight();
+        const uint startY = theme.windowPadding * 2 + metrics.radioSwitch.getHeight();
         const uint midY = startY * 0.5f;
 
        #ifndef __MOD_DEVICES__
@@ -168,14 +168,15 @@ protected:
 
         inputGroup.adjustSize(metrics, contentHeight);
         inputLevelerGroup.adjustSize(metrics, contentHeight);
+        soundShapingGroup.adjustSize(metrics, contentHeight);
         outputGroup.adjustSize(metrics, contentHeight);
 
-        const uint leftoverWidth = width - theme.windowPadding * 2
+        const uint leftoverWidth = width - theme.windowPadding * 2 - theme.padding * 5
             - inputGroup.getWidth()
             - inputLevelerGroup.getWidth()
+            - soundShapingGroup.getWidth()
             - outputGroup.getWidth();
-        noiseReductionGroup.adjustSize(leftoverWidth * 3 / 5, contentHeight);
-        soundShapingGroup.adjustSize(leftoverWidth - noiseReductionGroup.getWidth() - theme.padding * 5, contentHeight);
+        noiseReductionGroup.adjustSize(leftoverWidth, contentHeight);
 
         repositionWidgets();
     }
@@ -193,48 +194,49 @@ protected:
         {
         // inputs
         case kParameter_sb_strength:
-        case kParameter_sb_target_spectrum_0:
-        case kParameter_sb_target_spectrum_1:
-        case kParameter_sb_target_spectrum_2:
-        case kParameter_sb_target_spectrum_3:
-        case kParameter_sb_target_spectrum_4:
-        case kParameter_sb_target_spectrum_5:
-        case kParameter_sb_target_spectrum_6:
-        case kParameter_sb_target_spectrum_7:
+            soundShapingGroup.ballancerMeters.knob.setValue(value, false);
+            return;
         case kParameter_bypass:
+            enabled.soundShaping = value < 0.5f;
+            soundShapingGroup.title.switch_.setChecked(enabled.soundShaping, false);
             return;
         case kParameter_pre_gain:
             inputGroup.gainKnob.setValue(value, false);
-            return;
-        case kParameter_sbmb_strength:
-        case kParameter_vad_ext:
             return;
         case kParameter_leveler_target:
             inputLevelerGroup.targetKnob.setValue(value, false);
             return;
         case kParameter_leveler_scale:
-            inputLevelerGroup.enableSwitch.setChecked(value > 0.5f, false);
+            enabled.leveler = value > 0.5f;
+            inputLevelerGroup.enableSwitch.setChecked(enabled.leveler, false);
             return;
         case kParameter_mb_strength:
-        case kParameter_pre_lowcut:
+            soundShapingGroup.mbDynamicsMeters.knob.setValue(value, false);
             return;
         // outputs
-        case kParameter_sb_meter__0:
-        case kParameter_sb_meter__1:
-        case kParameter_sb_meter__2:
-        case kParameter_sb_meter__3:
-        case kParameter_sb_meter__4:
-        case kParameter_sb_meter__5:
-        case kParameter_sb_meter__6:
-        case kParameter_sb_meter__7:
         case kParameter_sb_gain__0:
+            soundShapingGroup.ballancerMeters.m1.setValue(value);
+            return;
         case kParameter_sb_gain__1:
+            soundShapingGroup.ballancerMeters.m2.setValue(value);
+            return;
         case kParameter_sb_gain__2:
+            soundShapingGroup.ballancerMeters.m3.setValue(value);
+            return;
         case kParameter_sb_gain__3:
+            soundShapingGroup.ballancerMeters.m4.setValue(value);
+            return;
         case kParameter_sb_gain__4:
+            soundShapingGroup.ballancerMeters.m5.setValue(value);
+            return;
         case kParameter_sb_gain__5:
+            soundShapingGroup.ballancerMeters.m6.setValue(value);
+            return;
         case kParameter_sb_gain__6:
+            soundShapingGroup.ballancerMeters.m7.setValue(value);
+            return;
         case kParameter_sb_gain__7:
+            soundShapingGroup.ballancerMeters.m8.setValue(value);
             return;
         case kParameter_limiter_gain:
             outputGroup.meter.setValueLimiter(value);
@@ -258,13 +260,50 @@ protected:
             inputLevelerGroup.leveler.setValue(value);
             return;
         case kParameter_mb_comp_gain_0:
+            soundShapingGroup.mbDynamicsMeters.m1.setValue(value);
+            return;
         case kParameter_mb_comp_gain_1:
+            soundShapingGroup.mbDynamicsMeters.m2.setValue(value);
+            return;
         case kParameter_mb_comp_gain_2:
+            soundShapingGroup.mbDynamicsMeters.m3.setValue(value);
+            return;
         case kParameter_mb_comp_gain_3:
+            soundShapingGroup.mbDynamicsMeters.m4.setValue(value);
+            return;
         case kParameter_mb_comp_gain_4:
+            soundShapingGroup.mbDynamicsMeters.m5.setValue(value);
+            return;
         case kParameter_mb_comp_gain_5:
+            soundShapingGroup.mbDynamicsMeters.m6.setValue(value);
+            return;
         case kParameter_mb_comp_gain_6:
+            soundShapingGroup.mbDynamicsMeters.m7.setValue(value);
+            return;
         case kParameter_mb_comp_gain_7:
+            soundShapingGroup.mbDynamicsMeters.m8.setValue(value);
+            return;
+        case kParameter_sb_target_spectrum_0:
+        case kParameter_sb_target_spectrum_1:
+        case kParameter_sb_target_spectrum_2:
+        case kParameter_sb_target_spectrum_3:
+        case kParameter_sb_target_spectrum_4:
+        case kParameter_sb_target_spectrum_5:
+        case kParameter_sb_target_spectrum_6:
+        case kParameter_sb_target_spectrum_7:
+        case kParameter_sbmb_strength:
+        case kParameter_vad_ext:
+        case kParameter_pre_lowcut:
+        case kParameter_sb_meter__0:
+        case kParameter_sb_meter__1:
+        case kParameter_sb_meter__2:
+        case kParameter_sb_meter__3:
+        case kParameter_sb_meter__4:
+        case kParameter_sb_meter__5:
+        case kParameter_sb_meter__6:
+        case kParameter_sb_meter__7:
+            return;
+            // unused
             return;
         case kParameterCount:
             break;
@@ -339,18 +378,12 @@ protected:
         fillColor(color1);
         fill();
 
-        // // image name
-        // const Size<uint> imgSize = imageName.getSize();
-        // const double imgScaleFactor = imageNameArea.getHeight() / imgSize.getHeight();
-        //
-        // beginPath();
-        // rect(imageNameArea.getX(), imageNameArea.getY(), imageNameArea.getWidth(), imageNameArea.getHeight());
-        // fillPaint(imagePattern(imageNameArea.getX(),
-        //                        imageNameArea.getY(),
-        //                        imageNameArea.getWidth(),
-        //                        imgSize.getHeight() * imgScaleFactor, 0, imageName, 1.f));
-        // fill();
+        // plugin name
 
+        fontSize(theme.bigFontSize);
+        fillColor(theme.textLightColor);
+        textAlign(ALIGN_RIGHT|ALIGN_MIDDLE);
+        text(width - theme.windowPadding, theme.windowPadding + globalEnableLabel.getHeight() / 2, "Big Blue Better Audio", nullptr);
     }
 
     void buttonClicked(SubWidget* const widget, int) override
@@ -372,18 +405,16 @@ protected:
 
         switch (id)
         {
-        // bypass switches, inverted operation
+        case kParameter_bypass:
+            soundShapingGroup.updateColors();
+            value = enabled ? 0.f : 1.f;
+            break;
         case kParameterCount + kExtraParamBypass:
-            // enable other parts too
             noiseReductionGroup.switchEnableStats.switch_.setEnabled(enabled, false);
             noiseReductionGroup.updateColors();
-            // fall-through
-        case kParameter_bypass:
             value = enabled ? 0.f : 1.f;
             break;
         case kParameterCount + kExtraParamEnableStats:
-            // enable other parts too
-            noiseReductionGroup.switchEnableStats.switch_.setChecked(enabled, false);
             noiseReductionGroup.updateColors();
             value = enabled ? 1.f : 0.f;
             break;

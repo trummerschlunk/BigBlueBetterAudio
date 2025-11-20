@@ -196,7 +196,36 @@ protected:
         }
 
         if (index < kParameterCount)
-            return FaustGeneratedPlugin::initParameter(index, parameter);
+        {
+            FaustGeneratedPlugin::initParameter(index, parameter);
+
+            // hide some unused parameters
+            switch (index)
+            {
+            case kParameter_sb_target_spectrum_0:
+            case kParameter_sb_target_spectrum_1:
+            case kParameter_sb_target_spectrum_2:
+            case kParameter_sb_target_spectrum_3:
+            case kParameter_sb_target_spectrum_4:
+            case kParameter_sb_target_spectrum_5:
+            case kParameter_sb_target_spectrum_6:
+            case kParameter_sb_target_spectrum_7:
+            case kParameter_sbmb_strength:
+            case kParameter_vad_ext:
+            case kParameter_pre_lowcut:
+            case kParameter_sb_meter__0:
+            case kParameter_sb_meter__1:
+            case kParameter_sb_meter__2:
+            case kParameter_sb_meter__3:
+            case kParameter_sb_meter__4:
+            case kParameter_sb_meter__5:
+            case kParameter_sb_meter__6:
+            case kParameter_sb_meter__7:
+                parameter.hints |= kParameterIsHidden;
+                break;
+            }
+            return;
+        }
 
         parameter.hints = kParameterIsAutomatable;
 

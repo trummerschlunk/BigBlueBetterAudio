@@ -10,11 +10,11 @@
 
 struct BBBAudioTheme : QuantumTheme
 {
-    uint sidelabelsFontSize = 13;
+    uint bigFontSize = 20;
     Color inputLevelBracket1 = Color::fromHTML("#7f4500");
     Color inputLevelBracket2 = Color::fromHTML("#336c33");
 
-    BBBAudioTheme(const double scaleFactor) noexcept
+    BBBAudioTheme(double scaleFactor) noexcept
     {
         widgetLineSize = 1;
         knobIndicatorSize = 3;
@@ -26,12 +26,14 @@ struct BBBAudioTheme : QuantumTheme
         widgetActiveColor = Color::fromHTML("#3cb4aa");
         widgetAlternativeColor = Color::fromHTML("#6159ff");
 
+        // scaleFactor *= 1.25;
+
         if (d_isNotEqual(scaleFactor, 1.0))
         {
             borderSize *= scaleFactor;
             padding *= scaleFactor;
             fontSize *= scaleFactor;
-            sidelabelsFontSize *= scaleFactor;
+            bigFontSize *= scaleFactor;
             knobIndicatorSize *= scaleFactor;
             textHeight *= scaleFactor;
             widgetLineSize *= scaleFactor;

@@ -223,9 +223,10 @@ struct NoiseReductionGroup : QuantumFrame,
     QuantumSingleSpacer spacer1;
     QuantumValueSliderWithLabel sliderThreshold;
     QuantumSingleLabel sliderThresholdLabel;
+    QuantumSingleSpacer spacer2;
     QuantumValueSliderWithLabel sliderGracePeriod;
     QuantumSingleLabel sliderGracePeriodLabel;
-    QuantumSingleSpacer spacer2;
+    QuantumSingleSpacer spacer3;
     QuantumSingleSwitch switchEnableStats;
     QuantumValueMeterWithLabel statCurrent;
     QuantumValueMeterWithLabel statAverage;
@@ -242,9 +243,10 @@ struct NoiseReductionGroup : QuantumFrame,
           spacer1(this),
           sliderThreshold(this, theme),
           sliderThresholdLabel(this, theme),
+          spacer2(this),
           sliderGracePeriod(this, theme),
           sliderGracePeriodLabel(this, theme),
-          spacer2(this),
+          spacer3(this),
           switchEnableStats(this, theme),
           statCurrent(this, theme),
           statAverage(this, theme),
@@ -256,7 +258,7 @@ struct NoiseReductionGroup : QuantumFrame,
         const double scaleFactor = parent->getScaleFactor();
         const uint smallFontSize = d_roundToUnsignedInt(theme.fontSize - 1.5 * scaleFactor);
 
-        title.label.setCustomFontSize(20 * parent->getScaleFactor());
+        title.label.setCustomFontSize(theme.bigFontSize);
         title.label.setLabel("Noise Reduction");
 
         sliderThreshold.slider.setCallback(kcb);
@@ -314,9 +316,10 @@ struct NoiseReductionGroup : QuantumFrame,
         items.push_back(&spacer1);
         items.push_back(&sliderThreshold);
         items.push_back(&sliderThresholdLabel);
+        items.push_back(&spacer2);
         items.push_back(&sliderGracePeriod);
         items.push_back(&sliderGracePeriodLabel);
-        items.push_back(&spacer2);
+        items.push_back(&spacer3);
         items.push_back(&switchEnableStats);
         items.push_back(&statCurrent);
         items.push_back(&statAverage);
@@ -337,28 +340,21 @@ struct NoiseReductionGroup : QuantumFrame,
         const uint usableWidth = width - theme.padding * 10;
 
         title.adjustSize();
+        title.label.setWidth(usableWidth);
         spacer1.spacer.setHeight(metrics.label.getHeight());
         sliderThreshold.adjustSize(metrics);
         sliderThresholdLabel.adjustSize();
         sliderThresholdLabel.label.setWidth(usableWidth);
+        spacer2.spacer.setHeight(metrics.label.getHeight());
         sliderGracePeriod.adjustSize(metrics);
         sliderGracePeriodLabel.adjustSize();
         sliderGracePeriodLabel.label.setWidth(usableWidth);
-        spacer2.spacer.setHeight(metrics.label.getHeight());
+        spacer3.spacer.setHeight(metrics.label.getHeight());
         switchEnableStats.adjustSize();
         statCurrent.adjustSize(metrics);
         statAverage.adjustSize(metrics);
         statMinimum.adjustSize(metrics);
         statMaximum.adjustSize(metrics);
-
-        Size<uint> size = VerticallyStackedHorizontalLayout::adjustSize(theme.padding * 4);
-        d_stdout("Default size: %ux%u",
-                 size.getWidth() + theme.padding * 2 + theme.borderSize * 2,
-                 getOffset() + size.getHeight() + theme.padding * 4 + theme.borderSize * 2);
-
-        VerticallyStackedHorizontalLayout::setAbsolutePos(theme.padding * 4,
-                                                          getOffset() + theme.padding * 4,
-                                                          theme.padding * 4);
     }
 
     void setAbsolutePos(int x, int y)
@@ -376,6 +372,7 @@ struct NoiseReductionGroup : QuantumFrame,
 
         const Color& sliderTextColor = enabled ? theme.textLightColor : theme.textDarkColor;
         const Color& statsTextColor = enabledStats ? theme.textLightColor : theme.textDarkColor;
+        const Color& statsMeterColor = enabledStats ? theme.levelMeterAlternativeColor : theme.textMidColor;
 
         sliderThreshold.slider.setTextColor(sliderTextColor);
         sliderThreshold.label.setLabelColor(sliderTextColor);
@@ -384,12 +381,16 @@ struct NoiseReductionGroup : QuantumFrame,
         sliderGracePeriod.label.setLabelColor(sliderTextColor);
         sliderGracePeriodLabel.label.setLabelColor(sliderTextColor);
 
+        statCurrent.meter.setBackgroundColor(statsMeterColor);
         statCurrent.meter.setTextColor(statsTextColor);
         statCurrent.label.setLabelColor(statsTextColor);
+        statAverage.meter.setBackgroundColor(statsMeterColor);
         statAverage.meter.setTextColor(statsTextColor);
         statAverage.label.setLabelColor(statsTextColor);
+        statMinimum.meter.setBackgroundColor(statsMeterColor);
         statMinimum.meter.setTextColor(statsTextColor);
         statMinimum.label.setLabelColor(statsTextColor);
+        statMaximum.meter.setBackgroundColor(statsMeterColor);
         statMaximum.meter.setTextColor(statsTextColor);
         statMaximum.label.setLabelColor(statsTextColor);
     }
@@ -402,31 +403,81 @@ struct SoundShapingGroup : public QuantumFrame,
 {
     const BBBAudioTheme& theme;
 
-    QuantumSingleLabel title;
+    QuantumRadioSwitchWithLabel title;
+    QuantumSingleSpacer spacer1;
+    QuantumSingleLabel ballancerTitle;
+    BBBAudioValueMeters ballancerMeters;
+    QuantumSingleSpacer spacer2;
+    QuantumSingleLabel mbDynamicsTitle;
+    BBBAudioValueMeters mbDynamicsMeters;
 
-    explicit SoundShapingGroup(NanoTopLevelWidget* const parent, const BBBAudioTheme& t)
+    explicit SoundShapingGroup(NanoTopLevelWidget* const parent,
+                               ButtonEventHandler::Callback* const bcb,
+                               KnobEventHandler::Callback* const kcb,
+                               const BBBAudioTheme& t)
         : QuantumFrame(parent, t),
           theme(t),
-          title(this, theme)
+          title(this, theme),
+          spacer1(this),
+          ballancerTitle(this, theme),
+          ballancerMeters(this, theme, QuantumValueMeter::MiddleToEdges),
+          spacer2(this),
+          mbDynamicsTitle(this, theme),
+          mbDynamicsMeters(this, theme, QuantumValueMeter::MiddleToEdges)
     {
         setName("Sound Shaping");
 
-        title.label.setCustomFontSize(20 * parent->getScaleFactor());
+        title.switch_.setCallback(bcb);
+        title.switch_.setChecked(!kParameterRanges[kParameter_bypass].def, false);
+        title.switch_.setId(kParameter_bypass);
+        title.label.setCustomFontSize(theme.bigFontSize);
         title.label.setLabel("Sound Shaping");
 
+        ballancerTitle.label.setAlignment(ALIGN_CENTER|ALIGN_MIDDLE);
+        ballancerTitle.label.setLabel("Spectral Ballancer");
+
+        mbDynamicsTitle.label.setAlignment(ALIGN_CENTER|ALIGN_MIDDLE);
+        mbDynamicsTitle.label.setLabel("Multiband Dynamics");
+
+        setupMeters(ballancerMeters, kParameter_sb_strength, kParameter_sb_gain__0);
+        setupMeters(mbDynamicsMeters, kParameter_mb_strength, kParameter_mb_comp_gain_0);
+
+        ballancerMeters.knob.setCallback(kcb);
+        mbDynamicsMeters.knob.setCallback(kcb);
+
         items.push_back(&title);
+        items.push_back(&spacer1);
+        items.push_back(&ballancerTitle);
+        items.push_back(&ballancerMeters);
+        items.push_back(&spacer2);
+        items.push_back(&mbDynamicsTitle);
+        items.push_back(&mbDynamicsMeters);
+
+        updateColors();
     }
 
-    void adjustSize(const uint width, const uint height)
+    void adjustSize(const QuantumMetrics& metrics, const uint height)
     {
-        const QuantumMetrics metrics(theme);
+        const uint knobSize = metrics.valueMeterVertical.getHeight() + metrics.label.getHeight() / 2;
+        const uint width = knobSize + metrics.valueMeterVertical.getWidth() * 8 + theme.padding * 40;
+
+        title.adjustSize(metrics);
+        title.label.setWidth(width - title.switch_.getWidth() - theme.padding * 2);
+        spacer1.spacer.setSize(0, metrics.label.getHeight());
+        ballancerTitle.adjustSize();
+        ballancerTitle.label.setWidth(width);
+        ballancerMeters.adjustSize(metrics);
+        ballancerMeters.knob.setSize(knobSize, knobSize);
+        ballancerMeters.knob.setValueFontSize(theme.fontSize);
+        spacer2.spacer.setSize(0, metrics.label.getHeight());
+        mbDynamicsTitle.adjustSize();
+        mbDynamicsTitle.label.setWidth(width);
+        mbDynamicsMeters.adjustSize(metrics);
+        mbDynamicsMeters.knob.setSize(knobSize, knobSize);
+        mbDynamicsMeters.knob.setValueFontSize(theme.fontSize);
 
         setSize(width, height);
-        adjustMainWidgetSize();
 
-        VerticallyStackedHorizontalLayout::setAbsolutePos(theme.padding * 4,
-                                                          getOffset() + theme.padding * 4,
-                                                          theme.padding * 4);
     }
 
     void setAbsolutePos(int x, int y)
@@ -434,9 +485,97 @@ struct SoundShapingGroup : public QuantumFrame,
         QuantumFrame::setAbsolutePos(x, y);
         VerticallyStackedHorizontalLayout::setAbsolutePos(x + theme.padding * 4,
                                                           y + getOffset() + theme.padding * 4,
-                                                          theme.padding * 4);
+                                                          theme.padding * 2);
     }
 
+    void updateColors()
+    {
+        const bool enabled = title.switch_.isChecked();
+
+        const Color& meterColor = enabled ? theme.levelMeterColor : theme.textDarkColor;
+        const Color& meterAltColor = enabled ? theme.levelMeterAlternativeColor : theme.textDarkColor;
+        const Color& textColor = enabled ? theme.textLightColor : theme.textDarkColor;
+
+        ballancerTitle.label.setLabelColor(textColor);
+        ballancerMeters.knob.setEnabled(enabled, false);
+        ballancerMeters.knob.setRingColor(enabled ? theme.knobRingColor : theme.textDarkColor);
+        ballancerMeters.m1.setBackgroundColor(meterColor);
+        ballancerMeters.m2.setBackgroundColor(meterColor);
+        ballancerMeters.m3.setBackgroundColor(meterColor);
+        ballancerMeters.m4.setBackgroundColor(meterColor);
+        ballancerMeters.m5.setBackgroundColor(meterColor);
+        ballancerMeters.m6.setBackgroundColor(meterColor);
+        ballancerMeters.m7.setBackgroundColor(meterColor);
+        ballancerMeters.m8.setBackgroundColor(meterColor);
+
+        mbDynamicsTitle.label.setLabelColor(textColor);
+        mbDynamicsMeters.knob.setEnabled(enabled, false);
+        mbDynamicsMeters.knob.setRingColor(enabled ? theme.knobAlternativeRingColor : theme.textDarkColor);
+        mbDynamicsMeters.m1.setBackgroundColor(meterAltColor);
+        mbDynamicsMeters.m2.setBackgroundColor(meterAltColor);
+        mbDynamicsMeters.m3.setBackgroundColor(meterAltColor);
+        mbDynamicsMeters.m4.setBackgroundColor(meterAltColor);
+        mbDynamicsMeters.m5.setBackgroundColor(meterAltColor);
+        mbDynamicsMeters.m6.setBackgroundColor(meterAltColor);
+        mbDynamicsMeters.m7.setBackgroundColor(meterAltColor);
+        mbDynamicsMeters.m8.setBackgroundColor(meterAltColor);
+    }
+
+    inline void setupMeters(BBBAudioValueMeters& w, const int idKnob, const int idStart)
+    {
+        w.knob.setId(idKnob);
+        w.m1.setId(idStart + 0);
+        w.m2.setId(idStart + 1);
+        w.m3.setId(idStart + 2);
+        w.m4.setId(idStart + 3);
+        w.m5.setId(idStart + 4);
+        w.m6.setId(idStart + 5);
+        w.m7.setId(idStart + 6);
+        w.m8.setId(idStart + 7);
+
+        w.knob.setLabel("Strength");
+        w.knob.setStep(1.f);
+
+        w.knob.setName(kParameterNames[idKnob]);
+        w.m1.setName(kParameterNames[idStart + 0]);
+        w.m2.setName(kParameterNames[idStart + 1]);
+        w.m3.setName(kParameterNames[idStart + 2]);
+        w.m4.setName(kParameterNames[idStart + 3]);
+        w.m5.setName(kParameterNames[idStart + 4]);
+        w.m6.setName(kParameterNames[idStart + 5]);
+        w.m7.setName(kParameterNames[idStart + 6]);
+        w.m8.setName(kParameterNames[idStart + 7]);
+
+        w.knob.setRange(kParameterRanges[idKnob].min, kParameterRanges[idKnob].max);
+        w.m1.setRange(kParameterRanges[idStart + 0].min, kParameterRanges[idStart + 0].max);
+        w.m2.setRange(kParameterRanges[idStart + 1].min, kParameterRanges[idStart + 1].max);
+        w.m3.setRange(kParameterRanges[idStart + 2].min, kParameterRanges[idStart + 2].max);
+        w.m4.setRange(kParameterRanges[idStart + 3].min, kParameterRanges[idStart + 3].max);
+        w.m5.setRange(kParameterRanges[idStart + 4].min, kParameterRanges[idStart + 4].max);
+        w.m6.setRange(kParameterRanges[idStart + 5].min, kParameterRanges[idStart + 5].max);
+        w.m7.setRange(kParameterRanges[idStart + 6].min, kParameterRanges[idStart + 6].max);
+        w.m8.setRange(kParameterRanges[idStart + 7].min, kParameterRanges[idStart + 7].max);
+
+        w.knob.setUnitLabel(kParameterUnits[idKnob]);
+        w.m1.setUnitLabel(kParameterUnits[idStart + 0]);
+        w.m2.setUnitLabel(kParameterUnits[idStart + 1]);
+        w.m3.setUnitLabel(kParameterUnits[idStart + 2]);
+        w.m4.setUnitLabel(kParameterUnits[idStart + 3]);
+        w.m5.setUnitLabel(kParameterUnits[idStart + 4]);
+        w.m6.setUnitLabel(kParameterUnits[idStart + 5]);
+        w.m7.setUnitLabel(kParameterUnits[idStart + 6]);
+        w.m8.setUnitLabel(kParameterUnits[idStart + 7]);
+
+        w.knob.setValue(kParameterRanges[idKnob].def);
+        w.m1.setValue(kParameterRanges[idStart + 0].def);
+        w.m2.setValue(kParameterRanges[idStart + 1].def);
+        w.m3.setValue(kParameterRanges[idStart + 2].def);
+        w.m4.setValue(kParameterRanges[idStart + 3].def);
+        w.m5.setValue(kParameterRanges[idStart + 4].def);
+        w.m6.setValue(kParameterRanges[idStart + 5].def);
+        w.m7.setValue(kParameterRanges[idStart + 6].def);
+        w.m8.setValue(kParameterRanges[idStart + 7].def);
+    }
 };
 
 // --------------------------------------------------------------------------------------------------------------------

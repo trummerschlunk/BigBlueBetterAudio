@@ -52,7 +52,7 @@ enum ExtraParameters {
 
    When this macro is defined, the companion DISTRHO_UI_DEFAULT_HEIGHT macro must be defined as well.
  */
-#define DISTRHO_UI_DEFAULT_WIDTH 860
+#define DISTRHO_UI_DEFAULT_WIDTH 830
 
 /**
    Default UI height to use when creating initial and temporary windows.
@@ -63,7 +63,7 @@ enum ExtraParameters {
 
    When this macro is defined, the companion DISTRHO_UI_DEFAULT_WIDTH macro must be defined as well.
  */
-#define DISTRHO_UI_DEFAULT_HEIGHT 431
+#define DISTRHO_UI_DEFAULT_HEIGHT 430
 
 /**
    Whether the UI uses NanoVG for drawing instead of the default raw OpenGL calls.
@@ -77,7 +77,7 @@ enum ExtraParameters {
    Enabling this options makes it possible for the user to resize the plugin UI at anytime.
    @see UI::setGeometryConstraints(uint, uint, bool, bool)
  */
-#define DISTRHO_UI_USER_RESIZABLE 1
+#define DISTRHO_UI_USER_RESIZABLE 0
 
 /**
    A 4-character symbol that identifies a brand or manufacturer, with at least one non-lower case character.
@@ -184,7 +184,7 @@ enum ExtraParameters {
       - Mono
       - Stereo
  */
-#define DISTRHO_PLUGIN_VST3_CATEGORIES "Fx|Filter|Mono"
+#define DISTRHO_PLUGIN_VST3_CATEGORIES "Fx|Filter|Stereo"
 
 /**
    Custom CLAP features for the plugin.
@@ -242,7 +242,7 @@ enum ExtraParameters {
       - surround
       - ambisonic
 */
-#define DISTRHO_PLUGIN_CLAP_FEATURES "audio-effect", "filter", "mono"
+#define DISTRHO_PLUGIN_CLAP_FEATURES "audio-effect", "filter", "stereo"
 
 /**
    The plugin id when exporting in CLAP format, in reverse URI form.
