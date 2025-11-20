@@ -1,14 +1,46 @@
-/*
- * Re:Nooice
- * Copyright (C) 2025 Filipe Coelho <falktx@falktx.com>
- * SPDX-License-Identifier: ISC
- */
+// Copyright 2025 Filipe Coelho <falktx@falktx.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "DistrhoPluginInfo.h"
 #include "DistrhoUI.hpp"
 #include "DistrhoStandaloneUtils.hpp"
 
-#include "QuantumLayouts.hpp"
-#include "pregen-gui/FaustPluginInfo.h"
+#include "QuantumGroups.hpp"
+
+// --------------------------------------------------------------------------------------------------------------------
+// make sure our expectations match
+
+static_assert(kParameterRanges[kParameter_input_peak_channel_0].def ==
+              kParameterRanges[kParameter_input_peak_channel_1].def, "channel data mismatch");
+static_assert(kParameterRanges[kParameter_input_peak_channel_0].min ==
+              kParameterRanges[kParameter_input_peak_channel_1].min, "channel data mismatch");
+static_assert(kParameterRanges[kParameter_input_peak_channel_0].max ==
+              kParameterRanges[kParameter_input_peak_channel_1].max, "channel data mismatch");
+
+static_assert(kParameterRanges[kParameter_output_peak_channel_0].def ==
+              kParameterRanges[kParameter_output_peak_channel_1].def, "channel data mismatch");
+static_assert(kParameterRanges[kParameter_output_peak_channel_0].min ==
+              kParameterRanges[kParameter_output_peak_channel_1].min, "channel data mismatch");
+static_assert(kParameterRanges[kParameter_output_peak_channel_0].max ==
+              kParameterRanges[kParameter_output_peak_channel_1].max, "channel data mismatch");
+
+static_assert(kParameterRanges[kParameter_output_peak_channel_0].def ==
+              kParameterRanges[kParameter_lufs_out_meter].def, "channel data mismatch");
+static_assert(kParameterRanges[kParameter_output_peak_channel_0].min >=
+              kParameterRanges[kParameter_lufs_out_meter].min, "channel data mismatch");
+static_assert(kParameterRanges[kParameter_output_peak_channel_0].max ==
+              kParameterRanges[kParameter_lufs_out_meter].max, "channel data mismatch");
+
+static_assert(kParameterRanges[kParameter_input_peak_channel_0].def ==
+              kParameterRanges[kParameter_output_peak_channel_0].def, "channel data mismatch");
+static_assert(kParameterRanges[kParameter_input_peak_channel_0].min ==
+              kParameterRanges[kParameter_output_peak_channel_0].min, "channel data mismatch");
+static_assert(kParameterRanges[kParameter_input_peak_channel_0].max ==
+              kParameterRanges[kParameter_output_peak_channel_0].max, "channel data mismatch");
+
+static_assert(kParameterRanges[kParameter_leveler_gain].min == -50.f, "leveler gain -50 dB min");
+static_assert(kParameterRanges[kParameter_leveler_gain].max == +50.f, "leveler gain +50 dB max");
+static_assert(kParameterRanges[kParameter_leveler_gain].def == 0.f, "leveler gain 0 dB default");
 
 START_NAMESPACE_DISTRHO
 
@@ -18,7 +50,7 @@ class BBBAudioUI : public UI,
                    public ButtonEventHandler::Callback,
                    public KnobEventHandler::Callback
 {
-    QuantumTheme theme;
+    BBBAudioTheme theme;
 
     // group of widgets
     InputMeterGroup inputGroup;
@@ -51,6 +83,7 @@ public:
     */
     BBBAudioUI()
         : UI(),
+          theme(getScaleFactor()),
           inputGroup(this, this, theme),
           inputLevelerGroup(this, this, this, theme),
           noiseReductionGroup(this, this, this, theme),
@@ -137,7 +170,7 @@ protected:
         inputLevelerGroup.adjustSize(metrics, contentHeight);
         outputGroup.adjustSize(metrics, contentHeight);
 
-        const uint leftoverWidth = getWidth() - theme.windowPadding * 2
+        const uint leftoverWidth = width - theme.windowPadding * 2
             - inputGroup.getWidth()
             - inputLevelerGroup.getWidth()
             - outputGroup.getWidth();
@@ -156,7 +189,7 @@ protected:
     */
     void parameterChanged(uint32_t index, float value) override
     {
-        switch (index)
+        switch (static_cast<Parameters>(index))
         {
         // inputs
         case kParameter_sb_strength:
@@ -169,6 +202,7 @@ protected:
         case kParameter_sb_target_spectrum_6:
         case kParameter_sb_target_spectrum_7:
         case kParameter_bypass:
+            return;
         case kParameter_pre_gain:
             inputGroup.gainKnob.setValue(value, false);
             return;
@@ -179,6 +213,8 @@ protected:
             inputLevelerGroup.targetKnob.setValue(value, false);
             return;
         case kParameter_leveler_scale:
+            inputLevelerGroup.enableSwitch.setChecked(value > 0.5f, false);
+            return;
         case kParameter_mb_strength:
         case kParameter_pre_lowcut:
             return;
@@ -199,6 +235,7 @@ protected:
         case kParameter_sb_gain__5:
         case kParameter_sb_gain__6:
         case kParameter_sb_gain__7:
+            return;
         case kParameter_limiter_gain:
             outputGroup.meter.setValueLimiter(value);
             return;
@@ -229,42 +266,45 @@ protected:
         case kParameter_mb_comp_gain_6:
         case kParameter_mb_comp_gain_7:
             return;
+        case kParameterCount:
+            break;
         }
 
         DISTRHO_SAFE_ASSERT_RETURN(index >= kParameterCount,);
 
-#if 0
-        switch (index - kParameterCount)
+        switch (static_cast<ExtraParameters>(index - kParameterCount))
         {
         case kExtraParamBypass:
-            ui.switchEnable.switch_.setChecked(value < 0.5f, false);
-            ui.switchEnableStats.switch_.setEnabled(value < 0.5f, false);
-            ui.updateColors();
+            enabled.noiseReduction = value < 0.5f;
+            globalEnableSwitch.setChecked(enabled.noiseReduction, false);
+            noiseReductionGroup.switchEnableStats.switch_.setEnabled(enabled.noiseReduction, false);
+            noiseReductionGroup.updateColors();
             break;
         case kExtraParamThreshold:
-            ui.sliderThreshold.slider.setValue(value, false);
+            noiseReductionGroup.sliderThreshold.slider.setValue(value, false);
             break;
         case kExtraParamGracePeriod:
-            ui.sliderGracePeriod.slider.setValue(value, false);
+            noiseReductionGroup.sliderGracePeriod.slider.setValue(value, false);
             break;
         case kExtraParamEnableStats:
-            ui.switchEnableStats.switch_.setChecked(value >= 0.5f, false);
-            ui.updateColors();
+            noiseReductionGroup.switchEnableStats.switch_.setChecked(value >= 0.5f, false);
+            noiseReductionGroup.updateColors();
             break;
         case kExtraParamCurrentVAD:
-            ui.statCurrent.meter.setValue(value);
+            noiseReductionGroup.statCurrent.meter.setValue(value);
             break;
         case kExtraParamAverageVAD:
-            ui.statAverage.meter.setValue(value);
+            noiseReductionGroup.statAverage.meter.setValue(value);
             break;
         case kExtraParamMinimumVAD:
-            ui.statMinimum.meter.setValue(value);
+            noiseReductionGroup.statMinimum.meter.setValue(value);
             break;
         case kExtraParamMaximumVAD:
-            ui.statMaximum.meter.setValue(value);
+            noiseReductionGroup.statMaximum.meter.setValue(value);
+            break;
+        case kExtraParamCount:
             break;
         }
-#endif
     }
 
     // ----------------------------------------------------------------------------------------------------------------
@@ -281,26 +321,23 @@ protected:
         fillColor(theme.windowBackgroundColor);
         fill();
 
-        // if (theme.useBackgroundGradient)
-        {
-            const Color color2(Color(theme.widgetBackgroundColor, theme.windowBackgroundColor, 0.5f).withAlpha(0.5f));
-            const Color color1(color2.withAlpha(0.f));
+        const Color color2(Color(theme.widgetBackgroundColor, theme.windowBackgroundColor, 0.5f).withAlpha(0.5f));
+        const Color color1(color2.withAlpha(0.f));
 
-            beginPath();
-            rect(0, 0, widthBy3, height);
-            fillPaint(linearGradient(0, 0, widthBy3, 0, color2, color1));
-            fill();
+        beginPath();
+        rect(0, 0, widthBy3, height);
+        fillPaint(linearGradient(0, 0, widthBy3, 0, color2, color1));
+        fill();
 
-            beginPath();
-            rect(width - widthBy3, 0, widthBy3, height);
-            fillPaint(linearGradient(width - widthBy3, 0, width, 0, color1, color2));
-            fill();
+        beginPath();
+        rect(width - widthBy3, 0, widthBy3, height);
+        fillPaint(linearGradient(width - widthBy3, 0, width, 0, color1, color2));
+        fill();
 
-            beginPath();
-            rect(widthBy3 - 1, 0, widthBy3 + 2, height);
-            fillColor(color1);
-            fill();
-        }
+        beginPath();
+        rect(widthBy3 - 1, 0, widthBy3 + 2, height);
+        fillColor(color1);
+        fill();
 
         // // image name
         // const Size<uint> imgSize = imageName.getSize();
@@ -325,7 +362,6 @@ protected:
             return;
         }
 
-#if 0
         const uint id = widget->getId();
 
         QuantumSwitch* const qswitch = reinterpret_cast<QuantumSwitch*>(widget);
@@ -334,28 +370,31 @@ protected:
         const bool enabled = qswitch->isChecked();
         float value;
 
-        if (id == kParameterCount + kExtraParamBypass)
+        switch (id)
         {
-            // bypass switch, inverted operation
-            value = enabled ? 0.f : 1.f;
-
+        // bypass switches, inverted operation
+        case kParameterCount + kExtraParamBypass:
             // enable other parts too
-            ui.switchEnableStats.switch_.setEnabled(enabled, false);
-        }
-        else
-        {
-            // regular switches, normal operation
+            noiseReductionGroup.switchEnableStats.switch_.setEnabled(enabled, false);
+            noiseReductionGroup.updateColors();
+            // fall-through
+        case kParameter_bypass:
+            value = enabled ? 0.f : 1.f;
+            break;
+        case kParameterCount + kExtraParamEnableStats:
+            // enable other parts too
+            noiseReductionGroup.switchEnableStats.switch_.setChecked(enabled, false);
+            noiseReductionGroup.updateColors();
             value = enabled ? 1.f : 0.f;
+            break;
+        default:
+            return;
         }
 
         // report change to host
         editParameter(id, true);
         setParameterValue(id, value);
         editParameter(id, false);
-
-        // update UI colors
-        ui.updateColors();
-#endif
     }
 
     void knobDragStarted(SubWidget* const widget) override
@@ -381,9 +420,6 @@ protected:
         UI::onResize(ev);
 
         resizeWidgets(ev.size.getWidth(), ev.size.getHeight());
-#if 0
-        ui.adjustSize(ev.size.getWidth(), ev.size.getHeight());
-#endif
     }
 
     // ----------------------------------------------------------------------------------------------------------------
