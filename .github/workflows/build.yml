@@ -42,6 +42,29 @@ jobs:
           dpf_path: ./deps/dpf
           # lto: true
 
+  wasm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/cache@v4
+        with:
+          path: emsdk
+          key: emsdk
+      - name: Build for wasm
+        run: ./build-for-wasm.sh
+      - name: Set sha8
+        run: echo "SHA8=$(echo ${{ github.sha }} | cut -c1-8)" >> $GITHUB_ENV
+      - name: Set basenames
+        run: echo "ARTIFACT_BASENAME=BigBlueBetterAudio-wasm-${{ github.event.pull_request.number || env.SHA8 }}" >> $GITHUB_ENV
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_BASENAME }}
+          path: |
+            bin/BBBA-mapi.*
+            bin-nosimd/BBBA-mapi-nosimd.*
+
   windows:
     strategy:
       matrix:
@@ -66,26 +89,3 @@ jobs:
         with:
           target: pluginval
           dpf_path: ./deps/dpf
-
-  wasm:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - uses: actions/cache@v4
-        with:
-          path: emsdk
-          key: emsdk
-      - name: Build for wasm
-        run: ./build-for-wasm.sh
-      - name: Set sha8
-        run: echo "SHA8=$(echo ${{ github.sha }} | cut -c1-8)" >> $GITHUB_ENV
-      - name: Set basenames
-        run: echo "ARTIFACT_BASENAME=BigBlueBetterAudio-wasm-${{ github.event.pull_request.number || env.SHA8 }}" >> $GITHUB_ENV
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.ARTIFACT_BASENAME }}
-          path: |
-            bin/BBBA-mapi.*
-            bin-nosimd/BBBA-mapi.*
