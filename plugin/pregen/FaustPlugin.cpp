@@ -463,7 +463,7 @@ class mydsp : public dsp {
 		m->declare("basics.lib/peakholder:copyright", "Copyright (C) 2022 Dario Sanfilippo <sanfilippo.dario@gmail.com>");
 		m->declare("basics.lib/peakholder:license", "MIT-style STK-4.3 license");
 		m->declare("basics.lib/version", "1.21.0");
-		m->declare("compile_options", "-a /tmp/tmp0gv16zn5.cpp -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("compile_options", "-a /tmp/tmpk2x8vx29.cpp -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("compressors.lib/name", "Faust Compressor Effect Library");
 		m->declare("compressors.lib/peak_compression_gain_mono:author", "Bart Brouns");
 		m->declare("compressors.lib/peak_compression_gain_mono:license", "GPLv3");
@@ -1293,6 +1293,7 @@ class mydsp : public dsp {
 		ui_interface->declare(&fCheckbox0, "symbol", "bypass");
 		ui_interface->addCheckButton("bypass", &fCheckbox0);
 		ui_interface->declare(&fVslider3, "1", "");
+		ui_interface->declare(&fVslider3, "symbol", "pre_gain");
 		ui_interface->declare(&fVslider3, "unit", "dB");
 		ui_interface->addVerticalSlider("PreGain", &fVslider3, FAUSTFLOAT(0.0f), FAUSTFLOAT(-2e+01f), FAUSTFLOAT(2e+01f), FAUSTFLOAT(0.1f));
 		ui_interface->declare(&fVslider6, "2", "");
@@ -2218,7 +2219,7 @@ protected:
             param.ranges.min = kParameterRanges[9].min;
             param.ranges.max = kParameterRanges[9].max;
             break;
-        case kParameter__11:
+        case kParameter_pre_gain:
             param.hints = kParameterIsAutomatable
             
             
@@ -2371,7 +2372,7 @@ protected:
             return dsp->fVslider5;
         case kParameter_bypass:
             return dsp->fCheckbox0;
-        case kParameter__11:
+        case kParameter_pre_gain:
             return dsp->fVslider3;
         case kParameter_sbmb_strength:
             return dsp->fVslider6;
@@ -2427,7 +2428,7 @@ protected:
         case kParameter_bypass:
             dsp->fCheckbox0 = value;
             break;
-        case kParameter__11:
+        case kParameter_pre_gain:
             dsp->fVslider3 = value;
             break;
         case kParameter_sbmb_strength:

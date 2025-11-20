@@ -9,7 +9,7 @@
 // Author: Klaus Scheuermann
 // Copyright: 
 // License: GPLv3+
-// Version: 0.22
+// Version: 0.23
 //------------------------------------------------------------------------------
 
 
@@ -583,7 +583,7 @@ class mydsp : public dsp {
 		m->declare("basics.lib/peakholder:copyright", "Copyright (C) 2022 Dario Sanfilippo <sanfilippo.dario@gmail.com>");
 		m->declare("basics.lib/peakholder:license", "MIT-style STK-4.3 license");
 		m->declare("basics.lib/version", "1.21.0");
-		m->declare("compile_options", "-a /tmp/tmpe9qcd0c1.cpp -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("compile_options", "-a /tmp/tmp1c5pd8wf.cpp -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("compressors.lib/name", "Faust Compressor Effect Library");
 		m->declare("compressors.lib/peak_compression_gain_mono:author", "Bart Brouns");
 		m->declare("compressors.lib/peak_compression_gain_mono:license", "GPLv3");
@@ -643,7 +643,7 @@ class mydsp : public dsp {
 		m->declare("signals.lib/onePoleSwitching:author", "Jonatan Liljedahl, revised by Dario Sanfilippo");
 		m->declare("signals.lib/onePoleSwitching:licence", "STK-4.3");
 		m->declare("signals.lib/version", "1.6.0");
-		m->declare("version", "0.22");
+		m->declare("version", "0.23");
 	}
 
 	FAUSTPP_VIRTUAL int getNumInputs() {
@@ -816,7 +816,7 @@ class mydsp : public dsp {
 		fVslider3 = FAUSTFLOAT(42.0f);
 		fVslider4 = FAUSTFLOAT(0.0f);
 		fVslider5 = FAUSTFLOAT(-4.0f);
-		fVslider6 = FAUSTFLOAT(8e+01f);
+		fVslider6 = FAUSTFLOAT(1e+02f);
 		fVslider7 = FAUSTFLOAT(5e+01f);
 		fVslider8 = FAUSTFLOAT(-7.0f);
 		fVslider9 = FAUSTFLOAT(-1e+01f);
@@ -1671,11 +1671,12 @@ class mydsp : public dsp {
 		ui_interface->declare(&fCheckbox0, "symbol", "bypass");
 		ui_interface->addCheckButton("bypass", &fCheckbox0);
 		ui_interface->declare(&fVslider4, "1", "");
+		ui_interface->declare(&fVslider4, "symbol", "pre_gain");
 		ui_interface->declare(&fVslider4, "unit", "dB");
 		ui_interface->addVerticalSlider("PreGain", &fVslider4, FAUSTFLOAT(0.0f), FAUSTFLOAT(-2e+01f), FAUSTFLOAT(2e+01f), FAUSTFLOAT(0.1f));
 		ui_interface->declare(&fVslider6, "2", "");
 		ui_interface->declare(&fVslider6, "symbol", "sbmb_strength");
-		ui_interface->addVerticalSlider("sbmb_strength", &fVslider6, FAUSTFLOAT(8e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+02f), FAUSTFLOAT(1.0f));
+		ui_interface->addVerticalSlider("sbmb_strength", &fVslider6, FAUSTFLOAT(1e+02f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+02f), FAUSTFLOAT(1.0f));
 		ui_interface->declare(&fVslider1, "3", "");
 		ui_interface->declare(&fVslider1, "symbol", "vad_ext");
 		ui_interface->addVerticalSlider("vad_ext", &fVslider1, FAUSTFLOAT(1.0f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f), FAUSTFLOAT(0.001f));
@@ -1709,35 +1710,35 @@ class mydsp : public dsp {
 		ui_interface->declare(&fVbargraph26, "2", "");
 		ui_interface->declare(&fVbargraph26, "symbol", "mb_comp_gain 0");
 		ui_interface->declare(&fVbargraph26, "unit", "dB");
-		ui_interface->addVerticalBargraph("MBgr 0", &fVbargraph26, FAUSTFLOAT(-6.0f), FAUSTFLOAT(6.0f));
+		ui_interface->addVerticalBargraph("MBgr 0", &fVbargraph26, FAUSTFLOAT(-12.0f), FAUSTFLOAT(12.0f));
 		ui_interface->declare(&fVbargraph25, "2", "");
 		ui_interface->declare(&fVbargraph25, "symbol", "mb_comp_gain 1");
 		ui_interface->declare(&fVbargraph25, "unit", "dB");
-		ui_interface->addVerticalBargraph("MBgr 1", &fVbargraph25, FAUSTFLOAT(-6.0f), FAUSTFLOAT(6.0f));
+		ui_interface->addVerticalBargraph("MBgr 1", &fVbargraph25, FAUSTFLOAT(-12.0f), FAUSTFLOAT(12.0f));
 		ui_interface->declare(&fVbargraph24, "2", "");
 		ui_interface->declare(&fVbargraph24, "symbol", "mb_comp_gain 2");
 		ui_interface->declare(&fVbargraph24, "unit", "dB");
-		ui_interface->addVerticalBargraph("MBgr 2", &fVbargraph24, FAUSTFLOAT(-6.0f), FAUSTFLOAT(6.0f));
+		ui_interface->addVerticalBargraph("MBgr 2", &fVbargraph24, FAUSTFLOAT(-12.0f), FAUSTFLOAT(12.0f));
 		ui_interface->declare(&fVbargraph23, "2", "");
 		ui_interface->declare(&fVbargraph23, "symbol", "mb_comp_gain 3");
 		ui_interface->declare(&fVbargraph23, "unit", "dB");
-		ui_interface->addVerticalBargraph("MBgr 3", &fVbargraph23, FAUSTFLOAT(-6.0f), FAUSTFLOAT(6.0f));
+		ui_interface->addVerticalBargraph("MBgr 3", &fVbargraph23, FAUSTFLOAT(-12.0f), FAUSTFLOAT(12.0f));
 		ui_interface->declare(&fVbargraph22, "2", "");
 		ui_interface->declare(&fVbargraph22, "symbol", "mb_comp_gain 4");
 		ui_interface->declare(&fVbargraph22, "unit", "dB");
-		ui_interface->addVerticalBargraph("MBgr 4", &fVbargraph22, FAUSTFLOAT(-6.0f), FAUSTFLOAT(6.0f));
+		ui_interface->addVerticalBargraph("MBgr 4", &fVbargraph22, FAUSTFLOAT(-12.0f), FAUSTFLOAT(12.0f));
 		ui_interface->declare(&fVbargraph21, "2", "");
 		ui_interface->declare(&fVbargraph21, "symbol", "mb_comp_gain 5");
 		ui_interface->declare(&fVbargraph21, "unit", "dB");
-		ui_interface->addVerticalBargraph("MBgr 5", &fVbargraph21, FAUSTFLOAT(-6.0f), FAUSTFLOAT(6.0f));
+		ui_interface->addVerticalBargraph("MBgr 5", &fVbargraph21, FAUSTFLOAT(-12.0f), FAUSTFLOAT(12.0f));
 		ui_interface->declare(&fVbargraph20, "2", "");
 		ui_interface->declare(&fVbargraph20, "symbol", "mb_comp_gain 6");
 		ui_interface->declare(&fVbargraph20, "unit", "dB");
-		ui_interface->addVerticalBargraph("MBgr 6", &fVbargraph20, FAUSTFLOAT(-6.0f), FAUSTFLOAT(6.0f));
+		ui_interface->addVerticalBargraph("MBgr 6", &fVbargraph20, FAUSTFLOAT(-12.0f), FAUSTFLOAT(12.0f));
 		ui_interface->declare(&fVbargraph19, "2", "");
 		ui_interface->declare(&fVbargraph19, "symbol", "mb_comp_gain 7");
 		ui_interface->declare(&fVbargraph19, "unit", "dB");
-		ui_interface->addVerticalBargraph("MBgr 7", &fVbargraph19, FAUSTFLOAT(-6.0f), FAUSTFLOAT(6.0f));
+		ui_interface->addVerticalBargraph("MBgr 7", &fVbargraph19, FAUSTFLOAT(-12.0f), FAUSTFLOAT(12.0f));
 		ui_interface->declare(&fVslider15, "symbol", "mb_strength");
 		ui_interface->addVerticalSlider("mb_strength", &fVslider15, FAUSTFLOAT(8e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+02f), FAUSTFLOAT(1.0f));
 		ui_interface->closeBox();
@@ -2860,7 +2861,7 @@ protected:
             param.ranges.min = kParameterRanges[9].min;
             param.ranges.max = kParameterRanges[9].max;
             break;
-        case kParameter__11:
+        case kParameter_pre_gain:
             param.hints = kParameterIsAutomatable
             
             
@@ -3433,7 +3434,7 @@ protected:
             return dsp->fVslider5;
         case kParameter_bypass:
             return dsp->fCheckbox0;
-        case kParameter__11:
+        case kParameter_pre_gain:
             return dsp->fVslider4;
         case kParameter_sbmb_strength:
             return dsp->fVslider6;
@@ -3549,7 +3550,7 @@ protected:
         case kParameter_bypass:
             dsp->fCheckbox0 = value;
             break;
-        case kParameter__11:
+        case kParameter_pre_gain:
             dsp->fVslider4 = value;
             break;
         case kParameter_sbmb_strength:

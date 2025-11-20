@@ -9,7 +9,7 @@
 // Author: Klaus Scheuermann
 // Copyright: 
 // License: GPLv3+
-// Version: 0.22
+// Version: 0.23
 //------------------------------------------------------------------------------
 
 
@@ -38,7 +38,7 @@ enum Parameters {
     kParameter_sb_target_spectrum_6,
     kParameter_sb_target_spectrum_7,
     kParameter_bypass,
-    kParameter__11,
+    kParameter_pre_gain,
     kParameter_sbmb_strength,
     kParameter_vad_ext,
     kParameter_leveler_target,
@@ -159,7 +159,7 @@ static constexpr const struct { float def, min, max; } kParameterRanges[48] = {
     { -4.0, -20.0, 0.0 },
     { 0, 0, 1 },
     { 0.0, -20.0, 20.0 },
-    { 80.0, 0.0, 100.0 },
+    { 100.0, 0.0, 100.0 },
     { 1.0, 0.0, 1.0 },
     { -23.0, -60.0, 0.0 },
     { 1.0, 0.0, 1.0 },
@@ -190,14 +190,14 @@ static constexpr const struct { float def, min, max; } kParameterRanges[48] = {
     { 0, -70.0, 0.0 },
     { 0, -70.0, 0.0 },
     { 0, -50.0, 50.0 },
-    { 0, -6.0, 6.0 },
-    { 0, -6.0, 6.0 },
-    { 0, -6.0, 6.0 },
-    { 0, -6.0, 6.0 },
-    { 0, -6.0, 6.0 },
-    { 0, -6.0, 6.0 },
-    { 0, -6.0, 6.0 },
-    { 0, -6.0, 6.0 },
+    { 0, -12.0, 12.0 },
+    { 0, -12.0, 12.0 },
+    { 0, -12.0, 12.0 },
+    { 0, -12.0, 12.0 },
+    { 0, -12.0, 12.0 },
+    { 0, -12.0, 12.0 },
+    { 0, -12.0, 12.0 },
+    { 0, -12.0, 12.0 },
     
 };
 
@@ -213,7 +213,7 @@ static constexpr const char* kParameterSymbols[48] = {
     "sb_target_spectrum_6",
     "sb_target_spectrum_7",
     "bypass",
-    "lv2_port_14",
+    "pre_gain",
     "sbmb_strength",
     "vad_ext",
     "leveler_target",
