@@ -15,9 +15,10 @@
 // 0.19 is a fake stereo version for making the plugin GUI
 // 0.21 finally correct fake stereo
 // 0.22 adds the correct symbols for the plugin GUI and lists them at the top
+// 0.24 puts pregain in the correct place before the input meter, cleanup
 
 declare name "bbba";
-declare version "0.23";             
+declare version "0.24";             
 declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
@@ -136,12 +137,12 @@ vad_ext = gui_main(vslider("[3]vad_ext[symbol:vad_ext]",1,0,1,0.001));
 // MAIN
 
 process = _,_  
+        : pregain(2)
         : peakmeter_in
         : stereo2mono
         : si.bus(Nch)
         : bp1(bypass,
-              pregain(1)
-            : preFilter
+              preFilter
 
             : (leveler_sc(target) 
             : ballancer 
@@ -149,7 +150,6 @@ process = _,_
             
             : mbExpComp
             
-            //: limiter_mono
             : limiter_lookahead
             
         )
@@ -157,7 +157,7 @@ process = _,_
         <: _,_
         : peakmeter_out
         : lufs_out_meter
-        ;
+;
 
 
 
@@ -208,17 +208,15 @@ preFilter = preFilter_hp with {
 
 // CROSSOVER for spectral ballancer (and multiband compressor)
 
-crossover = fi.crossover8LR4(100,200,400,800,1600,3200,6400);
+crossover = fi.crossover8LR4(xo1,xo2,xo3,xo4,xo5,xo6,xo7) with{
+        xo1 = 100;
+        xo2 = 200;
+        xo3 = 400;
+        xo4 = 800;
+        xo5 = 1600;
+        xo6 = 3200;
+        xo7 = 6400;
 
-
-// LIMITER MONO
-
-limiter_mono = co.limiter_lad_mono(lad, ceiling, att, hold, rel) with {
-    lad = 0.005;
-    ceiling = -1 : ba.db2linear;
-    att = 0.002;
-    hold = 0.01;
-    rel = 0.01;
 };
 
 
@@ -260,8 +258,6 @@ limiter_lad_N(N, LD, ceiling, attack, hold, release) =
 //  | |___|  __/\ V /  __/ |  __/ |   
 //  |______\___| \_/ \___|_|\___|_|   
 
-//  Leveler GUI
-
 basefreq =
   it.interpolate_linear(lev_speed:pow(2), 0.01, 0.2);
 
@@ -279,8 +275,6 @@ lk2_fixed(Tg)= par(i,2,kfilter : zi) :> 4.342944819 * log(max(1e-12)) : -(0.691)
   envelope(period, x) = x * x :  sump(rint(period * ma.SR));
   zi = envelope(Tg); // mean square: average power = energy/Tg = integral of squared signal / Tg
 };
-
-
 
 kfilter = fi.itu_r_bs_1770_4_kfilter;
    
@@ -339,64 +333,6 @@ dynamicSmoothing(sensitivity, baseCF, x) = f ~ _ : ! , ! , _
             };
     };
 
-
-
-
-
-//             _     ______             _____                      
-//            | |   |  ____|           / ____|                     
-//   _ __ ___ | |__ | |__  __  ___ __ | |     ___  _ __ ___  _ __  
-//  | '_ ` _ \| '_ \|  __| \ \/ / '_ \| |    / _ \| '_ ` _ \| '_ \ 
-//  | | | | | | |_) | |____ >  <| |_) | |___| (_) | | | | | | |_) |
-//  |_| |_| |_|_.__/|______/_/\_\ .__/ \_____\___/|_| |_| |_| .__/ 
-//                              | |                         | |    
-//                              |_|                         |_|    
-
-mbExpComp = 
-    
-    compressor8
-    :> si.bus(1)
-
-    with {
-
-        xo1 = 100;
-        xo2 = 200;
-        xo3 = 400;
-        xo4 = 800;
-        xo5 = 1600;
-        xo6 = 3200;
-        xo7 = 6400;
-
-
-        mb_makeup = 1.5;
-        
-        compressor8 = par (i,8, compressor8_mono(i)) with {
-            compressor8_mono(i,l) = l * 
-                                (l:co.peak_compression_gain_mono(
-                                    ratio2strength(ratio : ba.selector(i,Nbands)),
-                                    target + (thresh : ba.selector(i,Nbands)),
-                                    att : ba.selector(i,Nbands) : _*0.001,
-                                    rel : ba.selector(i,Nbands) : _*0.001,
-                                    knee,
-                                    prePost)
-                                    : ba.linear2db + mb_makeup : ba.db2linear
-                                    : scale_by_mb_strength
-                                    :compressor_meter(i)
-                                );
-            ratio = 4,4,4,4,4,4,4,4;
-            thresh = -6,-6,-7,-8,-11,-12,-12,-13;
-            att = 30,25,20,15,10,5,3,2;
-            rel = 100,80,60,40,20,15,15,15;
-            knee = 1;
-            prePost= 1;
-
-            scale_by_mb_strength = ba.linear2db : _ * mb_strength : ba.db2linear;
-
-        };
-
-         
-
-    };
 
 /*
    _____                 _             _   ____        _ _                           
@@ -464,6 +400,55 @@ ballancer(l) = l <:
                             : ba.linear2db;
 
         };    
+
+
+
+//             _     ______             _____                      
+//            | |   |  ____|           / ____|                     
+//   _ __ ___ | |__ | |__  __  ___ __ | |     ___  _ __ ___  _ __  
+//  | '_ ` _ \| '_ \|  __| \ \/ / '_ \| |    / _ \| '_ ` _ \| '_ \ 
+//  | | | | | | |_) | |____ >  <| |_) | |___| (_) | | | | | | |_) |
+//  |_| |_| |_|_.__/|______/_/\_\ .__/ \_____\___/|_| |_| |_| .__/ 
+//                              | |                         | |    
+//                              |_|                         |_|    
+
+mbExpComp = 
+    
+    compressor8
+    :> si.bus(1)
+
+    with {
+
+        mb_makeup = 1.5;
+        
+        compressor8 = par (i,8, compressor8_mono(i)) with {
+            compressor8_mono(i,l) = l * 
+                                (l:co.peak_compression_gain_mono(
+                                    ratio2strength(ratio : ba.selector(i,Nbands)),
+                                    target + (thresh : ba.selector(i,Nbands)),
+                                    att : ba.selector(i,Nbands) : _*0.001,
+                                    rel : ba.selector(i,Nbands) : _*0.001,
+                                    knee,
+                                    prePost)
+                                    : ba.linear2db + mb_makeup : ba.db2linear
+                                    : scale_by_mb_strength
+                                    :compressor_meter(i)
+                                );
+            ratio = 4,4,4,4,4,4,4,4;
+            thresh = -6,-6,-7,-8,-11,-12,-12,-13;
+            att = 30,25,20,15,10,5,3,2;
+            rel = 100,80,60,40,20,15,15,15;
+            knee = 1;
+            prePost= 1;
+
+            scale_by_mb_strength = ba.linear2db : _ * mb_strength : ba.db2linear;
+
+        };
+
+         
+
+    };
+
 
 
 
