@@ -9,7 +9,7 @@
 // Author: Klaus Scheuermann
 // Copyright: 
 // License: GPLv3+
-// Version: 0.23
+// Version: 0.24
 //------------------------------------------------------------------------------
 
 
