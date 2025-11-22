@@ -16,10 +16,11 @@
 // 0.21 finally correct fake stereo
 // 0.22 adds the correct symbols for the plugin GUI and lists them at the top
 // 0.24 puts pregain in the correct place before the input meter, cleanup
-// correct [unit]s
+// 0.25 correct [unit]s
+// 0.26 no bypass
 
 declare name "bbba";
-declare version "0.25";             
+declare version "0.26";             
 declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
@@ -141,19 +142,16 @@ process = _,_
         : pregain(2)
         : peakmeter_in
         : stereo2mono
-        : si.bus(Nch)
-        : bp1(bypass,
-              preFilter
+        
+        : preFilter
 
-            : (leveler_sc(target) 
-            : ballancer 
-            <: par(i,Nbands*2,_) :    (par(i,Nbands,_):>_) , par(i,Nbands,_) ) ~_  : (!,par(i,Nbands,_))    
-            
-            : mbExpComp
-            
-            : limiter_lookahead
-            
-        )
+        : (leveler_sc(target) 
+        : ballancer 
+        <: par(i,Nbands*2,_) :    (par(i,Nbands,_):>_) , par(i,Nbands,_) ) ~_  : (!,par(i,Nbands,_))    
+        
+        : mbExpComp
+        
+        : limiter_lookahead
         
         <: _,_
         : peakmeter_out
