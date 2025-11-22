@@ -30,6 +30,21 @@ Some studies show that poor audio causes our brains to work up to 35% harder to 
 
 
 
-### More
-<!-- Anything else we should know when reviewing? -->
-- [ ] Added/updated documentation
+### Technical details
+
+The BBBA processing works by modifying `doGUM` and inject a audio worklet after the microphone stream, then returning the processed stream.  
+This allows to reduce the code changes to BBB, but has the caveat that dynamic `applyConstraints` no longer works, so we have disabled it on this PR if the wasm processing is available.
+
+Ideally some deeper integration with BBB would be done, allowing to fetch the microphone stream along-side the `doGUM` returned stream (or similar ideas) so we could do `applyConstraints` on that initial stream.  
+This work is not part of this PR because:
+
+- Chrome-based browsers (the most popular of all) currently do not do the dynamic `applyConstraints`, so the "regression" is minimal
+- Deeper integration in BBB is tricky as we don't feel confident enough to do it right now
+- BBB currently has 3 different audio systems (sip, sfu, livekit) and would be best to only do implementation once rather than for these 3
+
+### More on the BBBA and wasm
+
+The audio processing part of BBBA comes in the form of a wasm (Web Assembly) blob, added in this PR for convenience.  
+Typically it is not a good idea to add binary files directly into a git repo, but there is precedence in `pu` and we considered the BBBA wasm files to be the final version.  
+If one wants to change the wasm files the setup is documented in [github.com/trummerschlunk/BigBlueBetterAudio/web](https://github.com/trummerschlunk/BigBlueBetterAudio/tree/main/web).  
+A build script is available in [github.com/trummerschlunk/BigBlueBetterAudio/build-for-wasm.sh](https://github.com/trummerschlunk/BigBlueBetterAudio/blob/main/build-for-wasm.sh) which can be used for easy builds, also present as Github Actions CI to test each commit and provide downloadable artifacts.
