@@ -204,11 +204,13 @@ protected:
             {
             // some custom properties
             case kParameter_sbmb_strength:
-                parameter.name   = "Sound Shaping Enable";
-                parameter.symbol = "enable_soundshaping";
+                parameter.name   = "Voice Optimization";
+                parameter.symbol = "voice_optimization";
+                parameter.ranges.def = 1.f;
+                parameter.ranges.min = 0.f;
+                parameter.ranges.max = 1.f;
                 break;
             // hide some unused parameters
-            case kParameter_bypass:
             case kParameter_sb_target_spectrum_0:
             case kParameter_sb_target_spectrum_1:
             case kParameter_sb_target_spectrum_2:
@@ -240,10 +242,10 @@ protected:
         case kExtraParamGlobalBypass:
             parameter.initDesignation(kParameterDesignationBypass);
             break;
-        case kExtraParamDenoiseEnable:
+        case kExtraParamEnableVoiceIsolation:
             parameter.hints |= kParameterIsBoolean | kParameterIsInteger;
-            parameter.name   = "Noise Reduction Enable";
-            parameter.symbol = "enable_denoise";
+            parameter.name   = "Voice Isolation";
+            parameter.symbol = "voice_isolation";
             parameter.ranges.def = 1.f;
             parameter.ranges.min = 0.f;
             parameter.ranges.max = 1.f;
@@ -452,7 +454,7 @@ protected:
         }
 
         const bool denoiseEnabled = extraParameters[kExtraParamGlobalBypass] < 0.5f &&
-                                    extraParameters[kExtraParamDenoiseEnable] >= 0.5f;
+                                    extraParameters[kExtraParamEnableVoiceIsolation] >= 0.5f;
 
         // pass this threshold to unmute
         const float threshold = extraParameters[kExtraParamThreshold] * 0.01f;

@@ -153,7 +153,7 @@ struct QuantumValueSliderWithLabel : HorizontalLayout
 struct BBBAudioValueMeters : HorizontalLayout
 {
     QuantumLabel spacer1;
-    QuantumSmallKnob knob;
+    QuantumSmallKnobWithUnitInNewline knob;
     QuantumValueMeter m1, m2, m3, m4, m5, m6, m7, m8;
     QuantumSpacer spacer2;
 

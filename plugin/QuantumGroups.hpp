@@ -20,7 +20,7 @@ struct InputMeterGroup : QuantumFrame
     const BBBAudioTheme& theme;
 
     QuantumStereoLevelMeter meter;
-    QuantumSmallKnob gainKnob;
+    QuantumSmallKnobWithUnitInNewline gainKnob;
 
     explicit InputMeterGroup(NanoTopLevelWidget* const parent,
                              KnobEventHandler::Callback* const cb,
@@ -43,7 +43,7 @@ struct InputMeterGroup : QuantumFrame
         gainKnob.setId(kParameter_pre_gain);
         gainKnob.setLabel(kParameterNames[kParameter_pre_gain]);
         gainKnob.setName(kParameterNames[kParameter_pre_gain]);
-        gainKnob.setOrientation(QuantumSmallKnob::CenterToSides);
+        gainKnob.setOrientation(QuantumSmallKnobWithUnitInNewline::CenterToSides);
         gainKnob.setRange(kParameterRanges[kParameter_pre_gain].min,
                           kParameterRanges[kParameter_pre_gain].max);
         gainKnob.setDefault(kParameterRanges[kParameter_pre_gain].def);
@@ -140,7 +140,7 @@ struct InputLevelerGroup : QuantumFrame
 
     QuantumGainReductionMeter leveler;
     QuantumRadioSwitch enableSwitch;
-    QuantumSmallKnob targetKnob;
+    QuantumSmallKnobWithUnitInNewline targetKnob;
 
     explicit InputLevelerGroup(NanoTopLevelWidget* const parent,
                                ButtonEventHandler::Callback* const bcb,
@@ -175,7 +175,7 @@ struct InputLevelerGroup : QuantumFrame
         targetKnob.setLabel("Target Loudness");
         targetKnob.setName("Target");
 
-        targetKnob.setOrientation(QuantumSmallKnob::LeftToRight);
+        targetKnob.setOrientation(QuantumSmallKnobWithUnitInNewline::LeftToRight);
         targetKnob.setRange(kParameterRanges[kParameter_leveler_target].min,
                             kParameterRanges[kParameter_leveler_target].max);
         targetKnob.setDefault(kParameterRanges[kParameter_leveler_target].def);
@@ -215,7 +215,7 @@ struct InputLevelerGroup : QuantumFrame
 
 // --------------------------------------------------------------------------------------------------------------------
 
-struct NoiseReductionGroup : QuantumFrame,
+struct VoiceIsolationGroup : QuantumFrame,
                              VerticallyStackedHorizontalLayout
 {
     const BBBAudioTheme& theme;
@@ -234,7 +234,7 @@ struct NoiseReductionGroup : QuantumFrame,
     QuantumValueMeterWithLabel statMinimum;
     QuantumValueMeterWithLabel statMaximum;
 
-    explicit NoiseReductionGroup(NanoTopLevelWidget* const parent,
+    explicit VoiceIsolationGroup(NanoTopLevelWidget* const parent,
                                  ButtonEventHandler::Callback* const bcb,
                                  KnobEventHandler::Callback* const kcb,
                                  const BBBAudioTheme& t)
@@ -254,16 +254,16 @@ struct NoiseReductionGroup : QuantumFrame,
           statMinimum(this, theme),
           statMaximum(this, theme)
     {
-        setName("Noise Reduction");
+        setName("Voice Isolation");
 
         const double scaleFactor = parent->getScaleFactor();
         const uint smallFontSize = d_roundToUnsignedInt(theme.fontSize - 1.5 * scaleFactor);
 
         title.switch_.setCallback(bcb);
         title.switch_.setChecked(true, false);
-        title.switch_.setId(kParameterCount + kExtraParamDenoiseEnable);
+        title.switch_.setId(kParameterCount + kExtraParamEnableVoiceIsolation);
         title.label.setCustomFontSize(theme.bigFontSize);
-        title.label.setLabel("Noise Reduction");
+        title.label.setLabel("Voice Isolation");
 
         sliderThreshold.slider.setCallback(kcb);
         sliderThreshold.slider.setId(kParameterCount + kExtraParamThreshold);
@@ -405,7 +405,7 @@ struct NoiseReductionGroup : QuantumFrame,
 
 // --------------------------------------------------------------------------------------------------------------------
 
-struct SoundShapingGroup : public QuantumFrame,
+struct VoiceOptimizationGroup : public QuantumFrame,
                                   VerticallyStackedHorizontalLayout
 {
     const BBBAudioTheme& theme;
@@ -418,10 +418,10 @@ struct SoundShapingGroup : public QuantumFrame,
     QuantumSingleLabel mbDynamicsTitle;
     BBBAudioValueMeters mbDynamicsMeters;
 
-    explicit SoundShapingGroup(NanoTopLevelWidget* const parent,
-                               ButtonEventHandler::Callback* const bcb,
-                               KnobEventHandler::Callback* const kcb,
-                               const BBBAudioTheme& t)
+    explicit VoiceOptimizationGroup(NanoTopLevelWidget* const parent,
+                                    ButtonEventHandler::Callback* const bcb,
+                                    KnobEventHandler::Callback* const kcb,
+                                    const BBBAudioTheme& t)
         : QuantumFrame(parent, t),
           theme(t),
           title(this, theme),
@@ -432,13 +432,13 @@ struct SoundShapingGroup : public QuantumFrame,
           mbDynamicsTitle(this, theme),
           mbDynamicsMeters(this, theme, QuantumValueMeter::MiddleToEdges)
     {
-        setName("Sound Shaping");
+        setName("Voice Optimization");
 
         title.switch_.setCallback(bcb);
-        title.switch_.setChecked(d_isNotZero(kParameterRanges[kParameter_sbmb_strength].def), false);
+        title.switch_.setChecked(true, false);
         title.switch_.setId(kParameter_sbmb_strength);
         title.label.setCustomFontSize(theme.bigFontSize);
-        title.label.setLabel("Sound Shaping");
+        title.label.setLabel("Voice Optimization");
 
         ballancerTitle.label.setAlignment(ALIGN_CENTER|ALIGN_MIDDLE);
         ballancerTitle.label.setLabel("Spectral Ballancer");
@@ -474,14 +474,14 @@ struct SoundShapingGroup : public QuantumFrame,
         ballancerTitle.adjustSize();
         ballancerTitle.label.setWidth(width);
         ballancerMeters.adjustSize(metrics);
-        ballancerMeters.knob.setOrientation(QuantumSmallKnob::LeftToRight);
+        ballancerMeters.knob.setOrientation(QuantumSmallKnobWithUnitInNewline::LeftToRight);
         ballancerMeters.knob.setSize(knobSize, knobSize);
         ballancerMeters.knob.setValueFontSize(theme.fontSize);
         spacer2.spacer.setSize(0, metrics.label.getHeight());
         mbDynamicsTitle.adjustSize();
         mbDynamicsTitle.label.setWidth(width);
         mbDynamicsMeters.adjustSize(metrics);
-        mbDynamicsMeters.knob.setOrientation(QuantumSmallKnob::LeftToRight);
+        mbDynamicsMeters.knob.setOrientation(QuantumSmallKnobWithUnitInNewline::LeftToRight);
         mbDynamicsMeters.knob.setSize(knobSize, knobSize);
         mbDynamicsMeters.knob.setValueFontSize(theme.fontSize);
 

@@ -9,7 +9,7 @@
 // Author: Klaus Scheuermann
 // Copyright: 
 // License: GPLv3+
-// Version: 0.25
+// Version: 0.26
 //------------------------------------------------------------------------------
 
 
@@ -473,8 +473,6 @@ class mydsp : public dsp {
 	float fConst112;
 	float fRec227[2];
 	FAUSTFLOAT fVbargraph27;
-	FAUSTFLOAT fCheckbox0;
-	float fRec231[2];
 	float fRec0[2];
 	FAUSTFLOAT fVbargraph28;
 	float fVec36[2];
@@ -483,11 +481,11 @@ class mydsp : public dsp {
 	FAUSTFLOAT fVbargraph29;
 	float fVec37[2];
 	float fVec38[2];
-	float fRec235[2];
 	float fRec234[2];
-	float fVec39[2];
 	float fRec233[2];
+	float fVec39[2];
 	float fRec232[2];
+	float fRec231[2];
 	float fVec40[2];
 	float fVec41[3];
 	int iConst115;
@@ -540,11 +538,11 @@ class mydsp : public dsp {
 	float fVec57[262144];
 	int iConst147;
 	float fVec58[2];
-	float fRec239[2];
 	float fRec238[2];
-	float fVec59[2];
 	float fRec237[2];
+	float fVec59[2];
 	float fRec236[2];
+	float fRec235[2];
 	float fVec60[2];
 	float fVec61[3];
 	float fVec62[5];
@@ -583,7 +581,7 @@ class mydsp : public dsp {
 		m->declare("basics.lib/peakholder:copyright", "Copyright (C) 2022 Dario Sanfilippo <sanfilippo.dario@gmail.com>");
 		m->declare("basics.lib/peakholder:license", "MIT-style STK-4.3 license");
 		m->declare("basics.lib/version", "1.21.0");
-		m->declare("compile_options", "-a /tmp/tmp8l_okaaa.cpp -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("compile_options", "-a /tmp/tmpcp48ys_0.cpp -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("compressors.lib/name", "Faust Compressor Effect Library");
 		m->declare("compressors.lib/peak_compression_gain_mono:author", "Bart Brouns");
 		m->declare("compressors.lib/peak_compression_gain_mono:license", "GPLv3");
@@ -643,7 +641,7 @@ class mydsp : public dsp {
 		m->declare("signals.lib/onePoleSwitching:author", "Jonatan Liljedahl, revised by Dario Sanfilippo");
 		m->declare("signals.lib/onePoleSwitching:licence", "STK-4.3");
 		m->declare("signals.lib/version", "1.6.0");
-		m->declare("version", "0.25");
+		m->declare("version", "0.26");
 	}
 
 	FAUSTPP_VIRTUAL int getNumInputs() {
@@ -826,7 +824,6 @@ class mydsp : public dsp {
 		fVslider13 = FAUSTFLOAT(-5.0f);
 		fVslider14 = FAUSTFLOAT(-1e+01f);
 		fVslider15 = FAUSTFLOAT(8e+01f);
-		fCheckbox0 = FAUSTFLOAT(0.0f);
 	}
 	
 	FAUSTPP_VIRTUAL void instanceClear() {
@@ -1399,160 +1396,157 @@ class mydsp : public dsp {
 			fRec227[l188] = 0.0f;
 		}
 		for (int l189 = 0; l189 < 2; l189 = l189 + 1) {
-			fRec231[l189] = 0.0f;
+			fRec0[l189] = 0.0f;
 		}
 		for (int l190 = 0; l190 < 2; l190 = l190 + 1) {
-			fRec0[l190] = 0.0f;
+			fVec36[l190] = 0.0f;
 		}
 		for (int l191 = 0; l191 < 2; l191 = l191 + 1) {
-			fVec36[l191] = 0.0f;
+			fVec37[l191] = 0.0f;
 		}
 		for (int l192 = 0; l192 < 2; l192 = l192 + 1) {
-			fVec37[l192] = 0.0f;
+			fVec38[l192] = 0.0f;
 		}
 		for (int l193 = 0; l193 < 2; l193 = l193 + 1) {
-			fVec38[l193] = 0.0f;
+			fRec234[l193] = 0.0f;
 		}
 		for (int l194 = 0; l194 < 2; l194 = l194 + 1) {
-			fRec235[l194] = 0.0f;
+			fRec233[l194] = 0.0f;
 		}
 		for (int l195 = 0; l195 < 2; l195 = l195 + 1) {
-			fRec234[l195] = 0.0f;
+			fVec39[l195] = 0.0f;
 		}
 		for (int l196 = 0; l196 < 2; l196 = l196 + 1) {
-			fVec39[l196] = 0.0f;
+			fRec232[l196] = 0.0f;
 		}
 		for (int l197 = 0; l197 < 2; l197 = l197 + 1) {
-			fRec233[l197] = 0.0f;
+			fRec231[l197] = 0.0f;
 		}
 		for (int l198 = 0; l198 < 2; l198 = l198 + 1) {
-			fRec232[l198] = 0.0f;
+			fVec40[l198] = 0.0f;
 		}
-		for (int l199 = 0; l199 < 2; l199 = l199 + 1) {
-			fVec40[l199] = 0.0f;
+		for (int l199 = 0; l199 < 3; l199 = l199 + 1) {
+			fVec41[l199] = 0.0f;
 		}
-		for (int l200 = 0; l200 < 3; l200 = l200 + 1) {
-			fVec41[l200] = 0.0f;
+		for (int l200 = 0; l200 < 5; l200 = l200 + 1) {
+			fVec42[l200] = 0.0f;
 		}
-		for (int l201 = 0; l201 < 5; l201 = l201 + 1) {
-			fVec42[l201] = 0.0f;
+		for (int l201 = 0; l201 < 12; l201 = l201 + 1) {
+			fVec43[l201] = 0.0f;
 		}
-		for (int l202 = 0; l202 < 12; l202 = l202 + 1) {
-			fVec43[l202] = 0.0f;
+		for (int l202 = 0; l202 < 32; l202 = l202 + 1) {
+			fVec44[l202] = 0.0f;
 		}
-		for (int l203 = 0; l203 < 32; l203 = l203 + 1) {
-			fVec44[l203] = 0.0f;
+		for (int l203 = 0; l203 < 64; l203 = l203 + 1) {
+			fVec45[l203] = 0.0f;
 		}
-		for (int l204 = 0; l204 < 64; l204 = l204 + 1) {
-			fVec45[l204] = 0.0f;
+		for (int l204 = 0; l204 < 128; l204 = l204 + 1) {
+			fVec46[l204] = 0.0f;
 		}
-		for (int l205 = 0; l205 < 128; l205 = l205 + 1) {
-			fVec46[l205] = 0.0f;
+		for (int l205 = 0; l205 < 256; l205 = l205 + 1) {
+			fVec47[l205] = 0.0f;
 		}
-		for (int l206 = 0; l206 < 256; l206 = l206 + 1) {
-			fVec47[l206] = 0.0f;
+		for (int l206 = 0; l206 < 512; l206 = l206 + 1) {
+			fVec48[l206] = 0.0f;
 		}
-		for (int l207 = 0; l207 < 512; l207 = l207 + 1) {
-			fVec48[l207] = 0.0f;
+		for (int l207 = 0; l207 < 1024; l207 = l207 + 1) {
+			fVec49[l207] = 0.0f;
 		}
-		for (int l208 = 0; l208 < 1024; l208 = l208 + 1) {
-			fVec49[l208] = 0.0f;
+		for (int l208 = 0; l208 < 2048; l208 = l208 + 1) {
+			fVec50[l208] = 0.0f;
 		}
-		for (int l209 = 0; l209 < 2048; l209 = l209 + 1) {
-			fVec50[l209] = 0.0f;
+		for (int l209 = 0; l209 < 4096; l209 = l209 + 1) {
+			fVec51[l209] = 0.0f;
 		}
-		for (int l210 = 0; l210 < 4096; l210 = l210 + 1) {
-			fVec51[l210] = 0.0f;
+		for (int l210 = 0; l210 < 8192; l210 = l210 + 1) {
+			fVec52[l210] = 0.0f;
 		}
-		for (int l211 = 0; l211 < 8192; l211 = l211 + 1) {
-			fVec52[l211] = 0.0f;
+		for (int l211 = 0; l211 < 16384; l211 = l211 + 1) {
+			fVec53[l211] = 0.0f;
 		}
-		for (int l212 = 0; l212 < 16384; l212 = l212 + 1) {
-			fVec53[l212] = 0.0f;
+		for (int l212 = 0; l212 < 32768; l212 = l212 + 1) {
+			fVec54[l212] = 0.0f;
 		}
-		for (int l213 = 0; l213 < 32768; l213 = l213 + 1) {
-			fVec54[l213] = 0.0f;
+		for (int l213 = 0; l213 < 65536; l213 = l213 + 1) {
+			fVec55[l213] = 0.0f;
 		}
-		for (int l214 = 0; l214 < 65536; l214 = l214 + 1) {
-			fVec55[l214] = 0.0f;
+		for (int l214 = 0; l214 < 131072; l214 = l214 + 1) {
+			fVec56[l214] = 0.0f;
 		}
-		for (int l215 = 0; l215 < 131072; l215 = l215 + 1) {
-			fVec56[l215] = 0.0f;
+		for (int l215 = 0; l215 < 262144; l215 = l215 + 1) {
+			fVec57[l215] = 0.0f;
 		}
-		for (int l216 = 0; l216 < 262144; l216 = l216 + 1) {
-			fVec57[l216] = 0.0f;
+		for (int l216 = 0; l216 < 2; l216 = l216 + 1) {
+			fVec58[l216] = 0.0f;
 		}
 		for (int l217 = 0; l217 < 2; l217 = l217 + 1) {
-			fVec58[l217] = 0.0f;
+			fRec238[l217] = 0.0f;
 		}
 		for (int l218 = 0; l218 < 2; l218 = l218 + 1) {
-			fRec239[l218] = 0.0f;
+			fRec237[l218] = 0.0f;
 		}
 		for (int l219 = 0; l219 < 2; l219 = l219 + 1) {
-			fRec238[l219] = 0.0f;
+			fVec59[l219] = 0.0f;
 		}
 		for (int l220 = 0; l220 < 2; l220 = l220 + 1) {
-			fVec59[l220] = 0.0f;
+			fRec236[l220] = 0.0f;
 		}
 		for (int l221 = 0; l221 < 2; l221 = l221 + 1) {
-			fRec237[l221] = 0.0f;
+			fRec235[l221] = 0.0f;
 		}
 		for (int l222 = 0; l222 < 2; l222 = l222 + 1) {
-			fRec236[l222] = 0.0f;
+			fVec60[l222] = 0.0f;
 		}
-		for (int l223 = 0; l223 < 2; l223 = l223 + 1) {
-			fVec60[l223] = 0.0f;
+		for (int l223 = 0; l223 < 3; l223 = l223 + 1) {
+			fVec61[l223] = 0.0f;
 		}
-		for (int l224 = 0; l224 < 3; l224 = l224 + 1) {
-			fVec61[l224] = 0.0f;
+		for (int l224 = 0; l224 < 5; l224 = l224 + 1) {
+			fVec62[l224] = 0.0f;
 		}
-		for (int l225 = 0; l225 < 5; l225 = l225 + 1) {
-			fVec62[l225] = 0.0f;
+		for (int l225 = 0; l225 < 12; l225 = l225 + 1) {
+			fVec63[l225] = 0.0f;
 		}
-		for (int l226 = 0; l226 < 12; l226 = l226 + 1) {
-			fVec63[l226] = 0.0f;
+		for (int l226 = 0; l226 < 32; l226 = l226 + 1) {
+			fVec64[l226] = 0.0f;
 		}
-		for (int l227 = 0; l227 < 32; l227 = l227 + 1) {
-			fVec64[l227] = 0.0f;
+		for (int l227 = 0; l227 < 64; l227 = l227 + 1) {
+			fVec65[l227] = 0.0f;
 		}
-		for (int l228 = 0; l228 < 64; l228 = l228 + 1) {
-			fVec65[l228] = 0.0f;
+		for (int l228 = 0; l228 < 128; l228 = l228 + 1) {
+			fVec66[l228] = 0.0f;
 		}
-		for (int l229 = 0; l229 < 128; l229 = l229 + 1) {
-			fVec66[l229] = 0.0f;
+		for (int l229 = 0; l229 < 256; l229 = l229 + 1) {
+			fVec67[l229] = 0.0f;
 		}
-		for (int l230 = 0; l230 < 256; l230 = l230 + 1) {
-			fVec67[l230] = 0.0f;
+		for (int l230 = 0; l230 < 512; l230 = l230 + 1) {
+			fVec68[l230] = 0.0f;
 		}
-		for (int l231 = 0; l231 < 512; l231 = l231 + 1) {
-			fVec68[l231] = 0.0f;
+		for (int l231 = 0; l231 < 1024; l231 = l231 + 1) {
+			fVec69[l231] = 0.0f;
 		}
-		for (int l232 = 0; l232 < 1024; l232 = l232 + 1) {
-			fVec69[l232] = 0.0f;
+		for (int l232 = 0; l232 < 2048; l232 = l232 + 1) {
+			fVec70[l232] = 0.0f;
 		}
-		for (int l233 = 0; l233 < 2048; l233 = l233 + 1) {
-			fVec70[l233] = 0.0f;
+		for (int l233 = 0; l233 < 4096; l233 = l233 + 1) {
+			fVec71[l233] = 0.0f;
 		}
-		for (int l234 = 0; l234 < 4096; l234 = l234 + 1) {
-			fVec71[l234] = 0.0f;
+		for (int l234 = 0; l234 < 8192; l234 = l234 + 1) {
+			fVec72[l234] = 0.0f;
 		}
-		for (int l235 = 0; l235 < 8192; l235 = l235 + 1) {
-			fVec72[l235] = 0.0f;
+		for (int l235 = 0; l235 < 16384; l235 = l235 + 1) {
+			fVec73[l235] = 0.0f;
 		}
-		for (int l236 = 0; l236 < 16384; l236 = l236 + 1) {
-			fVec73[l236] = 0.0f;
+		for (int l236 = 0; l236 < 32768; l236 = l236 + 1) {
+			fVec74[l236] = 0.0f;
 		}
-		for (int l237 = 0; l237 < 32768; l237 = l237 + 1) {
-			fVec74[l237] = 0.0f;
+		for (int l237 = 0; l237 < 65536; l237 = l237 + 1) {
+			fVec75[l237] = 0.0f;
 		}
-		for (int l238 = 0; l238 < 65536; l238 = l238 + 1) {
-			fVec75[l238] = 0.0f;
+		for (int l238 = 0; l238 < 131072; l238 = l238 + 1) {
+			fVec76[l238] = 0.0f;
 		}
-		for (int l239 = 0; l239 < 131072; l239 = l239 + 1) {
-			fVec76[l239] = 0.0f;
-		}
-		for (int l240 = 0; l240 < 262144; l240 = l240 + 1) {
-			fVec77[l240] = 0.0f;
+		for (int l239 = 0; l239 < 262144; l239 = l239 + 1) {
+			fVec77[l239] = 0.0f;
 		}
 	}
 	
@@ -1667,9 +1661,6 @@ class mydsp : public dsp {
 		ui_interface->closeBox();
 		ui_interface->closeBox();
 		ui_interface->openHorizontalBox("main");
-		ui_interface->declare(&fCheckbox0, "0", "");
-		ui_interface->declare(&fCheckbox0, "symbol", "bypass");
-		ui_interface->addCheckButton("bypass", &fCheckbox0);
 		ui_interface->declare(&fVslider4, "1", "");
 		ui_interface->declare(&fVslider4, "symbol", "pre_gain");
 		ui_interface->declare(&fVslider4, "unit", "dB");
@@ -1783,7 +1774,6 @@ class mydsp : public dsp {
 		float fSlow25 = fSlow0 + -8.5f;
 		float fSlow26 = fSlow0 + -6.5f;
 		float fSlow27 = fSlow0 + -5.5f;
-		float fSlow28 = fConst43 * float(fCheckbox0);
 		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
 			float fTemp0 = std::tan(fConst6 * std::min<float>(fConst4, fSlow2 * (fConst5 * std::fabs(fRec65[1]) + 0.1316f)));
 			float fTemp1 = fTemp0 + 2.0f;
@@ -2264,8 +2254,7 @@ class mydsp : public dsp {
 			fRec227[0] = std::max<float>(fTemp183, fConst111 * fRec227[1] + fConst112 * fTemp183);
 			float fTemp184 = std::min<float>(1.0f, 0.8912509f / std::max<float>(fRec227[0], 1.1920929e-07f));
 			fVbargraph27 = FAUSTFLOAT(2e+01f * std::log10(std::max<float>(1.1754944e-38f, std::fabs(fTemp184))));
-			fRec231[0] = fSlow28 + fConst44 * fRec231[1];
-			float fTemp185 = 0.5f * fTemp18 * fRec231[0] + (1.0f - fRec231[0]) * fTemp184 * fVec35[(IOTA0 - iConst108) & 2047];
+			float fTemp185 = fTemp184 * fVec35[(IOTA0 - iConst108) & 2047];
 			fRec0[0] = std::max<float>(fRec0[1] - fConst1, std::min<float>(12.0f, 2e+01f * std::log10(std::max<float>(1.1754944e-38f, std::max<float>(0.00031622776f, std::fabs(fTemp185))))));
 			fVbargraph28 = FAUSTFLOAT(fRec0[0]);
 			float fTemp186 = fTemp185;
@@ -2274,13 +2263,13 @@ class mydsp : public dsp {
 			fVbargraph29 = FAUSTFLOAT(fRec0[0]);
 			float fTemp187 = fTemp185;
 			fVec37[0] = fTemp187;
-			fVec38[0] = fConst17 * fRec234[1] - fConst15 * fVec37[1];
-			fRec235[0] = fConst20 * (fConst19 * fVec37[1] - (fVec38[1] + fConst14 * fRec235[1]) + fConst13 * fTemp187);
-			fRec234[0] = fRec235[0];
-			fVec39[0] = 0.50032705f * fRec234[1] - fConst25 * fRec232[1];
-			fRec233[0] = fConst26 * (fVec39[1] - fConst23 * fRec233[1] - 1.0006541f * fRec234[1] + 0.50032705f * fRec234[0]);
-			fRec232[0] = fRec233[0];
-			float fTemp188 = mydsp_faustpower2_f(fRec232[0]);
+			fVec38[0] = fConst17 * fRec233[1] - fConst15 * fVec37[1];
+			fRec234[0] = fConst20 * (fConst19 * fVec37[1] - (fVec38[1] + fConst14 * fRec234[1]) + fConst13 * fTemp187);
+			fRec233[0] = fRec234[0];
+			fVec39[0] = 0.50032705f * fRec233[1] - fConst25 * fRec231[1];
+			fRec232[0] = fConst26 * (fVec39[1] - fConst23 * fRec232[1] - 1.0006541f * fRec233[1] + 0.50032705f * fRec233[0]);
+			fRec231[0] = fRec232[0];
+			float fTemp188 = mydsp_faustpower2_f(fRec231[0]);
 			fVec40[0] = fTemp188;
 			float fTemp189 = fTemp188 + fVec40[1];
 			fVec41[0] = fTemp189;
@@ -2315,13 +2304,13 @@ class mydsp : public dsp {
 			float fTemp204 = fTemp203 + fVec55[(IOTA0 - 32768) & 65535];
 			fVec56[IOTA0 & 131071] = fTemp204;
 			fVec57[IOTA0 & 262143] = fTemp204 + fVec56[(IOTA0 - 65536) & 131071];
-			fVec58[0] = fConst17 * fRec238[1] - fConst15 * fVec36[1];
-			fRec239[0] = fConst20 * (fConst19 * fVec36[1] - (fVec58[1] + fConst14 * fRec239[1]) + fConst13 * fTemp186);
-			fRec238[0] = fRec239[0];
-			fVec59[0] = 0.50032705f * fRec238[1] - fConst25 * fRec236[1];
-			fRec237[0] = fConst26 * (fVec59[1] - fConst23 * fRec237[1] - 1.0006541f * fRec238[1] + 0.50032705f * fRec238[0]);
-			fRec236[0] = fRec237[0];
-			float fTemp205 = mydsp_faustpower2_f(fRec236[0]);
+			fVec58[0] = fConst17 * fRec237[1] - fConst15 * fVec36[1];
+			fRec238[0] = fConst20 * (fConst19 * fVec36[1] - (fVec58[1] + fConst14 * fRec238[1]) + fConst13 * fTemp186);
+			fRec237[0] = fRec238[0];
+			fVec59[0] = 0.50032705f * fRec237[1] - fConst25 * fRec235[1];
+			fRec236[0] = fConst26 * (fVec59[1] - fConst23 * fRec236[1] - 1.0006541f * fRec237[1] + 0.50032705f * fRec237[0]);
+			fRec235[0] = fRec236[0];
+			float fTemp205 = mydsp_faustpower2_f(fRec235[0]);
 			fVec60[0] = fTemp205;
 			float fTemp206 = fTemp205 + fVec60[1];
 			fVec61[0] = fTemp206;
@@ -2548,16 +2537,15 @@ class mydsp : public dsp {
 			fRec230[1] = fRec230[0];
 			fRec228[1] = fRec228[0];
 			fRec227[1] = fRec227[0];
-			fRec231[1] = fRec231[0];
 			fRec0[1] = fRec0[0];
 			fVec36[1] = fVec36[0];
 			fVec37[1] = fVec37[0];
 			fVec38[1] = fVec38[0];
-			fRec235[1] = fRec235[0];
 			fRec234[1] = fRec234[0];
-			fVec39[1] = fVec39[0];
 			fRec233[1] = fRec233[0];
+			fVec39[1] = fVec39[0];
 			fRec232[1] = fRec232[0];
+			fRec231[1] = fRec231[0];
 			fVec40[1] = fVec40[0];
 			fVec41[2] = fVec41[1];
 			fVec41[1] = fVec41[0];
@@ -2568,11 +2556,11 @@ class mydsp : public dsp {
 				fVec43[j3] = fVec43[j3 - 1];
 			}
 			fVec58[1] = fVec58[0];
-			fRec239[1] = fRec239[0];
 			fRec238[1] = fRec238[0];
-			fVec59[1] = fVec59[0];
 			fRec237[1] = fRec237[0];
+			fVec59[1] = fVec59[0];
 			fRec236[1] = fRec236[0];
+			fRec235[1] = fRec235[0];
 			fVec60[1] = fVec60[0];
 			fVec61[2] = fVec61[1];
 			fVec61[1] = fVec61[0];
@@ -2842,14 +2830,10 @@ protected:
             param.ranges.min = kParameterRanges[8].min;
             param.ranges.max = kParameterRanges[8].max;
             break;
-        case kParameter_bypass:
+        case kParameter_pre_gain:
             param.hints = kParameterIsAutomatable
             
             
-                |kParameterIsBoolean
-            
-            
-                |kParameterIsInteger
             
             
             ;
@@ -2861,7 +2845,7 @@ protected:
             param.ranges.min = kParameterRanges[9].min;
             param.ranges.max = kParameterRanges[9].max;
             break;
-        case kParameter_pre_gain:
+        case kParameter_sbmb_strength:
             param.hints = kParameterIsAutomatable
             
             
@@ -2876,7 +2860,7 @@ protected:
             param.ranges.min = kParameterRanges[10].min;
             param.ranges.max = kParameterRanges[10].max;
             break;
-        case kParameter_sbmb_strength:
+        case kParameter_vad_ext:
             param.hints = kParameterIsAutomatable
             
             
@@ -2891,7 +2875,7 @@ protected:
             param.ranges.min = kParameterRanges[11].min;
             param.ranges.max = kParameterRanges[11].max;
             break;
-        case kParameter_vad_ext:
+        case kParameter_leveler_target:
             param.hints = kParameterIsAutomatable
             
             
@@ -2906,7 +2890,7 @@ protected:
             param.ranges.min = kParameterRanges[12].min;
             param.ranges.max = kParameterRanges[12].max;
             break;
-        case kParameter_leveler_target:
+        case kParameter_leveler_scale:
             param.hints = kParameterIsAutomatable
             
             
@@ -2921,7 +2905,7 @@ protected:
             param.ranges.min = kParameterRanges[13].min;
             param.ranges.max = kParameterRanges[13].max;
             break;
-        case kParameter_leveler_scale:
+        case kParameter_mb_strength:
             param.hints = kParameterIsAutomatable
             
             
@@ -2936,11 +2920,13 @@ protected:
             param.ranges.min = kParameterRanges[14].min;
             param.ranges.max = kParameterRanges[14].max;
             break;
-        case kParameter_mb_strength:
+        case kParameter_pre_lowcut:
             param.hints = kParameterIsAutomatable
             
             
             
+            
+                |kParameterIsLogarithmic
             
             ;
             param.name = kParameterNames[15];
@@ -2951,13 +2937,11 @@ protected:
             param.ranges.min = kParameterRanges[15].min;
             param.ranges.max = kParameterRanges[15].max;
             break;
-        case kParameter_pre_lowcut:
-            param.hints = kParameterIsAutomatable
+        
+        case kParameter_sb_meter__0:
+            param.hints = kParameterIsAutomatable|kParameterIsOutput
             
             
-            
-            
-                |kParameterIsLogarithmic
             
             ;
             param.name = kParameterNames[16];
@@ -2968,8 +2952,7 @@ protected:
             param.ranges.min = kParameterRanges[16].min;
             param.ranges.max = kParameterRanges[16].max;
             break;
-        
-        case kParameter_sb_meter__0:
+        case kParameter_sb_meter__1:
             param.hints = kParameterIsAutomatable|kParameterIsOutput
             
             
@@ -2983,7 +2966,7 @@ protected:
             param.ranges.min = kParameterRanges[17].min;
             param.ranges.max = kParameterRanges[17].max;
             break;
-        case kParameter_sb_meter__1:
+        case kParameter_sb_meter__2:
             param.hints = kParameterIsAutomatable|kParameterIsOutput
             
             
@@ -2997,7 +2980,7 @@ protected:
             param.ranges.min = kParameterRanges[18].min;
             param.ranges.max = kParameterRanges[18].max;
             break;
-        case kParameter_sb_meter__2:
+        case kParameter_sb_meter__3:
             param.hints = kParameterIsAutomatable|kParameterIsOutput
             
             
@@ -3011,7 +2994,7 @@ protected:
             param.ranges.min = kParameterRanges[19].min;
             param.ranges.max = kParameterRanges[19].max;
             break;
-        case kParameter_sb_meter__3:
+        case kParameter_sb_meter__4:
             param.hints = kParameterIsAutomatable|kParameterIsOutput
             
             
@@ -3025,7 +3008,7 @@ protected:
             param.ranges.min = kParameterRanges[20].min;
             param.ranges.max = kParameterRanges[20].max;
             break;
-        case kParameter_sb_meter__4:
+        case kParameter_sb_meter__5:
             param.hints = kParameterIsAutomatable|kParameterIsOutput
             
             
@@ -3039,7 +3022,7 @@ protected:
             param.ranges.min = kParameterRanges[21].min;
             param.ranges.max = kParameterRanges[21].max;
             break;
-        case kParameter_sb_meter__5:
+        case kParameter_sb_meter__6:
             param.hints = kParameterIsAutomatable|kParameterIsOutput
             
             
@@ -3053,7 +3036,7 @@ protected:
             param.ranges.min = kParameterRanges[22].min;
             param.ranges.max = kParameterRanges[22].max;
             break;
-        case kParameter_sb_meter__6:
+        case kParameter_sb_meter__7:
             param.hints = kParameterIsAutomatable|kParameterIsOutput
             
             
@@ -3067,7 +3050,7 @@ protected:
             param.ranges.min = kParameterRanges[23].min;
             param.ranges.max = kParameterRanges[23].max;
             break;
-        case kParameter_sb_meter__7:
+        case kParameter_sb_gain__0:
             param.hints = kParameterIsAutomatable|kParameterIsOutput
             
             
@@ -3081,7 +3064,7 @@ protected:
             param.ranges.min = kParameterRanges[24].min;
             param.ranges.max = kParameterRanges[24].max;
             break;
-        case kParameter_sb_gain__0:
+        case kParameter_sb_gain__1:
             param.hints = kParameterIsAutomatable|kParameterIsOutput
             
             
@@ -3095,7 +3078,7 @@ protected:
             param.ranges.min = kParameterRanges[25].min;
             param.ranges.max = kParameterRanges[25].max;
             break;
-        case kParameter_sb_gain__1:
+        case kParameter_sb_gain__2:
             param.hints = kParameterIsAutomatable|kParameterIsOutput
             
             
@@ -3109,7 +3092,7 @@ protected:
             param.ranges.min = kParameterRanges[26].min;
             param.ranges.max = kParameterRanges[26].max;
             break;
-        case kParameter_sb_gain__2:
+        case kParameter_sb_gain__3:
             param.hints = kParameterIsAutomatable|kParameterIsOutput
             
             
@@ -3123,7 +3106,7 @@ protected:
             param.ranges.min = kParameterRanges[27].min;
             param.ranges.max = kParameterRanges[27].max;
             break;
-        case kParameter_sb_gain__3:
+        case kParameter_sb_gain__4:
             param.hints = kParameterIsAutomatable|kParameterIsOutput
             
             
@@ -3137,7 +3120,7 @@ protected:
             param.ranges.min = kParameterRanges[28].min;
             param.ranges.max = kParameterRanges[28].max;
             break;
-        case kParameter_sb_gain__4:
+        case kParameter_sb_gain__5:
             param.hints = kParameterIsAutomatable|kParameterIsOutput
             
             
@@ -3151,7 +3134,7 @@ protected:
             param.ranges.min = kParameterRanges[29].min;
             param.ranges.max = kParameterRanges[29].max;
             break;
-        case kParameter_sb_gain__5:
+        case kParameter_sb_gain__6:
             param.hints = kParameterIsAutomatable|kParameterIsOutput
             
             
@@ -3165,7 +3148,7 @@ protected:
             param.ranges.min = kParameterRanges[30].min;
             param.ranges.max = kParameterRanges[30].max;
             break;
-        case kParameter_sb_gain__6:
+        case kParameter_sb_gain__7:
             param.hints = kParameterIsAutomatable|kParameterIsOutput
             
             
@@ -3179,7 +3162,7 @@ protected:
             param.ranges.min = kParameterRanges[31].min;
             param.ranges.max = kParameterRanges[31].max;
             break;
-        case kParameter_sb_gain__7:
+        case kParameter_limiter_gain:
             param.hints = kParameterIsAutomatable|kParameterIsOutput
             
             
@@ -3193,7 +3176,7 @@ protected:
             param.ranges.min = kParameterRanges[32].min;
             param.ranges.max = kParameterRanges[32].max;
             break;
-        case kParameter_limiter_gain:
+        case kParameter_input_peak_channel_0:
             param.hints = kParameterIsAutomatable|kParameterIsOutput
             
             
@@ -3207,7 +3190,7 @@ protected:
             param.ranges.min = kParameterRanges[33].min;
             param.ranges.max = kParameterRanges[33].max;
             break;
-        case kParameter_input_peak_channel_0:
+        case kParameter_input_peak_channel_1:
             param.hints = kParameterIsAutomatable|kParameterIsOutput
             
             
@@ -3221,7 +3204,7 @@ protected:
             param.ranges.min = kParameterRanges[34].min;
             param.ranges.max = kParameterRanges[34].max;
             break;
-        case kParameter_input_peak_channel_1:
+        case kParameter_lufs_out_meter:
             param.hints = kParameterIsAutomatable|kParameterIsOutput
             
             
@@ -3235,7 +3218,7 @@ protected:
             param.ranges.min = kParameterRanges[35].min;
             param.ranges.max = kParameterRanges[35].max;
             break;
-        case kParameter_lufs_out_meter:
+        case kParameter_output_peak_channel_0:
             param.hints = kParameterIsAutomatable|kParameterIsOutput
             
             
@@ -3249,7 +3232,7 @@ protected:
             param.ranges.min = kParameterRanges[36].min;
             param.ranges.max = kParameterRanges[36].max;
             break;
-        case kParameter_output_peak_channel_0:
+        case kParameter_output_peak_channel_1:
             param.hints = kParameterIsAutomatable|kParameterIsOutput
             
             
@@ -3263,7 +3246,7 @@ protected:
             param.ranges.min = kParameterRanges[37].min;
             param.ranges.max = kParameterRanges[37].max;
             break;
-        case kParameter_output_peak_channel_1:
+        case kParameter_leveler_gain:
             param.hints = kParameterIsAutomatable|kParameterIsOutput
             
             
@@ -3277,7 +3260,7 @@ protected:
             param.ranges.min = kParameterRanges[38].min;
             param.ranges.max = kParameterRanges[38].max;
             break;
-        case kParameter_leveler_gain:
+        case kParameter_mb_comp_gain_0:
             param.hints = kParameterIsAutomatable|kParameterIsOutput
             
             
@@ -3291,7 +3274,7 @@ protected:
             param.ranges.min = kParameterRanges[39].min;
             param.ranges.max = kParameterRanges[39].max;
             break;
-        case kParameter_mb_comp_gain_0:
+        case kParameter_mb_comp_gain_1:
             param.hints = kParameterIsAutomatable|kParameterIsOutput
             
             
@@ -3305,7 +3288,7 @@ protected:
             param.ranges.min = kParameterRanges[40].min;
             param.ranges.max = kParameterRanges[40].max;
             break;
-        case kParameter_mb_comp_gain_1:
+        case kParameter_mb_comp_gain_2:
             param.hints = kParameterIsAutomatable|kParameterIsOutput
             
             
@@ -3319,7 +3302,7 @@ protected:
             param.ranges.min = kParameterRanges[41].min;
             param.ranges.max = kParameterRanges[41].max;
             break;
-        case kParameter_mb_comp_gain_2:
+        case kParameter_mb_comp_gain_3:
             param.hints = kParameterIsAutomatable|kParameterIsOutput
             
             
@@ -3333,7 +3316,7 @@ protected:
             param.ranges.min = kParameterRanges[42].min;
             param.ranges.max = kParameterRanges[42].max;
             break;
-        case kParameter_mb_comp_gain_3:
+        case kParameter_mb_comp_gain_4:
             param.hints = kParameterIsAutomatable|kParameterIsOutput
             
             
@@ -3347,7 +3330,7 @@ protected:
             param.ranges.min = kParameterRanges[43].min;
             param.ranges.max = kParameterRanges[43].max;
             break;
-        case kParameter_mb_comp_gain_4:
+        case kParameter_mb_comp_gain_5:
             param.hints = kParameterIsAutomatable|kParameterIsOutput
             
             
@@ -3361,7 +3344,7 @@ protected:
             param.ranges.min = kParameterRanges[44].min;
             param.ranges.max = kParameterRanges[44].max;
             break;
-        case kParameter_mb_comp_gain_5:
+        case kParameter_mb_comp_gain_6:
             param.hints = kParameterIsAutomatable|kParameterIsOutput
             
             
@@ -3375,7 +3358,7 @@ protected:
             param.ranges.min = kParameterRanges[45].min;
             param.ranges.max = kParameterRanges[45].max;
             break;
-        case kParameter_mb_comp_gain_6:
+        case kParameter_mb_comp_gain_7:
             param.hints = kParameterIsAutomatable|kParameterIsOutput
             
             
@@ -3388,20 +3371,6 @@ protected:
             param.ranges.def = kParameterRanges[46].def;
             param.ranges.min = kParameterRanges[46].min;
             param.ranges.max = kParameterRanges[46].max;
-            break;
-        case kParameter_mb_comp_gain_7:
-            param.hints = kParameterIsAutomatable|kParameterIsOutput
-            
-            
-            
-            ;
-            param.name = kParameterNames[47];
-            param.unit = kParameterUnits[47];
-            param.symbol = kParameterSymbols[47];
-            param.shortName = "";
-            param.ranges.def = kParameterRanges[47].def;
-            param.ranges.min = kParameterRanges[47].min;
-            param.ranges.max = kParameterRanges[47].max;
             break;
         
         }
@@ -3432,8 +3401,6 @@ protected:
             return dsp->fVslider8;
         case kParameter_sb_target_spectrum_7:
             return dsp->fVslider5;
-        case kParameter_bypass:
-            return dsp->fCheckbox0;
         case kParameter_pre_gain:
             return dsp->fVslider4;
         case kParameter_sbmb_strength:
@@ -3547,9 +3514,6 @@ protected:
         case kParameter_sb_target_spectrum_7:
             dsp->fVslider5 = value;
             break;
-        case kParameter_bypass:
-            dsp->fCheckbox0 = value;
-            break;
         case kParameter_pre_gain:
             dsp->fVslider4 = value;
             break;
@@ -3586,7 +3550,7 @@ protected:
     void sampleRateChanged(const double newSampleRate) override
     {
         // retrieve parameter info first
-        float params[17] = {
+        float params[16] = {
             dsp->fVslider7,
             dsp->fVslider14,
             dsp->fVslider13,
@@ -3596,7 +3560,6 @@ protected:
             dsp->fVslider9,
             dsp->fVslider8,
             dsp->fVslider5,
-            dsp->fCheckbox0,
             dsp->fVslider4,
             dsp->fVslider6,
             dsp->fVslider1,
@@ -3620,14 +3583,13 @@ protected:
         dsp->fVslider9 = params[6];
         dsp->fVslider8 = params[7];
         dsp->fVslider5 = params[8];
-        dsp->fCheckbox0 = params[9];
-        dsp->fVslider4 = params[10];
-        dsp->fVslider6 = params[11];
-        dsp->fVslider1 = params[12];
-        dsp->fVslider0 = params[13];
-        dsp->fVslider2 = params[14];
-        dsp->fVslider15 = params[15];
-        dsp->fVslider3 = params[16];
+        dsp->fVslider4 = params[9];
+        dsp->fVslider6 = params[10];
+        dsp->fVslider1 = params[11];
+        dsp->fVslider0 = params[12];
+        dsp->fVslider2 = params[13];
+        dsp->fVslider15 = params[14];
+        dsp->fVslider3 = params[15];
         
     }
 

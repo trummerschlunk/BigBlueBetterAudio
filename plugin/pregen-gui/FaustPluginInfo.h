@@ -9,7 +9,7 @@
 // Author: Klaus Scheuermann
 // Copyright: 
 // License: GPLv3+
-// Version: 0.25
+// Version: 0.26
 //------------------------------------------------------------------------------
 
 
@@ -37,7 +37,6 @@ enum Parameters {
     kParameter_sb_target_spectrum_5,
     kParameter_sb_target_spectrum_6,
     kParameter_sb_target_spectrum_7,
-    kParameter_bypass,
     kParameter_pre_gain,
     kParameter_sbmb_strength,
     kParameter_vad_ext,
@@ -91,7 +90,7 @@ enum States {
     kStateCount
 };
 
-static constexpr const char* kParameterNames[48] = {
+static constexpr const char* kParameterNames[47] = {
     // inputs
     "sb_strength",
     "spec 0",
@@ -102,7 +101,6 @@ static constexpr const char* kParameterNames[48] = {
     "spec 5",
     "spec 6",
     "spec 7",
-    "bypass",
     "PreGain",
     "sbmb_strength",
     "vad_ext",
@@ -146,7 +144,7 @@ static constexpr const char* kParameterNames[48] = {
     
 };
 
-static constexpr const struct { float def, min, max; } kParameterRanges[48] = {
+static constexpr const struct { float def, min, max; } kParameterRanges[47] = {
     // inputs
     { 50.0, 0.0, 100.0 },
     { -10.0, -20.0, 0.0 },
@@ -157,7 +155,6 @@ static constexpr const struct { float def, min, max; } kParameterRanges[48] = {
     { -10.0, -20.0, 0.0 },
     { -7.0, -20.0, 0.0 },
     { -4.0, -20.0, 0.0 },
-    { 0, 0, 1 },
     { 0.0, -20.0, 20.0 },
     { 100.0, 0.0, 100.0 },
     { 1.0, 0.0, 1.0 },
@@ -201,7 +198,7 @@ static constexpr const struct { float def, min, max; } kParameterRanges[48] = {
     
 };
 
-static constexpr const char* kParameterSymbols[48] = {
+static constexpr const char* kParameterSymbols[47] = {
     // inputs
     "sb_strength",
     "sb_target_spectrum_0",
@@ -212,7 +209,6 @@ static constexpr const char* kParameterSymbols[48] = {
     "sb_target_spectrum_5",
     "sb_target_spectrum_6",
     "sb_target_spectrum_7",
-    "bypass",
     "pre_gain",
     "sbmb_strength",
     "vad_ext",
@@ -256,10 +252,9 @@ static constexpr const char* kParameterSymbols[48] = {
     
 };
 
-static constexpr const char* kParameterUnits[48] = {
+static constexpr const char* kParameterUnits[47] = {
     // inputs
     "%",
-    "",
     "",
     "",
     "",
