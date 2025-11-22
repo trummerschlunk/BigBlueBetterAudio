@@ -9,7 +9,7 @@
 // Author: Klaus Scheuermann
 // Copyright: 
 // License: GPLv3+
-// Version: 0.24
+// Version: 0.25
 //------------------------------------------------------------------------------
 
 
@@ -583,7 +583,7 @@ class mydsp : public dsp {
 		m->declare("basics.lib/peakholder:copyright", "Copyright (C) 2022 Dario Sanfilippo <sanfilippo.dario@gmail.com>");
 		m->declare("basics.lib/peakholder:license", "MIT-style STK-4.3 license");
 		m->declare("basics.lib/version", "1.21.0");
-		m->declare("compile_options", "-a /tmp/tmpjrkvboew.cpp -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("compile_options", "-a /tmp/tmp8l_okaaa.cpp -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("compressors.lib/name", "Faust Compressor Effect Library");
 		m->declare("compressors.lib/peak_compression_gain_mono:author", "Bart Brouns");
 		m->declare("compressors.lib/peak_compression_gain_mono:license", "GPLv3");
@@ -643,7 +643,7 @@ class mydsp : public dsp {
 		m->declare("signals.lib/onePoleSwitching:author", "Jonatan Liljedahl, revised by Dario Sanfilippo");
 		m->declare("signals.lib/onePoleSwitching:licence", "STK-4.3");
 		m->declare("signals.lib/version", "1.6.0");
-		m->declare("version", "0.24");
+		m->declare("version", "0.25");
 	}
 
 	FAUSTPP_VIRTUAL int getNumInputs() {
@@ -1697,7 +1697,7 @@ class mydsp : public dsp {
 		ui_interface->openHorizontalBox("leveler");
 		ui_interface->declare(&fVslider0, "1", "");
 		ui_interface->declare(&fVslider0, "symbol", "leveler_target");
-		ui_interface->declare(&fVslider0, "unit", "dB");
+		ui_interface->declare(&fVslider0, "unit", "lufs");
 		ui_interface->addVerticalSlider("target", &fVslider0, FAUSTFLOAT(-23.0f), FAUSTFLOAT(-6e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f));
 		ui_interface->declare(&fVbargraph0, "8", "");
 		ui_interface->declare(&fVbargraph0, "symbol", "leveler_gain");
@@ -1740,6 +1740,7 @@ class mydsp : public dsp {
 		ui_interface->declare(&fVbargraph19, "unit", "dB");
 		ui_interface->addVerticalBargraph("MBgr 7", &fVbargraph19, FAUSTFLOAT(-12.0f), FAUSTFLOAT(12.0f));
 		ui_interface->declare(&fVslider15, "symbol", "mb_strength");
+		ui_interface->declare(&fVslider15, "unit", "%");
 		ui_interface->addVerticalSlider("mb_strength", &fVslider15, FAUSTFLOAT(8e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+02f), FAUSTFLOAT(1.0f));
 		ui_interface->closeBox();
 		ui_interface->declare(&fVslider3, "scale", "log");
