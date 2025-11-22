@@ -557,7 +557,6 @@ protected:
                 outs[0] = bufferIn;
                #else
                 if (denoiseEnabled)
-               #endif
                 {
                     // we previously wrote to bufferOut, so use that as faust input
                     ins[0] = bufferOut;
@@ -580,6 +579,7 @@ protected:
                     outs[0] = bufferOut;
                     outs[1] = bufferOut2;
                 }
+               #endif
                 dsp->compute(denoiseFrameSize, ins, outs);
 
                 // write output into ringbuffer
