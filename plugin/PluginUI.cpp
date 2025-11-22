@@ -333,7 +333,6 @@ protected:
             outputGroup.meter.setEnabled(enabled.global);
             break;
         case kExtraParamEnableVoiceIsolation:
-            d_stderr2("kExtraParamEnableVoiceIsolation %f", value);
             enabled.voiceIsolation = value >= 0.5f;
             voiceIsolationGroup.title.switch_.setChecked(enabled.voiceIsolation, false);
             voiceIsolationGroup.switchEnableStats.switch_.setEnabled(enabled.global && enabled.voiceIsolation, false);

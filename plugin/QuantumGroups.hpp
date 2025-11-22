@@ -267,6 +267,7 @@ struct VoiceIsolationGroup : QuantumFrame,
 
         sliderThreshold.slider.setCallback(kcb);
         sliderThreshold.slider.setId(kParameterCount + kExtraParamThreshold);
+        sliderThreshold.slider.setDefault(0);
         sliderThreshold.slider.setRange(0, 100);
         sliderThreshold.slider.setStep(1);
         sliderThreshold.slider.setUnitLabel("%");
@@ -278,6 +279,7 @@ struct VoiceIsolationGroup : QuantumFrame,
 
         sliderGracePeriod.slider.setCallback(kcb);
         sliderGracePeriod.slider.setId(kParameterCount + kExtraParamGracePeriod);
+        sliderGracePeriod.slider.setDefault(1000);
         sliderGracePeriod.slider.setRange(0, 2000);
         sliderGracePeriod.slider.setStep(1);
         sliderGracePeriod.slider.setUnitLabel("ms");
@@ -555,6 +557,7 @@ struct VoiceOptimizationGroup : public QuantumFrame,
         w.m7.setName(kParameterNames[idStart + 6]);
         w.m8.setName(kParameterNames[idStart + 7]);
 
+        w.knob.setDefault(kParameterRanges[idKnob].def);
         w.knob.setRange(kParameterRanges[idKnob].min, kParameterRanges[idKnob].max);
         w.m1.setRange(kParameterRanges[idStart + 0].min, kParameterRanges[idStart + 0].max);
         w.m2.setRange(kParameterRanges[idStart + 1].min, kParameterRanges[idStart + 1].max);

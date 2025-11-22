@@ -63,6 +63,7 @@ BASE_FLAGS += -DRNNOISE_EXPORT=
 BASE_FLAGS += -Ideps/rnnoise/include
 BASE_FLAGS += -Ideps/rnnoise/src
 BUILD_C_FLAGS += -Ideps/rnnoise-model-data
+BUILD_CXX_FLAGS += -DQUANTUM_LUFS_PREFIX='"lufs: "'
 BUILD_CXX_FLAGS += -std=gnu++14
 BUILD_CXX_FLAGS += -Ideps/dpf-widgets/opengl
 BUILD_CXX_FLAGS += -Iplugin
