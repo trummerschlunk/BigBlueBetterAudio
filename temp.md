@@ -19,14 +19,14 @@ https://github.com/user-attachments/assets/b2b0f877-6a1b-4818-80a6-0fa2671cb418
 none
 
 ### Motivation
-We're trying to make the world sound a little better ;)
+We're trying to make the world sound a little better.
 
 
 
 ### How to test
 
 #### in BBB
-Assuming you have a 3.1. BBB server with LiveKit in development mode, you can deploy the html5-client with our modifications. The connecting clients will have `Big Blue Better Audio` enabled by default. In `settings` you can switch back to `Standard Audio Filters` and compare.
+Assuming you have a 3.1. BBB server in development mode, you can deploy the html5-client with our modifications. The connecting clients will have `Big Blue Better Audio` enabled by default. In `settings` you can switch back to `Standard Audio Filters` and compare.
 
 #### live audio on the web
 We set up a litte test page: https://bbba.4ohm.de
