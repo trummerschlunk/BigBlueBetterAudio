@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "DistrhoPlugin.hpp"
+#include "DistrhoPluginInfo.h"
 #include "extra/RingBuffer.hpp"
 #include "extra/ScopedDenormalDisable.hpp"
 #include "extra/ValueSmoother.hpp"
@@ -199,9 +200,14 @@ protected:
         {
             FaustGeneratedPlugin::initParameter(index, parameter);
 
-            // hide some unused parameters
             switch (index)
             {
+            // some custom properties
+            case kParameter_bypass:
+                parameter.name   = "Sound Shaping Bypass";
+                parameter.symbol = "bypass_soundshaping";
+                break;
+            // hide some unused parameters
             case kParameter_sb_target_spectrum_0:
             case kParameter_sb_target_spectrum_1:
             case kParameter_sb_target_spectrum_2:
@@ -231,8 +237,16 @@ protected:
 
         switch (index - kParameterCount)
         {
-        case kExtraParamBypass:
+        case kExtraParamGlobalBypass:
             parameter.initDesignation(kParameterDesignationBypass);
+            break;
+        case kExtraParamDenoiseBypass:
+            parameter.hints |= kParameterIsBoolean | kParameterIsInteger;
+            parameter.name   = "Noise Reduction Bypass";
+            parameter.symbol = "bypass_denoise";
+            parameter.ranges.def = 0.f;
+            parameter.ranges.min = 0.f;
+            parameter.ranges.max = 1.f;
             break;
         case kExtraParamThreshold:
             parameter.hints |= kParameterIsInteger;
@@ -327,7 +341,7 @@ protected:
 
         switch (index)
         {
-        case kExtraParamBypass:
+        case kExtraParamGlobalBypass:
             dryValue.setTargetValue(value);
             break;
         case kExtraParamGracePeriod:
@@ -437,6 +451,9 @@ protected:
                 stats.reset();
         }
 
+        const bool denoiseEnabled = extraParameters[kExtraParamGlobalBypass] < 0.5f &&
+                                    extraParameters[kExtraParamDenoiseBypass] < 0.5f;
+
         // pass this threshold to unmute
         const float threshold = extraParameters[kExtraParamThreshold] * 0.01f;
        #endif
@@ -531,20 +548,38 @@ protected:
                 // process denoise output on faust side
                 FaustGeneratedPlugin::setParameterValue(kParameter_vad_ext, vad);
 
+                float* ins[2];
+                float* outs[2];
+
+               #ifdef SIMPLIFIED_MAPI_BUILD
                 // we previously wrote to bufferOut, so use that as faust input
-                float* ins[] = {
-                    bufferOut,
-                   #ifndef SIMPLIFIED_MAPI_BUILD
-                    bufferOut2,
-                   #endif
-                };
-                // reuse bufferIn as faust output
-                float* outs[] = {
-                    bufferIn,
-                   #ifndef SIMPLIFIED_MAPI_BUILD
-                    bufferIn2,
-                   #endif
-                };
+                ins[0] = bufferOut;
+                outs[0] = bufferIn;
+               #else
+                if (denoiseEnabled)
+               #endif
+                {
+                    // we previously wrote to bufferOut, so use that as faust input
+                    ins[0] = bufferOut;
+                    ins[1] = bufferOut2;
+                    outs[0] = bufferIn;
+                    outs[1] = bufferIn2;
+                }
+                else
+                {
+                    // scale audio down from denoise
+                    for (uint32_t i = 0; i < denoiseFrameSize; ++i)
+                    {
+                        bufferIn[i] *= kDenoiseScalingInv;
+                        bufferIn2[i] *= kDenoiseScalingInv;
+                    }
+
+                    // use dry input as faust input, behaving as if denoise was bypassed
+                    ins[0] = bufferIn;
+                    ins[1] = bufferIn2;
+                    outs[0] = bufferOut;
+                    outs[1] = bufferOut2;
+                }
                 dsp->compute(denoiseFrameSize, ins, outs);
 
                 // write output into ringbuffer

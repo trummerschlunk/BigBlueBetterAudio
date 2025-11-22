@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "DistrhoPluginInfo.h"
 #include "QuantumLayouts.hpp"
 #include "Theme.hpp"
 
@@ -219,7 +220,7 @@ struct NoiseReductionGroup : QuantumFrame,
 {
     const BBBAudioTheme& theme;
 
-    QuantumSingleLabel title;
+    QuantumRadioSwitchWithLabel title;
     QuantumSingleSpacer spacer1;
     QuantumValueSliderWithLabel sliderThreshold;
     QuantumSingleLabel sliderThresholdLabel;
@@ -258,6 +259,9 @@ struct NoiseReductionGroup : QuantumFrame,
         const double scaleFactor = parent->getScaleFactor();
         const uint smallFontSize = d_roundToUnsignedInt(theme.fontSize - 1.5 * scaleFactor);
 
+        title.switch_.setCallback(bcb);
+        title.switch_.setChecked(true, false);
+        title.switch_.setId(kParameterCount + kExtraParamDenoiseBypass);
         title.label.setCustomFontSize(theme.bigFontSize);
         title.label.setLabel("Noise Reduction");
 
@@ -339,7 +343,7 @@ struct NoiseReductionGroup : QuantumFrame,
 
         const uint usableWidth = width - theme.padding * 10;
 
-        title.adjustSize();
+        title.adjustSize(metrics);
         title.label.setWidth(usableWidth);
         spacer1.spacer.setHeight(metrics.label.getHeight());
         sliderThreshold.adjustSize(metrics);

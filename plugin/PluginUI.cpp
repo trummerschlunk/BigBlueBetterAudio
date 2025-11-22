@@ -106,7 +106,7 @@ public:
         globalEnableSwitch.setCallback(this);
         globalEnableSwitch.setCheckable(true);
         globalEnableSwitch.setChecked(true, false);
-        globalEnableSwitch.setId(kParameterCount + kExtraParamBypass);
+        globalEnableSwitch.setId(kParameterCount + kExtraParamGlobalBypass);
         globalEnableSwitch.setName("Global Enable Button");
        #endif
 
@@ -207,7 +207,7 @@ protected:
             inputLevelerGroup.targetKnob.setValue(value, false);
             return;
         case kParameter_leveler_scale:
-            enabled.leveler = value > 0.5f;
+            enabled.leveler = value >= 0.5f;
             inputLevelerGroup.enableSwitch.setChecked(enabled.leveler, false);
             return;
         case kParameter_mb_strength:
@@ -313,10 +313,16 @@ protected:
 
         switch (static_cast<ExtraParameters>(index - kParameterCount))
         {
-        case kExtraParamBypass:
+        case kExtraParamGlobalBypass:
+            enabled.global = value < 0.5f;
+            globalEnableSwitch.setChecked(enabled.global, false);
+            noiseReductionGroup.switchEnableStats.switch_.setEnabled(enabled.global && enabled.noiseReduction, false);
+            noiseReductionGroup.updateColors();
+            break;
+        case kExtraParamDenoiseBypass:
             enabled.noiseReduction = value < 0.5f;
-            globalEnableSwitch.setChecked(enabled.noiseReduction, false);
-            noiseReductionGroup.switchEnableStats.switch_.setEnabled(enabled.noiseReduction, false);
+            noiseReductionGroup.title.switch_.setChecked(enabled.noiseReduction, false);
+            noiseReductionGroup.switchEnableStats.switch_.setEnabled(enabled.global && enabled.noiseReduction, false);
             noiseReductionGroup.updateColors();
             break;
         case kExtraParamThreshold:
@@ -400,23 +406,30 @@ protected:
         QuantumSwitch* const qswitch = reinterpret_cast<QuantumSwitch*>(widget);
         DISTRHO_SAFE_ASSERT_RETURN(qswitch != nullptr,);
 
-        const bool enabled = qswitch->isChecked();
+        const bool qenabled = qswitch->isChecked();
         float value;
 
         switch (id)
         {
         case kParameter_bypass:
             soundShapingGroup.updateColors();
-            value = enabled ? 0.f : 1.f;
+            value = qenabled ? 0.f : 1.f;
             break;
-        case kParameterCount + kExtraParamBypass:
-            noiseReductionGroup.switchEnableStats.switch_.setEnabled(enabled, false);
+        case kParameterCount + kExtraParamGlobalBypass:
+            enabled.global = qenabled;
+            noiseReductionGroup.switchEnableStats.switch_.setEnabled(enabled.global && enabled.noiseReduction, false);
             noiseReductionGroup.updateColors();
-            value = enabled ? 0.f : 1.f;
+            value = qenabled ? 0.f : 1.f;
+            break;
+        case kParameterCount + kExtraParamDenoiseBypass:
+            enabled.noiseReduction = qenabled;
+            noiseReductionGroup.switchEnableStats.switch_.setEnabled(enabled.global && enabled.noiseReduction, false);
+            noiseReductionGroup.updateColors();
+            value = qenabled ? 0.f : 1.f;
             break;
         case kParameterCount + kExtraParamEnableStats:
             noiseReductionGroup.updateColors();
-            value = enabled ? 1.f : 0.f;
+            value = qenabled ? 1.f : 0.f;
             break;
         default:
             return;
