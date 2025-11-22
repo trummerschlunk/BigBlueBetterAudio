@@ -1,9 +1,5 @@
 ### What does this PR do?
 
-
-
-
-
 This pull request introduces BigBlueBetterAudio, a  powerful speech enhancement audio processor for BigBlueButton (BBB). The solution runs entirely on the client, utilizing a WASM AudioWorklet  inserted into the BBB client’s audio chain.
 
 Features:
@@ -21,13 +17,21 @@ https://github.com/user-attachments/assets/b2b0f877-6a1b-4818-80a6-0fa2671cb418
 none
 
 ### Motivation
-I'm trying to make the world sound a little better ;)
-From my experience, the sound of a speech performance an important layer beneath it's content.
-Some studies show that poor audio causes our brains to work up to 35% harder to interpret information.
+We're trying to make the world sound a little better ;)
+
 
 
 ### How to test
 
+#### in BBB
+
+
+#### live audio on the web
+We set up a litte test page: https://bbba.4ohm.de
+
+You can hear yourself talking through Big Blue Better Audio.
+
+Please use a headset or headphones to avoid feedbacks.
 
 
 ### Technical details
