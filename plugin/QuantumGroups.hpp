@@ -371,16 +371,19 @@ struct NoiseReductionGroup : QuantumFrame,
 
     void updateColors()
     {
-        const bool enabled = true; // switchEnable.switch_.isChecked();
+        const bool enabled = title.switch_.isChecked() && title.switch_.isEnabled();
         const bool enabledStats = enabled && switchEnableStats.switch_.isChecked();
 
         const Color& sliderTextColor = enabled ? theme.textLightColor : theme.textDarkColor;
+        const Color& sliderMeterColor = enabled ? theme.widgetActiveColor : theme.textMidColor;
         const Color& statsTextColor = enabledStats ? theme.textLightColor : theme.textDarkColor;
         const Color& statsMeterColor = enabledStats ? theme.levelMeterAlternativeColor : theme.textMidColor;
 
+        sliderThreshold.slider.setBackgroundColor(sliderMeterColor);
         sliderThreshold.slider.setTextColor(sliderTextColor);
         sliderThreshold.label.setLabelColor(sliderTextColor);
         sliderThresholdLabel.label.setLabelColor(sliderTextColor);
+        sliderGracePeriod.slider.setBackgroundColor(sliderMeterColor);
         sliderGracePeriod.slider.setTextColor(sliderTextColor);
         sliderGracePeriod.label.setLabelColor(sliderTextColor);
         sliderGracePeriodLabel.label.setLabelColor(sliderTextColor);
@@ -496,7 +499,7 @@ struct SoundShapingGroup : public QuantumFrame,
 
     void updateColors()
     {
-        const bool enabled = title.switch_.isChecked();
+        const bool enabled = title.switch_.isChecked() && title.switch_.isEnabled();
 
         const Color& meterColor = enabled ? theme.levelMeterColor : theme.textDarkColor;
         const Color& meterAltColor = enabled ? theme.levelMeterAlternativeColor : theme.textDarkColor;

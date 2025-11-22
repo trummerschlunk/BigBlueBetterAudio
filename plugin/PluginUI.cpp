@@ -6,6 +6,7 @@
 #include "DistrhoStandaloneUtils.hpp"
 
 #include "QuantumGroups.hpp"
+#include "pregen-gui/FaustPluginInfo.h"
 
 // --------------------------------------------------------------------------------------------------------------------
 // make sure our expectations match
@@ -209,6 +210,9 @@ protected:
         case kParameter_leveler_scale:
             enabled.leveler = value >= 0.5f;
             inputLevelerGroup.enableSwitch.setChecked(enabled.leveler, false);
+            inputLevelerGroup.enableSwitch.setEnabled(enabled.global && enabled.leveler, false);
+            inputLevelerGroup.leveler.setEnabled(enabled.global && enabled.leveler);
+            inputLevelerGroup.targetKnob.setEnabled(enabled.global && enabled.leveler, false);
             return;
         case kParameter_mb_strength:
             soundShapingGroup.mbDynamicsMeters.knob.setValue(value, false);
@@ -316,8 +320,17 @@ protected:
         case kExtraParamGlobalBypass:
             enabled.global = value < 0.5f;
             globalEnableSwitch.setChecked(enabled.global, false);
+            inputGroup.meter.setEnabled(enabled.global);
+            inputGroup.gainKnob.setEnabled(enabled.global, false);
+            inputLevelerGroup.leveler.setEnabled(enabled.global && enabled.leveler);
+            inputLevelerGroup.enableSwitch.setEnabled(enabled.global && enabled.leveler, false);
+            inputLevelerGroup.targetKnob.setEnabled(enabled.global && enabled.leveler, false);
+            noiseReductionGroup.title.switch_.setEnabled(enabled.global, false);
             noiseReductionGroup.switchEnableStats.switch_.setEnabled(enabled.global && enabled.noiseReduction, false);
             noiseReductionGroup.updateColors();
+            soundShapingGroup.title.switch_.setEnabled(enabled.global, false);
+            soundShapingGroup.updateColors();
+            outputGroup.meter.setEnabled(enabled.global);
             break;
         case kExtraParamDenoiseBypass:
             enabled.noiseReduction = value < 0.5f;
@@ -385,11 +398,13 @@ protected:
         fill();
 
         // plugin name
-
         fontSize(theme.bigFontSize);
         fillColor(theme.textLightColor);
         textAlign(ALIGN_RIGHT|ALIGN_MIDDLE);
-        text(width - theme.windowPadding, theme.windowPadding + globalEnableLabel.getHeight() / 2, "Big Blue Better Audio", nullptr);
+        text(width - theme.windowPadding,
+             theme.windowPadding + globalEnableLabel.getHeight() / 2,
+             "Big Blue Better Audio",
+             nullptr);
     }
 
     void buttonClicked(SubWidget* const widget, int) override
@@ -412,13 +427,31 @@ protected:
         switch (id)
         {
         case kParameter_bypass:
+            enabled.soundShaping = qenabled;
             soundShapingGroup.updateColors();
             value = qenabled ? 0.f : 1.f;
             break;
+        case kParameter_leveler_scale:
+            enabled.leveler = qenabled;
+            inputLevelerGroup.enableSwitch.setChecked(enabled.leveler, false);
+            inputLevelerGroup.enableSwitch.setEnabled(enabled.global && enabled.leveler, false);
+            inputLevelerGroup.leveler.setEnabled(enabled.global && enabled.leveler);
+            inputLevelerGroup.targetKnob.setEnabled(enabled.global && enabled.leveler, false);
+            value = qenabled ? 1.f : 0.f;
+            break;
         case kParameterCount + kExtraParamGlobalBypass:
             enabled.global = qenabled;
+            inputGroup.meter.setEnabled(enabled.global);
+            inputGroup.gainKnob.setEnabled(enabled.global, false);
+            inputLevelerGroup.leveler.setEnabled(enabled.global && enabled.leveler);
+            inputLevelerGroup.enableSwitch.setEnabled(enabled.global && enabled.leveler, false);
+            inputLevelerGroup.targetKnob.setEnabled(enabled.global && enabled.leveler, false);
+            noiseReductionGroup.title.switch_.setEnabled(enabled.global, false);
             noiseReductionGroup.switchEnableStats.switch_.setEnabled(enabled.global && enabled.noiseReduction, false);
             noiseReductionGroup.updateColors();
+            soundShapingGroup.title.switch_.setEnabled(enabled.global, false);
+            soundShapingGroup.updateColors();
+            outputGroup.meter.setEnabled(enabled.global);
             value = qenabled ? 0.f : 1.f;
             break;
         case kParameterCount + kExtraParamDenoiseBypass:
