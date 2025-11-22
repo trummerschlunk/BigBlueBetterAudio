@@ -175,7 +175,7 @@ struct InputLevelerGroup : QuantumFrame
         targetKnob.setLabel("Target Loudness");
         targetKnob.setName("Target");
 
-        targetKnob.setOrientation(QuantumSmallKnob::CenterToSides);
+        targetKnob.setOrientation(QuantumSmallKnob::LeftToRight);
         targetKnob.setRange(kParameterRanges[kParameter_leveler_target].min,
                             kParameterRanges[kParameter_leveler_target].max);
         targetKnob.setDefault(kParameterRanges[kParameter_leveler_target].def);
@@ -471,12 +471,14 @@ struct SoundShapingGroup : public QuantumFrame,
         ballancerTitle.adjustSize();
         ballancerTitle.label.setWidth(width);
         ballancerMeters.adjustSize(metrics);
+        ballancerMeters.knob.setOrientation(QuantumSmallKnob::LeftToRight);
         ballancerMeters.knob.setSize(knobSize, knobSize);
         ballancerMeters.knob.setValueFontSize(theme.fontSize);
         spacer2.spacer.setSize(0, metrics.label.getHeight());
         mbDynamicsTitle.adjustSize();
         mbDynamicsTitle.label.setWidth(width);
         mbDynamicsMeters.adjustSize(metrics);
+        mbDynamicsMeters.knob.setOrientation(QuantumSmallKnob::LeftToRight);
         mbDynamicsMeters.knob.setSize(knobSize, knobSize);
         mbDynamicsMeters.knob.setValueFontSize(theme.fontSize);
 
