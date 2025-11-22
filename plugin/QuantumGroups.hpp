@@ -166,7 +166,7 @@ struct InputLevelerGroup : QuantumFrame
 
         enableSwitch.setCallback(bcb);
         enableSwitch.setCheckable(true);
-        enableSwitch.setChecked(kParameterRanges[kParameter_leveler_scale].def, false);
+        enableSwitch.setChecked(d_isNotZero(kParameterRanges[kParameter_leveler_scale].def), false);
         enableSwitch.setId(kParameter_leveler_scale);
         enableSwitch.setName("Enable Button");
 
@@ -261,7 +261,7 @@ struct NoiseReductionGroup : QuantumFrame,
 
         title.switch_.setCallback(bcb);
         title.switch_.setChecked(true, false);
-        title.switch_.setId(kParameterCount + kExtraParamDenoiseBypass);
+        title.switch_.setId(kParameterCount + kExtraParamDenoiseEnable);
         title.label.setCustomFontSize(theme.bigFontSize);
         title.label.setLabel("Noise Reduction");
 
@@ -435,8 +435,8 @@ struct SoundShapingGroup : public QuantumFrame,
         setName("Sound Shaping");
 
         title.switch_.setCallback(bcb);
-        title.switch_.setChecked(!kParameterRanges[kParameter_bypass].def, false);
-        title.switch_.setId(kParameter_bypass);
+        title.switch_.setChecked(d_isNotZero(kParameterRanges[kParameter_sbmb_strength].def), false);
+        title.switch_.setId(kParameter_sbmb_strength);
         title.label.setCustomFontSize(theme.bigFontSize);
         title.label.setLabel("Sound Shaping");
 

@@ -203,11 +203,12 @@ protected:
             switch (index)
             {
             // some custom properties
-            case kParameter_bypass:
-                parameter.name   = "Sound Shaping Bypass";
-                parameter.symbol = "bypass_soundshaping";
+            case kParameter_sbmb_strength:
+                parameter.name   = "Sound Shaping Enable";
+                parameter.symbol = "enable_soundshaping";
                 break;
             // hide some unused parameters
+            case kParameter_bypass:
             case kParameter_sb_target_spectrum_0:
             case kParameter_sb_target_spectrum_1:
             case kParameter_sb_target_spectrum_2:
@@ -216,7 +217,6 @@ protected:
             case kParameter_sb_target_spectrum_5:
             case kParameter_sb_target_spectrum_6:
             case kParameter_sb_target_spectrum_7:
-            case kParameter_sbmb_strength:
             case kParameter_vad_ext:
             case kParameter_pre_lowcut:
             case kParameter_sb_meter__0:
@@ -240,11 +240,11 @@ protected:
         case kExtraParamGlobalBypass:
             parameter.initDesignation(kParameterDesignationBypass);
             break;
-        case kExtraParamDenoiseBypass:
+        case kExtraParamDenoiseEnable:
             parameter.hints |= kParameterIsBoolean | kParameterIsInteger;
-            parameter.name   = "Noise Reduction Bypass";
-            parameter.symbol = "bypass_denoise";
-            parameter.ranges.def = 0.f;
+            parameter.name   = "Noise Reduction Enable";
+            parameter.symbol = "enable_denoise";
+            parameter.ranges.def = 1.f;
             parameter.ranges.min = 0.f;
             parameter.ranges.max = 1.f;
             break;
@@ -452,7 +452,7 @@ protected:
         }
 
         const bool denoiseEnabled = extraParameters[kExtraParamGlobalBypass] < 0.5f &&
-                                    extraParameters[kExtraParamDenoiseBypass] < 0.5f;
+                                    extraParameters[kExtraParamDenoiseEnable] >= 0.5f;
 
         // pass this threshold to unmute
         const float threshold = extraParameters[kExtraParamThreshold] * 0.01f;

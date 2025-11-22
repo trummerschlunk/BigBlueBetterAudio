@@ -17,7 +17,7 @@
 enum ExtraParameters {
    #ifndef SIMPLIFIED_MAPI_BUILD
     kExtraParamGlobalBypass,
-    kExtraParamDenoiseBypass,
+    kExtraParamDenoiseEnable,
     kExtraParamThreshold,
     kExtraParamGracePeriod,
     kExtraParamEnableStats,

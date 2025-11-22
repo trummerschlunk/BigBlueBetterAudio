@@ -197,12 +197,12 @@ protected:
         case kParameter_sb_strength:
             soundShapingGroup.ballancerMeters.knob.setValue(value, false);
             return;
-        case kParameter_bypass:
-            enabled.soundShaping = value < 0.5f;
-            soundShapingGroup.title.switch_.setChecked(enabled.soundShaping, false);
-            return;
         case kParameter_pre_gain:
             inputGroup.gainKnob.setValue(value, false);
+            return;
+        case kParameter_sbmb_strength:
+            enabled.soundShaping = value >= 0.5f;
+            soundShapingGroup.title.switch_.setChecked(enabled.soundShaping, false);
             return;
         case kParameter_leveler_target:
             inputLevelerGroup.targetKnob.setValue(value, false);
@@ -287,6 +287,7 @@ protected:
         case kParameter_mb_comp_gain_7:
             soundShapingGroup.mbDynamicsMeters.m8.setValue(value);
             return;
+        case kParameter_bypass:
         case kParameter_sb_target_spectrum_0:
         case kParameter_sb_target_spectrum_1:
         case kParameter_sb_target_spectrum_2:
@@ -295,7 +296,6 @@ protected:
         case kParameter_sb_target_spectrum_5:
         case kParameter_sb_target_spectrum_6:
         case kParameter_sb_target_spectrum_7:
-        case kParameter_sbmb_strength:
         case kParameter_vad_ext:
         case kParameter_pre_lowcut:
         case kParameter_sb_meter__0:
@@ -332,8 +332,8 @@ protected:
             soundShapingGroup.updateColors();
             outputGroup.meter.setEnabled(enabled.global);
             break;
-        case kExtraParamDenoiseBypass:
-            enabled.noiseReduction = value < 0.5f;
+        case kExtraParamDenoiseEnable:
+            enabled.noiseReduction = value >= 0.5f;
             noiseReductionGroup.title.switch_.setChecked(enabled.noiseReduction, false);
             noiseReductionGroup.switchEnableStats.switch_.setEnabled(enabled.global && enabled.noiseReduction, false);
             noiseReductionGroup.updateColors();
@@ -426,10 +426,10 @@ protected:
 
         switch (id)
         {
-        case kParameter_bypass:
+        case kParameter_sbmb_strength:
             enabled.soundShaping = qenabled;
             soundShapingGroup.updateColors();
-            value = qenabled ? 0.f : 1.f;
+            value = qenabled ? 100.f : 0.f;
             break;
         case kParameter_leveler_scale:
             enabled.leveler = qenabled;
@@ -454,11 +454,11 @@ protected:
             outputGroup.meter.setEnabled(enabled.global);
             value = qenabled ? 0.f : 1.f;
             break;
-        case kParameterCount + kExtraParamDenoiseBypass:
+        case kParameterCount + kExtraParamDenoiseEnable:
             enabled.noiseReduction = qenabled;
             noiseReductionGroup.switchEnableStats.switch_.setEnabled(enabled.global && enabled.noiseReduction, false);
             noiseReductionGroup.updateColors();
-            value = qenabled ? 0.f : 1.f;
+            value = qenabled ? 1.f : 0.f;
             break;
         case kParameterCount + kExtraParamEnableStats:
             noiseReductionGroup.updateColors();
