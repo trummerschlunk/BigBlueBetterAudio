@@ -16,9 +16,10 @@
 // 0.21 finally correct fake stereo
 // 0.22 adds the correct symbols for the plugin GUI and lists them at the top
 // 0.24 puts pregain in the correct place before the input meter, cleanup
+// correct [unit]s
 
 declare name "bbba";
-declare version "0.24";             
+declare version "0.25";             
 declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
@@ -81,7 +82,7 @@ postGainSlider = gui_main(vslider("[9][unit:dB]PostGain[symbol:post_gain]", 0, -
 
 preFilter_hp_freq = gui_main(vslider("preLowcut_freq[scale:log][symbol:pre_lowcut]",42,1,400,1));
 
-target = gui_leveler(vslider("[1][unit:dB]target[symbol:leveler_target]", lev_target_init, -60, 0, 1));
+target = gui_leveler(vslider("[1][unit:lufs]target[symbol:leveler_target]", lev_target_init, -60, 0, 1));
 lev_limit_pos = lev_maxboost_init;
 lev_limit_neg = lev_maxcut_init : ma.neg;
 lev_scale = gui_leveler(vslider("leveler_scale[symbol:leveler_scale]", 1, 0, 1,0.1)); //lev_scale_init / 100; 
@@ -96,7 +97,7 @@ sb_strength = vslider("h:[1]Spectral Ballancer/h:Parameters/[1][unit:%]sb_streng
 sb_target_spectrum = par(i,Nbands, vslider("h:[1]Spectral Ballancer/h:Target Curve/spec %i[symbol:sb_target_spectrum_%i]", (sb_target_spectrum_init : ba.selector(i,Nbands)),-20,0,1));
 
 
-mb_strength = gui_mb(vslider("mb_strength[symbol:mb_strength]", mb_strength_init,0,100,1)) / 100 : _*sbmb_strength;
+mb_strength = gui_mb(vslider("mb_strength[unit:%][symbol:mb_strength]", mb_strength_init,0,100,1)) / 100 : _*sbmb_strength;
 
 
 // METERS
