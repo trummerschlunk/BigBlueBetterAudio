@@ -37,14 +37,16 @@ Please use a headset or headphones to avoid feedbacks.
 ### Technical details
 
 The BBBA processing works by modifying `doGUM` and inject a audio worklet after the microphone stream, then returning the processed stream.  
-This allows to reduce the code changes to BBB, but has the caveat that dynamic `applyConstraints` no longer works, so we have disabled it on this PR if the wasm processing is available.
+This allows to reduce the code changes to BBB, but has the caveat that dynamic `applyConstraints` no longer works (the returned stream has no constraints), so we have disabled it on this PR if the wasm processing is available.
 
-Ideally some deeper integration with BBB would be done, allowing to fetch the microphone stream along-side the `doGUM` returned stream (or similar ideas) so we could do `applyConstraints` on that initial stream.  
+Ideally some deeper integration with BBB would be done, allowing to fetch the microphone stream along-side the `doGUM` returned stream (or similar ideas) so we could do `applyConstraints` on that initial microphone stream.  
 This work is not part of this PR because:
 
 - Chrome-based browsers (the most popular of all) currently do not do the dynamic `applyConstraints`, so the "regression" is minimal
 - Deeper integration in BBB is tricky as we don't feel confident enough to do it right now
 - BBB currently has 3 different audio systems (sip, sfu, livekit) and would be best to only do implementation once rather than for these 3
+
+For compatibility with some old browsers that support Web-Assembly but not its SIMD feature (see [caniuse.com/wasm-simd](https://caniuse.com/wasm-simd)) we build a SIMD-optimized and a non-optimized version of BBBA, and automatically detect at run-time if SIMD is supported so we can use it.
 
 ### More on the BBBA and wasm
 
