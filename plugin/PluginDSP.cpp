@@ -148,7 +148,7 @@ public:
         muteValue.setTimeConstant(kMuteRelease);
         muteValue.setTargetValue(0.f);
 
-        extraParameters[kExtraParamThreshold] = 0.f;
+        extraParameters[kExtraParamEnableVoiceIsolation] = 1.f;
         extraParameters[kExtraParamGracePeriod] = 1000.f;
        #endif
 
@@ -206,9 +206,6 @@ protected:
             case kParameter_sbmb_strength:
                 parameter.name   = "Voice Optimization";
                 parameter.symbol = "voice_optimization";
-                parameter.ranges.def = 1.f;
-                parameter.ranges.min = 0.f;
-                parameter.ranges.max = 1.f;
                 break;
             // hide some unused parameters
             case kParameter_sb_target_spectrum_0:

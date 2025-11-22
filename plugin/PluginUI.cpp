@@ -73,8 +73,8 @@ class BBBAudioUI : public UI,
     struct {
         bool global = true;
         bool leveler = true;
-        bool noiseReduction = true;
-        bool soundShaping = true;
+        bool voiceIsolation = true;
+        bool voiceOptimization = true;
     } enabled;
 
 public:
@@ -201,9 +201,8 @@ protected:
             inputGroup.gainKnob.setValue(value, false);
             return;
         case kParameter_sbmb_strength:
-            enabled.soundShaping = value >= 0.5f;
-            d_stderr2("kParameter_sbmb_strength %f %d", value, enabled.soundShaping);
-            voiceOptimizationGroup.title.switch_.setChecked(enabled.soundShaping, false);
+            enabled.voiceOptimization = value >= 0.5f;
+            voiceOptimizationGroup.title.switch_.setChecked(enabled.voiceOptimization, false);
             voiceOptimizationGroup.updateColors();
             return;
         case kParameter_leveler_target:
@@ -327,16 +326,17 @@ protected:
             inputLevelerGroup.enableSwitch.setEnabled(enabled.global && enabled.leveler, false);
             inputLevelerGroup.targetKnob.setEnabled(enabled.global && enabled.leveler, false);
             voiceIsolationGroup.title.switch_.setEnabled(enabled.global, false);
-            voiceIsolationGroup.switchEnableStats.switch_.setEnabled(enabled.global && enabled.noiseReduction, false);
+            voiceIsolationGroup.switchEnableStats.switch_.setEnabled(enabled.global && enabled.voiceIsolation, false);
             voiceIsolationGroup.updateColors();
-            voiceOptimizationGroup.title.switch_.setEnabled(enabled.global && enabled.soundShaping, false);
+            voiceOptimizationGroup.title.switch_.setEnabled(enabled.global && enabled.voiceOptimization, false);
             voiceOptimizationGroup.updateColors();
             outputGroup.meter.setEnabled(enabled.global);
             break;
         case kExtraParamEnableVoiceIsolation:
-            enabled.noiseReduction = value >= 0.5f;
-            voiceIsolationGroup.title.switch_.setChecked(enabled.noiseReduction, false);
-            voiceIsolationGroup.switchEnableStats.switch_.setEnabled(enabled.global && enabled.noiseReduction, false);
+            d_stderr2("kExtraParamEnableVoiceIsolation %f", value);
+            enabled.voiceIsolation = value >= 0.5f;
+            voiceIsolationGroup.title.switch_.setChecked(enabled.voiceIsolation, false);
+            voiceIsolationGroup.switchEnableStats.switch_.setEnabled(enabled.global && enabled.voiceIsolation, false);
             voiceIsolationGroup.updateColors();
             break;
         case kExtraParamThreshold:
@@ -428,7 +428,7 @@ protected:
         switch (id)
         {
         case kParameter_sbmb_strength:
-            enabled.soundShaping = qenabled;
+            enabled.voiceOptimization = qenabled;
             voiceOptimizationGroup.updateColors();
             value = qenabled ? 100.f : 0.f;
             break;
@@ -448,16 +448,16 @@ protected:
             inputLevelerGroup.enableSwitch.setEnabled(enabled.global && enabled.leveler, false);
             inputLevelerGroup.targetKnob.setEnabled(enabled.global && enabled.leveler, false);
             voiceIsolationGroup.title.switch_.setEnabled(enabled.global, false);
-            voiceIsolationGroup.switchEnableStats.switch_.setEnabled(enabled.global && enabled.noiseReduction, false);
+            voiceIsolationGroup.switchEnableStats.switch_.setEnabled(enabled.global && enabled.voiceIsolation, false);
             voiceIsolationGroup.updateColors();
-            voiceOptimizationGroup.title.switch_.setEnabled(enabled.global && enabled.soundShaping, false);
+            voiceOptimizationGroup.title.switch_.setEnabled(enabled.global && enabled.voiceOptimization, false);
             voiceOptimizationGroup.updateColors();
             outputGroup.meter.setEnabled(enabled.global);
             value = qenabled ? 0.f : 1.f;
             break;
         case kParameterCount + kExtraParamEnableVoiceIsolation:
-            enabled.noiseReduction = qenabled;
-            voiceIsolationGroup.switchEnableStats.switch_.setEnabled(enabled.global && enabled.noiseReduction, false);
+            enabled.voiceIsolation = qenabled;
+            voiceIsolationGroup.switchEnableStats.switch_.setEnabled(enabled.global && enabled.voiceIsolation, false);
             voiceIsolationGroup.updateColors();
             value = qenabled ? 1.f : 0.f;
             break;
