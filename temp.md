@@ -4,8 +4,8 @@ This pull request introduces BigBlueBetterAudio, a  powerful speech enhancement 
 
 Features:
 
-- Noise Suppression: Leverages RNNoise, a machine learning model for effective real-time background noise reduction.
-- Vocal Enhancement: Utilizes a custom-designed vocal enhancement process, crafted by an experienced mix and mastering  engineer with over 25 years of expertise in creating great vocal sound. This algorithm shapes the audio to make speech more natural, pleasant, and intelligible, while reducing distractions.
+- Voice Isolation: Leverages RNNoise, a machine learning model for effective real-time background noise reduction.
+- Voice Optimization: Utilizes a custom-designed vocal enhancement process, crafted by an experienced mix and mastering  engineer with over 25 years of expertise in creating great vocal sound. This algorithm shapes the audio to make speech more natural, pleasant, and intelligible, while reducing distractions.
 
 The result is significantly improved speech clarity and listening experience for all participants.
 
@@ -24,7 +24,7 @@ We're trying to make the world sound a little better ;)
 ### How to test
 
 #### in BBB
-
+Assuming you have a 3.1. BBB server with LiveKit in development mode, you can deploy the html5-client with our modifications. The connecting clients will have `Big Blue Better Audio` enabled by default. In `settings` you can switch back to `Standard Audio Filters` and compare.
 
 #### live audio on the web
 We set up a litte test page: https://bbba.4ohm.de
