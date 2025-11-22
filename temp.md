@@ -1,11 +1,11 @@
 ### What does this PR do?
 
-This pull request introduces BigBlueBetterAudio, a  powerful speech enhancement audio processor for BigBlueButton (BBB). The solution runs entirely on the client, utilizing a WASM AudioWorklet  inserted into the BBB client’s audio chain.
+This pull request introduces BigBlueBetterAudio, a  powerful speech enhancement audio processor for BigBlueButton (BBB). The solution runs entirely on the client, utilizing a WASM AudioWorklet inserted into the BBB client's audio chain.
 
 Features:
 
 - Voice Isolation: Leverages RNNoise, a machine learning model for effective real-time background noise reduction.
-- Voice Optimization: Utilizes a custom-designed vocal enhancement process, crafted by an experienced mix and mastering  engineer with over 25 years of expertise in creating great vocal sound. This algorithm shapes the audio to make speech more natural, pleasant, and intelligible, while reducing distractions.
+- Voice Optimization: Utilizes a custom-designed vocal enhancement process, crafted by an experienced mix and mastering engineer with over 25 years of expertise in creating great vocal sound. This algorithm shapes the audio to make speech more natural, pleasant, and intelligible, while reducing distractions.
 
 The result is significantly improved speech clarity and listening experience for all participants.
 
