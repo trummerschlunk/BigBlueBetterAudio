@@ -13,6 +13,8 @@ Further details: https://github.com/trummerschlunk/BigBlueBetterAudio
 
 https://github.com/user-attachments/assets/b2b0f877-6a1b-4818-80a6-0fa2671cb418
 
+[HD video on youtube](https://youtu.be/YCV6wD2E-Ho)
+
 ### Closes Issue(s)
 none
 
