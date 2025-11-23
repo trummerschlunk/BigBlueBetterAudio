@@ -414,8 +414,8 @@ struct VoiceOptimizationGroup : public QuantumFrame,
 
     QuantumRadioSwitchWithLabel title;
     QuantumSingleSpacer spacer1;
-    QuantumSingleLabel ballancerTitle;
-    BBBAudioValueMeters ballancerMeters;
+    QuantumSingleLabel balancerTitle;
+    BBBAudioValueMeters balancerMeters;
     QuantumSingleSpacer spacer2;
     QuantumSingleLabel mbDynamicsTitle;
     BBBAudioValueMeters mbDynamicsMeters;
@@ -428,8 +428,8 @@ struct VoiceOptimizationGroup : public QuantumFrame,
           theme(t),
           title(this, theme),
           spacer1(this),
-          ballancerTitle(this, theme),
-          ballancerMeters(this, theme, QuantumValueMeter::MiddleToEdges),
+          balancerTitle(this, theme),
+          balancerMeters(this, theme, QuantumValueMeter::MiddleToEdges),
           spacer2(this),
           mbDynamicsTitle(this, theme),
           mbDynamicsMeters(this, theme, QuantumValueMeter::MiddleToEdges)
@@ -442,22 +442,22 @@ struct VoiceOptimizationGroup : public QuantumFrame,
         title.label.setCustomFontSize(theme.bigFontSize);
         title.label.setLabel("Voice Optimization");
 
-        ballancerTitle.label.setAlignment(ALIGN_CENTER|ALIGN_MIDDLE);
-        ballancerTitle.label.setLabel("Spectral Ballancer");
+        balancerTitle.label.setAlignment(ALIGN_CENTER|ALIGN_MIDDLE);
+        balancerTitle.label.setLabel("Spectral Balancer");
 
         mbDynamicsTitle.label.setAlignment(ALIGN_CENTER|ALIGN_MIDDLE);
         mbDynamicsTitle.label.setLabel("Multiband Dynamics");
 
-        setupMeters(ballancerMeters, kParameter_sb_strength, kParameter_sb_gain__0);
+        setupMeters(balancerMeters, kParameter_sb_strength, kParameter_sb_gain__0);
         setupMeters(mbDynamicsMeters, kParameter_mb_strength, kParameter_mb_comp_gain_0);
 
-        ballancerMeters.knob.setCallback(kcb);
+        balancerMeters.knob.setCallback(kcb);
         mbDynamicsMeters.knob.setCallback(kcb);
 
         items.push_back(&title);
         items.push_back(&spacer1);
-        items.push_back(&ballancerTitle);
-        items.push_back(&ballancerMeters);
+        items.push_back(&balancerTitle);
+        items.push_back(&balancerMeters);
         items.push_back(&spacer2);
         items.push_back(&mbDynamicsTitle);
         items.push_back(&mbDynamicsMeters);
@@ -473,12 +473,12 @@ struct VoiceOptimizationGroup : public QuantumFrame,
         title.adjustSize(metrics);
         title.label.setWidth(width - title.switch_.getWidth() - theme.padding * 2);
         spacer1.spacer.setSize(0, metrics.label.getHeight());
-        ballancerTitle.adjustSize();
-        ballancerTitle.label.setWidth(width);
-        ballancerMeters.adjustSize(metrics);
-        ballancerMeters.knob.setOrientation(QuantumSmallKnobWithUnitInNewline::LeftToRight);
-        ballancerMeters.knob.setSize(knobSize, knobSize);
-        ballancerMeters.knob.setValueFontSize(theme.fontSize);
+        balancerTitle.adjustSize();
+        balancerTitle.label.setWidth(width);
+        balancerMeters.adjustSize(metrics);
+        balancerMeters.knob.setOrientation(QuantumSmallKnobWithUnitInNewline::LeftToRight);
+        balancerMeters.knob.setSize(knobSize, knobSize);
+        balancerMeters.knob.setValueFontSize(theme.fontSize);
         spacer2.spacer.setSize(0, metrics.label.getHeight());
         mbDynamicsTitle.adjustSize();
         mbDynamicsTitle.label.setWidth(width);
@@ -507,17 +507,17 @@ struct VoiceOptimizationGroup : public QuantumFrame,
         const Color& meterAltColor = enabled ? theme.levelMeterAlternativeColor : theme.textDarkColor;
         const Color& textColor = enabled ? theme.textLightColor : theme.textDarkColor;
 
-        ballancerTitle.label.setLabelColor(textColor);
-        ballancerMeters.knob.setEnabled(enabled, false);
-        ballancerMeters.knob.setRingColor(enabled ? theme.knobRingColor : theme.textDarkColor);
-        ballancerMeters.m1.setBackgroundColor(meterColor);
-        ballancerMeters.m2.setBackgroundColor(meterColor);
-        ballancerMeters.m3.setBackgroundColor(meterColor);
-        ballancerMeters.m4.setBackgroundColor(meterColor);
-        ballancerMeters.m5.setBackgroundColor(meterColor);
-        ballancerMeters.m6.setBackgroundColor(meterColor);
-        ballancerMeters.m7.setBackgroundColor(meterColor);
-        ballancerMeters.m8.setBackgroundColor(meterColor);
+        balancerTitle.label.setLabelColor(textColor);
+        balancerMeters.knob.setEnabled(enabled, false);
+        balancerMeters.knob.setRingColor(enabled ? theme.knobRingColor : theme.textDarkColor);
+        balancerMeters.m1.setBackgroundColor(meterColor);
+        balancerMeters.m2.setBackgroundColor(meterColor);
+        balancerMeters.m3.setBackgroundColor(meterColor);
+        balancerMeters.m4.setBackgroundColor(meterColor);
+        balancerMeters.m5.setBackgroundColor(meterColor);
+        balancerMeters.m6.setBackgroundColor(meterColor);
+        balancerMeters.m7.setBackgroundColor(meterColor);
+        balancerMeters.m8.setBackgroundColor(meterColor);
 
         mbDynamicsTitle.label.setLabelColor(textColor);
         mbDynamicsMeters.knob.setEnabled(enabled, false);

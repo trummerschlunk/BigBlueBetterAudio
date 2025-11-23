@@ -195,7 +195,7 @@ protected:
         {
         // inputs
         case kParameter_sb_strength:
-            voiceOptimizationGroup.ballancerMeters.knob.setValue(value, false);
+            voiceOptimizationGroup.balancerMeters.knob.setValue(value, false);
             return;
         case kParameter_pre_gain:
             inputGroup.gainKnob.setValue(value, false);
@@ -220,28 +220,28 @@ protected:
             return;
         // outputs
         case kParameter_sb_gain__0:
-            voiceOptimizationGroup.ballancerMeters.m1.setValue(value);
+            voiceOptimizationGroup.balancerMeters.m1.setValue(value);
             return;
         case kParameter_sb_gain__1:
-            voiceOptimizationGroup.ballancerMeters.m2.setValue(value);
+            voiceOptimizationGroup.balancerMeters.m2.setValue(value);
             return;
         case kParameter_sb_gain__2:
-            voiceOptimizationGroup.ballancerMeters.m3.setValue(value);
+            voiceOptimizationGroup.balancerMeters.m3.setValue(value);
             return;
         case kParameter_sb_gain__3:
-            voiceOptimizationGroup.ballancerMeters.m4.setValue(value);
+            voiceOptimizationGroup.balancerMeters.m4.setValue(value);
             return;
         case kParameter_sb_gain__4:
-            voiceOptimizationGroup.ballancerMeters.m5.setValue(value);
+            voiceOptimizationGroup.balancerMeters.m5.setValue(value);
             return;
         case kParameter_sb_gain__5:
-            voiceOptimizationGroup.ballancerMeters.m6.setValue(value);
+            voiceOptimizationGroup.balancerMeters.m6.setValue(value);
             return;
         case kParameter_sb_gain__6:
-            voiceOptimizationGroup.ballancerMeters.m7.setValue(value);
+            voiceOptimizationGroup.balancerMeters.m7.setValue(value);
             return;
         case kParameter_sb_gain__7:
-            voiceOptimizationGroup.ballancerMeters.m8.setValue(value);
+            voiceOptimizationGroup.balancerMeters.m8.setValue(value);
             return;
         case kParameter_limiter_gain:
             outputGroup.meter.setValueLimiter(value);
