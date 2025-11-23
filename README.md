@@ -4,6 +4,10 @@
 
 Better Audio for [BigBlueButton](https://bigbluebutton.org/)!
 
+
+https://github.com/user-attachments/assets/aa64fcf4-b302-4365-b28a-c87378c4a664
+
+[HD version on Youtube](https://youtu.be/YCV6wD2E-Ho)
 ## BigBlueButton
 
 [BigBlueButton](https://bigbluebutton.org/) is one of the most popular free and open-source video conferencing systems. It is widely used in education settings, by NGOs, government and business units.
