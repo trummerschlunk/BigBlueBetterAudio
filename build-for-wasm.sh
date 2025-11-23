@@ -32,8 +32,8 @@ env CC=emcc CXX=em++ make mapi NOOPT=true ${MAKE_ARGS}
 
 # rename for '-nosimd' suffix
 mkdir -p bin-nosimd
-mv bin/BBBA-mapi.js bin-nosimd/BBBA-mapi-nosimd.js
-mv bin/BBBA-mapi.wasm bin-nosimd/BBBA-mapi-nosimd.wasm
+mv bin/BBBA-nosimd-mapi.js bin-nosimd/BBBA-nosimd-mapi.js
+mv bin/BBBA-nosimd-mapi.wasm bin-nosimd/BBBA-nosimd-mapi.wasm
 
 # build with SIMD next
 make clean
