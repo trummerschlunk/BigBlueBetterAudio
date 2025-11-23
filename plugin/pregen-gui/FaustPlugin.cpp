@@ -9,7 +9,7 @@
 // Author: Klaus Scheuermann
 // Copyright: 
 // License: GPLv3+
-// Version: 0.26
+// Version: 0.27
 //------------------------------------------------------------------------------
 
 
@@ -581,7 +581,7 @@ class mydsp : public dsp {
 		m->declare("basics.lib/peakholder:copyright", "Copyright (C) 2022 Dario Sanfilippo <sanfilippo.dario@gmail.com>");
 		m->declare("basics.lib/peakholder:license", "MIT-style STK-4.3 license");
 		m->declare("basics.lib/version", "1.21.0");
-		m->declare("compile_options", "-a /tmp/tmpcp48ys_0.cpp -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("compile_options", "-a /tmp/tmpkm3l3q7v.cpp -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("compressors.lib/name", "Faust Compressor Effect Library");
 		m->declare("compressors.lib/peak_compression_gain_mono:author", "Bart Brouns");
 		m->declare("compressors.lib/peak_compression_gain_mono:license", "GPLv3");
@@ -641,7 +641,7 @@ class mydsp : public dsp {
 		m->declare("signals.lib/onePoleSwitching:author", "Jonatan Liljedahl, revised by Dario Sanfilippo");
 		m->declare("signals.lib/onePoleSwitching:licence", "STK-4.3");
 		m->declare("signals.lib/version", "1.6.0");
-		m->declare("version", "0.26");
+		m->declare("version", "0.27");
 	}
 
 	FAUSTPP_VIRTUAL int getNumInputs() {
@@ -1679,7 +1679,7 @@ class mydsp : public dsp {
 		ui_interface->declare(&fVbargraph1, "symbol", "input_peak_channel_1");
 		ui_interface->addVerticalBargraph("In 1", &fVbargraph1, FAUSTFLOAT(-7e+01f), FAUSTFLOAT(0.0f));
 		ui_interface->declare(&fVbargraph30, "symbol", "lufs_out_meter");
-		ui_interface->declare(&fVbargraph30, "unit", "dB");
+		ui_interface->declare(&fVbargraph30, "unit", "LUFS");
 		ui_interface->addVerticalBargraph("lufs_out", &fVbargraph30, FAUSTFLOAT(-7e+01f), FAUSTFLOAT(0.0f));
 		ui_interface->declare(&fVbargraph28, "symbol", "output_peak_channel_0");
 		ui_interface->addVerticalBargraph("Out 0", &fVbargraph28, FAUSTFLOAT(-7e+01f), FAUSTFLOAT(0.0f));
@@ -1688,7 +1688,7 @@ class mydsp : public dsp {
 		ui_interface->openHorizontalBox("leveler");
 		ui_interface->declare(&fVslider0, "1", "");
 		ui_interface->declare(&fVslider0, "symbol", "leveler_target");
-		ui_interface->declare(&fVslider0, "unit", "lufs");
+		ui_interface->declare(&fVslider0, "unit", "LUFS");
 		ui_interface->addVerticalSlider("target", &fVslider0, FAUSTFLOAT(-23.0f), FAUSTFLOAT(-6e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f));
 		ui_interface->declare(&fVbargraph0, "8", "");
 		ui_interface->declare(&fVbargraph0, "symbol", "leveler_gain");

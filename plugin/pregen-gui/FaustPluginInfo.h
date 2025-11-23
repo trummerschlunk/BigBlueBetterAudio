@@ -9,7 +9,7 @@
 // Author: Klaus Scheuermann
 // Copyright: 
 // License: GPLv3+
-// Version: 0.26
+// Version: 0.27
 //------------------------------------------------------------------------------
 
 
@@ -266,7 +266,7 @@ static constexpr const char* kParameterUnits[47] = {
     "dB",
     "",
     "",
-    "lufs",
+    "LUFS",
     "",
     "%",
     "",
@@ -291,7 +291,7 @@ static constexpr const char* kParameterUnits[47] = {
     "",
     "",
     "",
-    "dB",
+    "LUFS",
     "",
     "",
     "dB",
