@@ -1,4 +1,4 @@
-![Audio Flow Diagram](documentation/pics/BBBA_signalFlow_01.jpg)
+![Audio Flow Diagram](documentation/pics/BBBA_signalFlow_02.jpg)
 
 # BigBlueBetterAudio
 
@@ -7,6 +7,8 @@ Better Audio for [BigBlueButton](https://bigbluebutton.org/)!
 ## BigBlueButton
 
 [BigBlueButton](https://bigbluebutton.org/) is one of the most popular free and open-source video conferencing systems. It is widely used in education settings, by NGOs, government and business units.
+
+
 
 ## Audio Aesthetics
 
@@ -18,11 +20,11 @@ Well-processed audio makes voices sound more natural, engaging, and pleasant, wh
 
 Drawing on over 20 years of audio engineering experience in mixing and mastering, I have developed an audio DSP process that focuses on enhancing perceived audio aesthetics of recorded speech in real-time. 
 
-While technically pristine audio remains the foundation, a chain of carefully tuned conventional audio processes combined with newly designed autonomous audio effects add a powerful aesthetic dimension to the listening experience.  
+While technically pristine audio remains the foundation, a chain of carefully tuned conventional audio processes combined with newly designed autonomous audio effects and rnnoise voice isolation add a powerful aesthetic dimension to the listening experience.
 
 ## Audio Flow
 
-![Audio Flow Diagram](documentation/pics/BBBA_signalFlow_01.jpg)
+![Audio Flow Diagram](documentation/pics/BBBA_signalFlow_02.jpg)
 
 ## Injection
 
