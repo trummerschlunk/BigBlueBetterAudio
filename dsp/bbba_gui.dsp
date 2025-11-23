@@ -18,9 +18,10 @@
 // 0.24 puts pregain in the correct place before the input meter, cleanup
 // 0.25 correct [unit]s
 // 0.26 no bypass
+// 0.27 lufs->LUFS
 
 declare name "bbba";
-declare version "0.26";             
+declare version "0.27";             
 declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
@@ -29,7 +30,7 @@ import("stdfaust.lib");
 // SYMBOLS FOR PLUGIN GUI
 // [symbol:bypass]                  Global Enable 0/1 (or 1/0 ???)
 // [symbol:pre_gain]                Input Gain -20/+20 dB
-// [symbol:leveler_target]          Targel Loudness -60/0 lufs
+// [symbol:leveler_target]          Targel Loudness -60/0 LUFS
 // [symbol:leveler_scale]           Leveler On/Off 1/0
 // [symbol:sbmb_strength]           Sound Shaping Enable 100 / 0
 // [symbol:sb_strength]             Spectral Ballancer Strength 0/100 %
@@ -40,7 +41,7 @@ import("stdfaust.lib");
 // [symbol:input_peak_channel_2]    Right Input Peak Meter -70 / 0 dbFS
 // [symbol:output_peak_channel_0]   Left Output Peak Meter -70 / 0 dbFS
 // [symbol:output_peak_channel_2]   Right Output Peak Meter -70 / 0 dbFS
-// [symbol:lufs_out_meter]          LUFS Output Meter -70 / 0 lufs
+// [symbol:lufs_out_meter]          LUFS Output Meter -70 / 0 LUFS
 // [symbol:leveler_gain]            Leveler Gain -50/+50 dB
 // [symbol:sb_gain_%2i]             8 meters for Spectral Ballancer -12/+12 (%2i = 00-07)
 // [symbol:mb_comp_gain%2i]         8 meters for Multiband Dynamics -12/+12 (%2i = 00-07)
@@ -83,7 +84,7 @@ postGainSlider = gui_main(vslider("[9][unit:dB]PostGain[symbol:post_gain]", 0, -
 
 preFilter_hp_freq = gui_main(vslider("preLowcut_freq[scale:log][symbol:pre_lowcut]",42,1,400,1));
 
-target = gui_leveler(vslider("[1][unit:lufs]target[symbol:leveler_target]", lev_target_init, -60, 0, 1));
+target = gui_leveler(vslider("[1][unit:LUFS]target[symbol:leveler_target]", lev_target_init, -60, 0, 1));
 lev_limit_pos = lev_maxboost_init;
 lev_limit_neg = lev_maxcut_init : ma.neg;
 lev_scale = gui_leveler(vslider("leveler_scale[symbol:leveler_scale]", 1, 0, 1,0.1)); //lev_scale_init / 100; 
@@ -127,7 +128,7 @@ peakmeter_out = out_meter_l,out_meter_r with {
 };
 
 // ------------------------ LUFS out meter -------------------
-lufs_out_meter(l,r) = l,r <: l, attach(r, (lk2_short : gui_main(vbargraph("[symbol:lufs_out_meter][unit:dB]lufs_out",meters_minimum,0)))) : _,_;
+lufs_out_meter(l,r) = l,r <: l, attach(r, (lk2_short : gui_main(vbargraph("[symbol:lufs_out_meter][unit:LUFS]lufs_out",meters_minimum,0)))) : _,_;
 lk2_short = lk2_fixed(3);
 
 // external VAD from RNNOISE
