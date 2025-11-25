@@ -86,7 +86,10 @@ compressor_meter(i) = _;//_ <: attach(_,ba.linear2db:gui_mb(vbargraph("[2]MBgr%2
 
 // external VAD from RNNOISE
 
-vad_ext = gui_main(vslider("[3]vad_ext[symbol:vad_ext]",1,0,1,0.001));
+vad_ext = gui_main(vslider("[3]vad_ext[symbol:vad_ext]",1,0,1,0.001)) : vad_meter;
+vad_meter = _<: attach(_, round : gui_main(vbargraph("[symbol:vad_meter]vad_meter",0,1)));
+
+
 
 
 // MAIN
