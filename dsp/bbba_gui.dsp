@@ -134,7 +134,21 @@ lk2_short = lk2_fixed(3);
 // external VAD from RNNOISE
 
 vad_ext = gui_main(vslider("[3]vad_ext[symbol:vad_ext]",1,0,1,0.001));
+vad_meter = _<: attach(_, gui_main(vbargraph("[symbol:vad_meter]vad_meter",0,1)));
 
+
+// VAD smoothing and gating
+
+vad = vad_ext : vad_smoothing : vad_smoothing_meter : vad_gate : vad_meter;
+
+vad_gate(x) = x * (x > vad_gate_thresh);
+vad_gate_thresh = gui_main(vslider("vad_g_thr[symbol:vad_gate_thresh]",vad_gate_thresh_init,0,1,0.1));
+vad_gate_thresh_init = 0.9;
+
+vad_smoothing = si.smooth(ba.tau2pole(vad_smoothing_time));
+vad_smoothing_time = gui_main(vslider("vad_smoo_t[symbol:vad_smoothing_time]",vad_smoothing_time_init,0,1,0.1));
+vad_smoothing_time_init = 0.1;
+vad_smoothing_meter = _<: attach(_, gui_main(vbargraph("vad_smoo[symbol:vad_smoothing_meter]",0,1)));
 
 
 // MAIN
@@ -287,7 +301,7 @@ leveler_sc(target,fl,l) =
                             (target - lufs)
                             +(prev_gain )
                             : limit(lev_limit_neg,lev_limit_pos)
-                            : dynamicSmoothing(  sensitivity * vad_ext,  basefreq * vad_ext  )
+                            : dynamicSmoothing(  sensitivity * vad,  basefreq * vad  )
                             
                             * lev_scale
                             : lev_meter_gain;
@@ -370,7 +384,7 @@ ballancer(l) = l <:
         : sb_limit                                      // limit gainchange
         : _*sb_strength                                 // apply strength
         : _*sbmb_strength                               // apply overall strength
-        : _* vad_ext : ba.db2linear)     )              // multiply with external VAD (voice activity detection)
+        : _* vad : ba.db2linear)     )                 // multiply with external VAD (voice activity detection)
         : sb_gainmeter(i)),_))                          // meter the gainchange
         : par(i,Nbands,gainchange(l))                    // do the actual gainchange to each band
         
