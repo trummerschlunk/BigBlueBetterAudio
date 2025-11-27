@@ -49,7 +49,6 @@ class MapiProcessorInstance {
     }
 
     monitor(index) {
-        console.error('BBBA wasm monitor2', index);
         this.monitor_param = index;
         this.monitor_value = this.module._mapi_get_parameter(this.handle, index);
     }
@@ -152,7 +151,6 @@ class MapiWorkletProcessor extends AudioWorkletProcessor {
             return;
         }
 
-        console.error('BBBA wasm monitor', data);
         this.bbba.monitor(data.index);
     }
 
