@@ -44,6 +44,8 @@ enum Parameters {
     kParameter_leveler_scale,
     kParameter_mb_strength,
     kParameter_pre_lowcut,
+    kParameter_vad_gate_thresh,
+    kParameter_vad_smoothing_time,
     
     // outputs
     kParameter_sb_meter__0,
@@ -68,6 +70,7 @@ enum Parameters {
     kParameter_lufs_out_meter,
     kParameter_output_peak_channel_0,
     kParameter_output_peak_channel_1,
+    kParameter_vad_meter,
     kParameter_leveler_gain,
     kParameter_mb_comp_gain_0,
     kParameter_mb_comp_gain_1,
@@ -77,6 +80,7 @@ enum Parameters {
     kParameter_mb_comp_gain_5,
     kParameter_mb_comp_gain_6,
     kParameter_mb_comp_gain_7,
+    kParameter_vad_smoothing_meter,
     
     // terminator
     kParameterCount
@@ -90,7 +94,7 @@ enum States {
     kStateCount
 };
 
-static constexpr const char* kParameterNames[47] = {
+static constexpr const char* kParameterNames[51] = {
     // inputs
     "sb_strength",
     "spec 0",
@@ -108,6 +112,8 @@ static constexpr const char* kParameterNames[47] = {
     "leveler_scale",
     "mb_strength",
     "preLowcut_freq",
+    "vad_g_thr",
+    "vad_smoo_t",
     
     // ouputs
     "band  0",
@@ -132,6 +138,7 @@ static constexpr const char* kParameterNames[47] = {
     "lufs_out",
     "Out 0",
     "Out 1",
+    "vad_meter",
     "gain",
     "MBgr 0",
     "MBgr 1",
@@ -141,64 +148,69 @@ static constexpr const char* kParameterNames[47] = {
     "MBgr 5",
     "MBgr 6",
     "MBgr 7",
+    "vad_smoo",
     
 };
 
-static constexpr const struct { float def, min, max; } kParameterRanges[47] = {
+static constexpr const struct { float def, min, max; } kParameterRanges[51] = {
     // inputs
-    { 50.0, 0.0, 100.0 },
-    { -10.0, -20.0, 0.0 },
-    { -5.0, -20.0, 0.0 },
-    { -5.0, -20.0, 0.0 },
-    { -8.0, -20.0, 0.0 },
-    { -9.0, -20.0, 0.0 },
-    { -10.0, -20.0, 0.0 },
-    { -7.0, -20.0, 0.0 },
-    { -4.0, -20.0, 0.0 },
-    { 0.0, -20.0, 20.0 },
-    { 100.0, 0.0, 100.0 },
-    { 1.0, 0.0, 1.0 },
-    { -23.0, -60.0, 0.0 },
-    { 1.0, 0.0, 1.0 },
-    { 80.0, 0.0, 100.0 },
-    { 42.0, 1.0, 400.0 },
+    { 50, 0, 100 },
+    { -10, -20, 0 },
+    { -5, -20, 0 },
+    { -5, -20, 0 },
+    { -8, -20, 0 },
+    { -9, -20, 0 },
+    { -10, -20, 0 },
+    { -7, -20, 0 },
+    { -4, -20, 0 },
+    { 0, -20, 20 },
+    { 100, 0, 100 },
+    { 1, 0, 1 },
+    { -23, -60, 0 },
+    { 1, 0, 1 },
+    { 80, 0, 100 },
+    { 42, 1, 400 },
+    { 0.89999998, 0, 1 },
+    { 0.1, 0, 1 },
     
     // ouputs
-    { 0, -40.0, 40.0 },
-    { 0, -40.0, 40.0 },
-    { 0, -40.0, 40.0 },
-    { 0, -40.0, 40.0 },
-    { 0, -40.0, 40.0 },
-    { 0, -40.0, 40.0 },
-    { 0, -40.0, 40.0 },
-    { 0, -40.0, 40.0 },
-    { 0, -12.0, 12.0 },
-    { 0, -12.0, 12.0 },
-    { 0, -12.0, 12.0 },
-    { 0, -12.0, 12.0 },
-    { 0, -12.0, 12.0 },
-    { 0, -12.0, 12.0 },
-    { 0, -12.0, 12.0 },
-    { 0, -12.0, 12.0 },
-    { 0, -12.0, 0.0 },
-    { 0, -70.0, 0.0 },
-    { 0, -70.0, 0.0 },
-    { 0, -70.0, 0.0 },
-    { 0, -70.0, 0.0 },
-    { 0, -70.0, 0.0 },
-    { 0, -50.0, 50.0 },
-    { 0, -12.0, 12.0 },
-    { 0, -12.0, 12.0 },
-    { 0, -12.0, 12.0 },
-    { 0, -12.0, 12.0 },
-    { 0, -12.0, 12.0 },
-    { 0, -12.0, 12.0 },
-    { 0, -12.0, 12.0 },
-    { 0, -12.0, 12.0 },
+    { 0, -40, 40 },
+    { 0, -40, 40 },
+    { 0, -40, 40 },
+    { 0, -40, 40 },
+    { 0, -40, 40 },
+    { 0, -40, 40 },
+    { 0, -40, 40 },
+    { 0, -40, 40 },
+    { 0, -12, 12 },
+    { 0, -12, 12 },
+    { 0, -12, 12 },
+    { 0, -12, 12 },
+    { 0, -12, 12 },
+    { 0, -12, 12 },
+    { 0, -12, 12 },
+    { 0, -12, 12 },
+    { 0, -12, 0 },
+    { 0, -70, 0 },
+    { 0, -70, 0 },
+    { 0, -70, 0 },
+    { 0, -70, 0 },
+    { 0, -70, 0 },
+    { 0, 0, 1 },
+    { 0, -50, 50 },
+    { 0, -12, 12 },
+    { 0, -12, 12 },
+    { 0, -12, 12 },
+    { 0, -12, 12 },
+    { 0, -12, 12 },
+    { 0, -12, 12 },
+    { 0, -12, 12 },
+    { 0, -12, 12 },
+    { 0, 0, 1 },
     
 };
 
-static constexpr const char* kParameterSymbols[47] = {
+static constexpr const char* kParameterSymbols[51] = {
     // inputs
     "sb_strength",
     "sb_target_spectrum_0",
@@ -216,6 +228,8 @@ static constexpr const char* kParameterSymbols[47] = {
     "leveler_scale",
     "mb_strength",
     "pre_lowcut",
+    "vad_gate_thresh",
+    "vad_smoothing_time",
     
     // ouputs
     "sb_meter__0",
@@ -240,6 +254,7 @@ static constexpr const char* kParameterSymbols[47] = {
     "lufs_out_meter",
     "output_peak_channel_0",
     "output_peak_channel_1",
+    "vad_meter",
     "leveler_gain",
     "mb_comp_gain_0",
     "mb_comp_gain_1",
@@ -249,10 +264,11 @@ static constexpr const char* kParameterSymbols[47] = {
     "mb_comp_gain_5",
     "mb_comp_gain_6",
     "mb_comp_gain_7",
+    "vad_smoothing_meter",
     
 };
 
-static constexpr const char* kParameterUnits[47] = {
+static constexpr const char* kParameterUnits[51] = {
     // inputs
     "%",
     "",
@@ -269,6 +285,8 @@ static constexpr const char* kParameterUnits[47] = {
     "LUFS",
     "",
     "%",
+    "",
+    "",
     "",
     
     // ouputs
@@ -294,6 +312,7 @@ static constexpr const char* kParameterUnits[47] = {
     "LUFS",
     "",
     "",
+    "",
     "dB",
     "dB",
     "dB",
@@ -303,7 +322,9 @@ static constexpr const char* kParameterUnits[47] = {
     "dB",
     "dB",
     "dB",
+    "",
     
 };
+
 
 

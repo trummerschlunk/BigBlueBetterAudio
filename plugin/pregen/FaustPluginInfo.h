@@ -45,6 +45,8 @@ enum Parameters {
     kParameter_leveler_scale,
     kParameter_mb_strength,
     kParameter_pre_lowcut,
+    kParameter_vad_gate_thresh,
+    kParameter_vad_smoothing_time,
     
     // outputs
     kParameter_limiter_gain,
@@ -62,7 +64,7 @@ enum States {
     kStateCount
 };
 
-static constexpr const char* kParameterNames[19] = {
+static constexpr const char* kParameterNames[21] = {
     // inputs
     "sb_strength",
     "spec 0",
@@ -81,6 +83,8 @@ static constexpr const char* kParameterNames[19] = {
     "leveler_scale",
     "mb_strength",
     "preLowcut_freq",
+    "vad_g_thr",
+    "vad_smoo_t",
     
     // ouputs
     "LimiterGR",
@@ -88,33 +92,35 @@ static constexpr const char* kParameterNames[19] = {
     
 };
 
-static constexpr const struct { float def, min, max; } kParameterRanges[19] = {
+static constexpr const struct { float def, min, max; } kParameterRanges[21] = {
     // inputs
-    { 50.0, 0.0, 100.0 },
-    { -10.0, -20.0, 0.0 },
-    { -5.0, -20.0, 0.0 },
-    { -5.0, -20.0, 0.0 },
-    { -8.0, -20.0, 0.0 },
-    { -9.0, -20.0, 0.0 },
-    { -10.0, -20.0, 0.0 },
-    { -7.0, -20.0, 0.0 },
-    { -4.0, -20.0, 0.0 },
+    { 50, 0, 100 },
+    { -10, -20, 0 },
+    { -5, -20, 0 },
+    { -5, -20, 0 },
+    { -8, -20, 0 },
+    { -9, -20, 0 },
+    { -10, -20, 0 },
+    { -7, -20, 0 },
+    { -4, -20, 0 },
     { 0, 0, 1 },
-    { 0.0, -20.0, 20.0 },
-    { 80.0, 0.0, 100.0 },
-    { 1.0, 0.0, 1.0 },
-    { -23.0, -60.0, 0.0 },
-    { 1.0, 0.0, 1.0 },
-    { 80.0, 0.0, 100.0 },
-    { 42.0, 1.0, 400.0 },
+    { 0, -20, 20 },
+    { 80, 0, 100 },
+    { 1, 0, 1 },
+    { -23, -60, 0 },
+    { 1, 0, 1 },
+    { 80, 0, 100 },
+    { 42, 1, 400 },
+    { 0.89999998, 0, 1 },
+    { 0.1, 0, 1 },
     
     // ouputs
-    { 0, -12.0, 0.0 },
-    { 0, 0.0, 1.0 },
+    { 0, -12, 0 },
+    { 0, 0, 1 },
     
 };
 
-static constexpr const char* kParameterSymbols[19] = {
+static constexpr const char* kParameterSymbols[21] = {
     // inputs
     "sb_strength",
     "sb_target_spectrum_0",
@@ -133,6 +139,8 @@ static constexpr const char* kParameterSymbols[19] = {
     "leveler_scale",
     "mb_strength",
     "pre_lowcut",
+    "vad_gate_thresh",
+    "vad_smoothing_time",
     
     // ouputs
     "limiter_gain",
@@ -140,7 +148,7 @@ static constexpr const char* kParameterSymbols[19] = {
     
 };
 
-static constexpr const char* kParameterUnits[19] = {
+static constexpr const char* kParameterUnits[21] = {
     // inputs
     "%",
     "",
@@ -159,11 +167,14 @@ static constexpr const char* kParameterUnits[19] = {
     "",
     "",
     "",
+    "",
+    "",
     
     // ouputs
     "",
     "",
     
 };
+
 
 
