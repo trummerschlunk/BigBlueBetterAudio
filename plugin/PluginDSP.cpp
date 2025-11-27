@@ -64,7 +64,11 @@ class BBBAudioPlugin : public FaustGeneratedPlugin
     // whether we received enough latent audio frames
     bool processing;
 
-   #ifndef SIMPLIFIED_MAPI_BUILD
+    // smooth mute/unmute
+    static constexpr const float kMuteAttack = 0.005f;
+    static constexpr const float kMuteRelease = 0.1f;
+    LinearValueSmoother muteValue;
+
     // translate Grace Period param (ms) into frames
     // updated when param changes
     uint32_t gracePeriodInFrames = 0;
@@ -72,13 +76,9 @@ class BBBAudioPlugin : public FaustGeneratedPlugin
     // assigned to gracePeriodInFrames when going mute
     uint32_t numFramesUntilGracePeriodOver = 0;
 
+   #ifndef SIMPLIFIED_MAPI_BUILD
     // smooth bypass
     LinearValueSmoother dryValue;
-
-    // smooth mute/unmute
-    static constexpr const float kMuteAttack = 0.005f;
-    static constexpr const float kMuteRelease = 0.1f;
-    LinearValueSmoother muteValue;
 
     // cached parameter values
     float extraParameters[kExtraParamCount] = {};
@@ -141,12 +141,12 @@ public:
     BBBAudioPlugin()
         : FaustGeneratedPlugin(kExtraParamCount)
     {
+        muteValue.setTimeConstant(kMuteRelease);
+        muteValue.setTargetValue(0.f);
+
        #ifndef SIMPLIFIED_MAPI_BUILD
         dryValue.setTimeConstant(0.02f);
         dryValue.setTargetValue(0.f);
-
-        muteValue.setTimeConstant(kMuteRelease);
-        muteValue.setTargetValue(0.f);
 
         extraParameters[kExtraParamEnableVoiceIsolation] = 1.f;
         extraParameters[kExtraParamGracePeriod] = 1000.f;
@@ -367,6 +367,10 @@ protected:
         bufferInPos = 0;
         processing = false;
 
+        muteValue.setTimeConstant(kMuteRelease);
+        muteValue.setTargetValue(0.f);
+        muteValue.clearToTargetValue();
+
        #ifndef SIMPLIFIED_MAPI_BUILD
         ringBufferDry2.createBuffer(ringBufferSize);
         ringBufferOut2.createBuffer(ringBufferSize);
@@ -379,10 +383,6 @@ protected:
         extraParameters[kExtraParamMaximumVAD] = 0.f;
 
         dryValue.clearToTargetValue();
-
-        muteValue.setTimeConstant(kMuteRelease);
-        muteValue.setTargetValue(0.f);
-        muteValue.clearToTargetValue();
 
         stats.reset();
        #endif
@@ -415,8 +415,8 @@ protected:
     void run(const float** const inputs, float** const outputs, const uint32_t frames) override
     {
        #ifdef SIMPLIFIED_MAPI_BUILD
-        const float* input = inputs[0];
-        /* */ float* output = outputs[0];
+        const float* const input = inputs[0];
+        /* */ float* const output = outputs[0];
 
         // optimize for non-denormal usage
         for (uint32_t i = 0; i < frames; ++i)
@@ -426,6 +426,9 @@ protected:
             if (!std::isfinite(output[i]))
                 __builtin_unreachable();
         }
+
+        // pass this threshold to unmute
+        static constexpr const float threshold = 0.5f;
        #else
         // optimize for non-denormal usage
         const ScopedDenormalDisable sdd;
@@ -465,7 +468,7 @@ protected:
 
             // copy input data into buffer
            #ifdef SIMPLIFIED_MAPI_BUILD
-            std::memcpy(bufferIn + bufferInPos, input, framesCycleF);
+            std::memcpy(bufferIn + bufferInPos, input + offset, framesCycleF);
            #else
             std::memcpy(bufferIn + bufferInPos, inputs[0] + offset, framesCycleF);
             std::memcpy(bufferIn2 + bufferInPos, inputs[1] + offset, framesCycleF);
@@ -497,11 +500,6 @@ protected:
                 vad = std::max(vad, rnnoise_process_frame(denoise2, bufferOut2, bufferIn2));
                #endif
 
-               #ifdef SIMPLIFIED_MAPI_BUILD
-                // scale back down to regular audio level
-                for (uint32_t i = 0; i < denoiseFrameSize; ++i)
-                    bufferOut[i] *= kDenoiseScalingInv;
-               #else
                 // unmute according to threshold
                 if (vad >= threshold)
                 {
@@ -533,6 +531,7 @@ protected:
                    #endif
                 }
 
+               #ifndef SIMPLIFIED_MAPI_BUILD
                 // stats are a bit expensive, so they are optional
                 if (stats.enabled)
                 {
@@ -595,7 +594,7 @@ protected:
             {
                #ifdef SIMPLIFIED_MAPI_BUILD
                 // copy processed buffer directly into output
-                ringBufferOut.readCustomData(output, framesCycleF);
+                ringBufferOut.readCustomData(output + offset, framesCycleF);
 
                 // retrieve dry buffer (doing nothing with it)
                 ringBufferDry.readCustomData(bufferOut, framesCycleF);
@@ -659,10 +658,6 @@ protected:
             }
 
             offset += framesCycle;
-           #ifdef SIMPLIFIED_MAPI_BUILD
-            input += framesCycle;
-            output += framesCycle;
-           #endif
         }
     }
 
@@ -672,12 +667,18 @@ protected:
     */
     void sampleRateChanged(const double sampleRate) override
     {
-       #ifndef SIMPLIFIED_MAPI_BUILD
+       #ifdef SIMPLIFIED_MAPI_BUILD
+        static constexpr const float gracePeriod = 500.f;
+       #else
+        const float gracePeriod = extraParameters[kExtraParamGracePeriod];
         dryValue.setSampleRate(sampleRate);
-        muteValue.setSampleRate(sampleRate);
-        // update internal value that depends on sample rate
-        setParameterValue(kParameterCount + kExtraParamGracePeriod, extraParameters[kExtraParamGracePeriod]);
        #endif
+        muteValue.setSampleRate(sampleRate);
+
+        // update internal value that depends on sample rate
+        gracePeriodInFrames = d_roundToUnsignedInt(gracePeriod * sampleRate / 1000.0);
+
+        // report latency to host
         setLatency(denoiseFrameSize + d_roundToUnsignedInt(sampleRate * 0.005));
     }
 

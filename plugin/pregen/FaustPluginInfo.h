@@ -48,6 +48,7 @@ enum Parameters {
     
     // outputs
     kParameter_limiter_gain,
+    kParameter_vad_meter,
     
     // terminator
     kParameterCount
@@ -61,7 +62,7 @@ enum States {
     kStateCount
 };
 
-static constexpr const char* kParameterNames[18] = {
+static constexpr const char* kParameterNames[19] = {
     // inputs
     "sb_strength",
     "spec 0",
@@ -83,10 +84,11 @@ static constexpr const char* kParameterNames[18] = {
     
     // ouputs
     "LimiterGR",
+    "vad_meter",
     
 };
 
-static constexpr const struct { float def, min, max; } kParameterRanges[18] = {
+static constexpr const struct { float def, min, max; } kParameterRanges[19] = {
     // inputs
     { 50.0, 0.0, 100.0 },
     { -10.0, -20.0, 0.0 },
@@ -108,10 +110,11 @@ static constexpr const struct { float def, min, max; } kParameterRanges[18] = {
     
     // ouputs
     { 0, -12.0, 0.0 },
+    { 0, 0.0, 1.0 },
     
 };
 
-static constexpr const char* kParameterSymbols[18] = {
+static constexpr const char* kParameterSymbols[19] = {
     // inputs
     "sb_strength",
     "sb_target_spectrum_0",
@@ -133,10 +136,11 @@ static constexpr const char* kParameterSymbols[18] = {
     
     // ouputs
     "limiter_gain",
+    "vad_meter",
     
 };
 
-static constexpr const char* kParameterUnits[18] = {
+static constexpr const char* kParameterUnits[19] = {
     // inputs
     "%",
     "",
@@ -157,6 +161,7 @@ static constexpr const char* kParameterUnits[18] = {
     "",
     
     // ouputs
+    "",
     "",
     
 };
