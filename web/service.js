@@ -49,17 +49,20 @@ const createWasmProcessorStream = (stream) => {
                 const contextSource = audioContext.createMediaStreamSource(stream);
                 const contextDestination = audioContext.createMediaStreamDestination();
 
-                // FIXME can't force mono?
                 const audioProcessorOptions = {
+                    channelCount: 1,
                     numberOfInputs: 1,
                     numberOfOutputs: 1,
-                    channels: 1,
+                    outputChannelCount: [1],
                 };
                 audioProcessor = new AudioWorkletNode(audioContext, 'mapi-proc', audioProcessorOptions);
                 audioProcessor.port.onmessage = event => {
                     if (event.data?.type == 'loaded') {
                         console.log("audioProcessor has been loaded, triggering callback now");
                         resolve([contextDestination.stream, audioProcessor, audioContext]);
+                    }
+                    else if (event.data?.type == 'error') {
+                        reject(event.data.error);
                     }
                 };
                 audioProcessor.port.postMessage({ type: 'init', wasm: loadedFiles.wasmBlob, js: loadedFiles.wasmJS });

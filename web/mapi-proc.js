@@ -7,7 +7,7 @@ const sizeof_float = 4;
 const sizeof_ptr = 4;
 
 // function to setup wasm + emscripten module options for offline fetch
-const createWasmOpts = (wasmBlob, postRunCallback) => {
+const createWasmOpts = (wasmBlob, postRunCallback, errorCallback) => {
     return {
         // override to use previously retrieved blob data, as `fetch` is not allowed in worklets
         instantiateWasm: (imports, successCallback) => {
@@ -21,7 +21,7 @@ const createWasmOpts = (wasmBlob, postRunCallback) => {
 
                 successCallback(output.instance, output.module);
             }).catch(error => {
-                console.log('Failed to instantiate:', error);
+                errorCallback(error);
             });
 
             return {};
@@ -104,10 +104,15 @@ class MapiWorkletProcessor extends AudioWorkletProcessor {
         const create_module_bbba = jsfn_bbba.call();
 
         // create wasm opts for offline loading
-        const opts = createWasmOpts(data.wasm, (module) => {
-            this.bbba = new MapiProcessorInstance(module);
-            this.port.postMessage({ type: 'loaded' });
-        });
+        const opts = createWasmOpts(data.wasm,
+            (module) => {
+                this.bbba = new MapiProcessorInstance(module);
+                this.port.postMessage({ type: 'loaded' });
+            },
+            (error) => {
+                this.port.postMessage({ type: 'error', error: error });
+            },
+        );
 
         // create the wasm module and instance
         create_module_bbba(opts);
@@ -120,7 +125,6 @@ class MapiWorkletProcessor extends AudioWorkletProcessor {
         }
 
         this.bbba.enabled = !!data.enable;
-        console.log('BBBA status changed:', this.bbba.enabled);
     }
 
     param(data) {
