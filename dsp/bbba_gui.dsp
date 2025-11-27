@@ -142,11 +142,11 @@ vad_meter = _<: attach(_, gui_main(vbargraph("[symbol:vad_meter]vad_meter",0,1))
 vad = vad_ext : vad_smoothing : vad_smoothing_meter : vad_gate : vad_meter;
 
 vad_gate(x) = x * (x > vad_gate_thresh);
-vad_gate_thresh = gui_main(vslider("vad_g_thr[symbol:vad_gate_thresh]",vad_gate_thresh_init,0,1,0.1));
+vad_gate_thresh = gui_main(vslider("vad_g_thr[symbol:vad_gate_thresh]",vad_gate_thresh_init,0,1,00.1));
 vad_gate_thresh_init = 0.9;
 
 vad_smoothing = si.smooth(ba.tau2pole(vad_smoothing_time));
-vad_smoothing_time = gui_main(vslider("vad_smoo_t[symbol:vad_smoothing_time]",vad_smoothing_time_init,0,1,0.1));
+vad_smoothing_time = gui_main(vslider("vad_smoo_t[symbol:vad_smoothing_time]",vad_smoothing_time_init,0,1,0.01));
 vad_smoothing_time_init = 0.1;
 vad_smoothing_meter = _<: attach(_, gui_main(vbargraph("vad_smoo[symbol:vad_smoothing_meter]",0,1)));
 
