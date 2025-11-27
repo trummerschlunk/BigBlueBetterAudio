@@ -3,8 +3,6 @@
 
 // known constants
 const nominalBufferSize = 128;
-const sizeof_float = 4;
-const sizeof_ptr = 4;
 
 // function to setup wasm + emscripten module options for offline fetch
 const createWasmOpts = (wasmBlob, postRunCallback, errorCallback) => {
@@ -33,18 +31,27 @@ const createWasmOpts = (wasmBlob, postRunCallback, errorCallback) => {
 // class that holds a mono audio plugin instance
 // see https://github.com/DISTRHO/MAPI for the API used here
 class MapiProcessorInstance {
-    constructor(module) {
+    constructor(portm, module) {
+        this.port = port;
         this.module = module;
         this.handle = module._mapi_create(sampleRate);
         this.enabled = true;
+        this.monitor_param = -1;
+        this.monitor_value = null;
 
-        this.audioData = module._malloc(sizeof_float * nominalBufferSize);
-        this.audioPtrs = module._malloc(sizeof_ptr);
+        this.audioData = module._malloc(module.HEAPF32.BYTES_PER_ELEMENT * nominalBufferSize);
+        this.audioPtrs = module._malloc(module.HEAPU32.BYTES_PER_ELEMENT);
         module.HEAPU32[this.audioPtrs + (0 << 2) >> 2] = this.audioData;
     }
 
     param(index, value) {
         this.module._mapi_set_parameter(this.handle, index, value);
+    }
+
+    monitor(index) {
+        console.error('BBBA wasm monitor2', index);
+        this.monitor_param = index;
+        this.monitor_value = this.module._mapi_get_parameter(this.handle, index);
     }
 
     process(buffer, bufferSize, bufferOffset) {
@@ -58,6 +65,15 @@ class MapiProcessorInstance {
 
         for (let i = 0; i < bufferSize; ++i)
             buffer[bufferOffset + i] = this.module.HEAPF32[this.audioData + (i << 2) >> 2];
+
+        if (this.monitor_param != -1) {
+            const value = this.module._mapi_get_parameter(this.handle, this.monitor_param);
+            if (this.monitor_value != value) {
+                this.monitor_value = value;
+                // TODO report value changed, can't be done from within process?
+                // this.port.postMessage({ type: 'monitor', value: value });
+            }
+        }
     }
 };
 
@@ -88,6 +104,9 @@ class MapiWorkletProcessor extends AudioWorkletProcessor {
             case 'enable':
                 this.enable(event.data);
                 break;
+            case 'monitor':
+                this.monitor(event.data);
+                break;
             case 'param':
                 this.param(event.data);
                 break;
@@ -106,7 +125,7 @@ class MapiWorkletProcessor extends AudioWorkletProcessor {
         // create wasm opts for offline loading
         const opts = createWasmOpts(data.wasm,
             (module) => {
-                this.bbba = new MapiProcessorInstance(module);
+                this.bbba = new MapiProcessorInstance(this.port, module);
                 this.port.postMessage({ type: 'loaded' });
             },
             (error) => {
@@ -125,6 +144,16 @@ class MapiWorkletProcessor extends AudioWorkletProcessor {
         }
 
         this.bbba.enabled = !!data.enable;
+    }
+
+    monitor(data) {
+        if (!this.bbba) {
+            console.error('BBBA wasm is not loaded yet!');
+            return;
+        }
+
+        console.error('BBBA wasm monitor', data);
+        this.bbba.monitor(data.index);
     }
 
     param(data) {
