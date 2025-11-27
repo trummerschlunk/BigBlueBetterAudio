@@ -57,8 +57,8 @@ maxSR = 48000;                      // maximum samplerate
 sbmb_strength_init = 100;
 
 lev_target_init = -23;
-lev_maxboost_init = 30;
-lev_maxcut_init = 30;
+lev_maxboost_init = 20;
+lev_maxcut_init = 20;
 lev_brake_threshold_init = -22;
 lev_speed_init = 80;
 lev_scale_init =100;
