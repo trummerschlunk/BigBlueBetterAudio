@@ -298,6 +298,8 @@ protected:
         case kParameter_sb_target_spectrum_7:
         case kParameter_vad_ext:
         case kParameter_pre_lowcut:
+        case kParameter_vad_gate_thresh:
+        case kParameter_vad_smoothing_time:
         case kParameter_sb_meter__0:
         case kParameter_sb_meter__1:
         case kParameter_sb_meter__2:
@@ -306,6 +308,8 @@ protected:
         case kParameter_sb_meter__5:
         case kParameter_sb_meter__6:
         case kParameter_sb_meter__7:
+        case kParameter_vad_meter:
+        case kParameter_vad_smoothing_meter:
             return;
             // unused
             return;
