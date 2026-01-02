@@ -8,8 +8,7 @@ jobs:
     strategy:
       matrix:
         target: [linux-arm64, linux-armhf, linux-i686, linux-riscv64, linux-x86_64]
-    runs-on: ubuntu-latest
-    container: ubuntu:22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -62,7 +61,7 @@ jobs:
   windows:
     strategy:
       matrix:
-        target: [win32, win64]
+        target: [win64]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
