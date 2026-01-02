@@ -46,7 +46,7 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: emsdk
-          key: emsdk
+          key: emsdk-v2
       - name: Build for wasm
         run: ./build-for-wasm.sh
       - name: Set sha8
@@ -57,8 +57,7 @@ jobs:
         with:
           name: ${{ env.ARTIFACT_BASENAME }}
           path: |
-            bin/BBBA-mapi.*
-            bin-nosimd/BBBA-mapi-nosimd.*
+            bin/*.*
 
   windows:
     strategy:
