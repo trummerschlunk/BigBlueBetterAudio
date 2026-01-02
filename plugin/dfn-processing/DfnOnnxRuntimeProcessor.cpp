@@ -3,7 +3,7 @@
 DfnOnnxRuntimeProcessor::DfnOnnxRuntimeProcessor(anira::InferenceConfig& inference_config)
     : BackendBase(inference_config),
       m_memory_info(Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeCPU))
-#if 1
+#ifdef __EMSCRIPTEN__
     , m_env((const OrtThreadingOptions*)&m_threading_options)
 #endif
 {
