@@ -431,6 +431,9 @@ endif
 
 ifeq ($(CROSS_COMPILING),true)
 ONNXRUNTIME_FLAGS += -Donnxruntime_CROSS_COMPILING=ON
+ifneq (,$(EXE_WRAPPER),true)
+ONNXRUNTIME_FLAGS += -DCMAKE_CROSSCOMPILING_EMULATOR="$(EXE_WRAPPER)"
+endif
 endif
 
 ifeq ($(MACOS),true)
