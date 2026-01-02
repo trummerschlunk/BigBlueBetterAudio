@@ -188,8 +188,10 @@ EXTRA_DSP_LIBS += build/deps/onnxruntime/libonnxruntime_webassembly.a
 else ifeq ($(WINDOWS),true)
 EXTRA_DSP_LIBS += build/deps/onnxruntime/lib/onnxruntime.lib
 else
+ifneq ($(MACOS),true)
 EXTRA_DSP_LIBS += -Wl,--start-group
 # EXTRA_DSP_LIBS += -Wl,--whole-archive
+endif
 EXTRA_DSP_LIBS += build/deps/onnxruntime/_deps/abseil_cpp-build/absl/base/libabsl_base.a
 # EXTRA_DSP_LIBS += build/deps/onnxruntime/_deps/abseil_cpp-build/absl/base/libabsl_log_severity.a
 EXTRA_DSP_LIBS += build/deps/onnxruntime/_deps/abseil_cpp-build/absl/base/libabsl_malloc_internal.a
@@ -283,8 +285,10 @@ EXTRA_DSP_LIBS += build/deps/onnxruntime/libonnxruntime_providers.a
 EXTRA_DSP_LIBS += build/deps/onnxruntime/libonnxruntime_session.a
 # EXTRA_DSP_LIBS += build/deps/onnxruntime/libonnxruntime_test_utils.a
 EXTRA_DSP_LIBS += build/deps/onnxruntime/libonnxruntime_util.a
+ifneq ($(MACOS),true)
 # EXTRA_DSP_LIBS += -Wl,--no-whole-archive
 EXTRA_DSP_LIBS += -Wl,--end-group
+endif
 endif
 
 EXTRA_DSP_LIBS += -pthread
