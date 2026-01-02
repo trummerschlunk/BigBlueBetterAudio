@@ -17,6 +17,7 @@
 #endif
 
 #include "rnnoise.h"
+#include "DfnProcessor.h"
 
 // checks to ensure things are still as we expect them to be from faust dsp side
 #ifdef SIMPLIFIED_MAPI_BUILD
@@ -33,6 +34,7 @@ START_NAMESPACE_DISTRHO
 
 class BBBAudioPlugin : public FaustGeneratedPlugin
 {
+#if 0
     // scaling used for denoise processing
     static constexpr const uint32_t kDenoiseScaling = std::numeric_limits<short>::max();
     static constexpr const float kDenoiseScalingInv = 1.f / kDenoiseScaling;
@@ -132,6 +134,9 @@ class BBBAudioPlugin : public FaustGeneratedPlugin
         }
     } stats;
    #endif
+#endif
+
+    DfnProcessor dfnProcessor;
 
 public:
    /**
@@ -141,6 +146,7 @@ public:
     BBBAudioPlugin()
         : FaustGeneratedPlugin(kExtraParamCount)
     {
+#if 0
         muteValue.setTimeConstant(kMuteRelease);
         muteValue.setTargetValue(0.f);
 
@@ -151,6 +157,7 @@ public:
         extraParameters[kExtraParamEnableVoiceIsolation] = 1.f;
         extraParameters[kExtraParamGracePeriod] = 1000.f;
        #endif
+#endif
 
         // initial sample rate setup
         sampleRateChanged(getSampleRate());
@@ -161,10 +168,12 @@ public:
     */
     ~BBBAudioPlugin()
     {
+#if 0
         rnnoise_destroy(denoise);
        #ifndef SIMPLIFIED_MAPI_BUILD
         rnnoise_destroy(denoise2);
        #endif
+#endif
     }
 
 protected:
@@ -312,6 +321,7 @@ protected:
         }
     }
 
+#if 0
    /**
       Get the current value of a parameter.
       The host may call this function from any context, including realtime processing.
@@ -349,6 +359,7 @@ protected:
         }
     }
    #endif
+#endif
 
    /* -----------------------------------------------------------------------------------------------------------------
     * Audio/MIDI Processing */
@@ -358,6 +369,7 @@ protected:
     */
     void activate() override
     {
+#if 0
         const uint32_t ringBufferSize = denoiseFrameSizeF * 2;
         ringBufferDry.createBuffer(ringBufferSize);
         ringBufferOut.createBuffer(ringBufferSize);
@@ -386,6 +398,7 @@ protected:
 
         stats.reset();
        #endif
+#endif
     }
 
    /**
@@ -393,6 +406,7 @@ protected:
     */
     void deactivate() override
     {
+#if 0
         delete[] bufferIn;
         delete[] bufferOut;
 
@@ -406,6 +420,7 @@ protected:
         ringBufferDry2.deleteBuffer();
         ringBufferOut2.deleteBuffer();
        #endif
+#endif
     }
 
    /**
@@ -414,6 +429,12 @@ protected:
     */
     void run(const float** const inputs, float** const outputs, const uint32_t frames) override
     {
+        if (inputs[0] != outputs[0])
+            std::memcpy(outputs[0], inputs[0], frames * sizeof(float));
+
+        dfnProcessor.process(outputs, 1, frames);
+
+#if 0
        #ifdef SIMPLIFIED_MAPI_BUILD
         const float* const input = inputs[0];
         /* */ float* const output = outputs[0];
@@ -659,6 +680,12 @@ protected:
 
             offset += framesCycle;
         }
+#endif
+    }
+
+    void bufferSizeChanged(const uint32_t bufferSize) override
+    {
+        dfnProcessor.prepare(getSampleRate(), bufferSize);
     }
 
    /**
@@ -667,6 +694,7 @@ protected:
     */
     void sampleRateChanged(const double sampleRate) override
     {
+#if 0
        #ifdef SIMPLIFIED_MAPI_BUILD
         static constexpr const float gracePeriod = 500.f;
        #else
@@ -680,6 +708,9 @@ protected:
 
         // report latency to host
         setLatency(denoiseFrameSize + d_roundToUnsignedInt(sampleRate * 0.005));
+#endif
+
+        dfnProcessor.prepare(sampleRate, getBufferSize());
     }
 
     // ----------------------------------------------------------------------------------------------------------------
@@ -691,6 +722,7 @@ protected:
 
 Plugin* createPlugin()
 {
+    d_stderr("%s", __FUNCTION__);
     return new BBBAudioPlugin();
 }
 

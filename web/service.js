@@ -38,9 +38,11 @@ const createWasmProcessorStream = (stream) => {
         audioProcessor = null;
     }
 
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         // create audio context first
+        console.log("createWasmProcessorStream promise 1");
         const audioContext = new AudioContext();
+        console.log("createWasmProcessorStream promise 2");
 
         // function to load audio worklet, called once audio context is running
         const loadAudioWorklet = async () => {
@@ -80,11 +82,18 @@ const createWasmProcessorStream = (stream) => {
                 console.log("---------------------------------------------------------------- loadAudioWorklet ok!");
             }).catch(reject);
         };
+        console.log("createWasmProcessorStream promise 3");
 
-        audioContext.resume().then(loadAudioWorklet).catch((err) => {
+        audioContext.resume().then(() => {
+            console.log("createWasmProcessorStream promise then 1");
+            loadAudioWorklet();
+            console.log("createWasmProcessorStream promise then 2");
+        }).catch((err) => {
+            console.log("createWasmProcessorStream promise catch 1");
             // chrome does not allow to load worklet while audio context is suspended
             // resuming audio context requires user interaction
             if (audioContext.state === 'suspended') {
+                console.log("createWasmProcessorStream promise catch 2a");
                 const resume = () => {
                     console.log("---------------------------------- clicked document, trying to resume audio context");
                     audioContext.resume().then(loadAudioWorklet).catch(reject);
@@ -92,9 +101,11 @@ const createWasmProcessorStream = (stream) => {
                 };
                 document.addEventListener('click', resume);
             } else {
+                console.log("createWasmProcessorStream promise catch 2b");
                 reject(err);
             }
         });
+        console.log("createWasmProcessorStream promise 4");
     });
 };
 

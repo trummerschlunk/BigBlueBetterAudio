@@ -1,9 +1,21 @@
+[submodule "deps/anira"]
+	path = deps/anira
+	url = https://github.com/anira-project/anira.git
+[submodule "deps/concurrentqueue"]
+	path = deps/concurrentqueue
+	url = https://github.com/cameron314/concurrentqueue.git
 [submodule "deps/dpf"]
 	path = deps/dpf
 	url = https://github.com/DISTRHO/DPF.git
 [submodule "deps/dpf-widgets"]
 	path = deps/dpf-widgets
 	url = https://github.com/DISTRHO/DPF-Widgets.git
+[submodule "deps/nlohmann-json"]
+	path = deps/nlohmann-json
+	url = https://github.com/nlohmann/json.git
+[submodule "deps/onnxruntime"]
+	path = deps/onnxruntime
+	url = https://github.com/microsoft/onnxruntime.git
 [submodule "deps/rnnoise"]
 	path = deps/rnnoise
 	url = https://github.com/falkTX/rnnoise.git
