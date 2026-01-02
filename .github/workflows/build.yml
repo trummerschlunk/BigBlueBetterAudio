@@ -7,7 +7,9 @@ jobs:
   linux:
     strategy:
       matrix:
-        target: [linux-arm64, linux-armhf, linux-i686, linux-riscv64, linux-x86_64]
+        target: [linux-arm64, linux-armhf, linux-i686, linux-x86_64]
+        # TODO unsupported?
+        # , linux-riscv64
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
