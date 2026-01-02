@@ -125,6 +125,7 @@ CXXFLAGS += -DMAC_OS_X_VERSION_MAX_ALLOWED=MAC_OS_VERSION_11_0
 CXXFLAGS += -UMAC_OS_X_VERSION_MIN_REQUIRED
 CXXFLAGS += -DMAC_OS_X_VERSION_MIN_REQUIRED=MAC_OS_VERSION_11_0
 CXXFLAGS += -mmacosx-version-min=11
+LDFLAGS += -mmacosx-version-min=11
 endif
 
 ifeq ($(WASM),true)
@@ -325,6 +326,7 @@ bin/service.js: web/service.js
 	ln -sf $(abspath $<) $@
 
 %/onnxruntime.dll: build/deps/onnxruntime/lib/onnxruntime.lib lv2_sep
+	-@mkdir -p "$(shell dirname $@)"
 	cp -v build/deps/onnxruntime/lib/onnxruntime.dll $@
 
 # ---------------------------------------------------------------------------------------------------------------------
