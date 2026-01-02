@@ -115,10 +115,14 @@ endif
 
 # TESTING for CI
 ifeq ($(MACOS),true)
+CFLAGS += -UMAC_OS_X_VERSION_MAX_ALLOWED
 CFLAGS += -DMAC_OS_X_VERSION_MAX_ALLOWED=MAC_OS_VERSION_11_0
+CFLAGS += -UMAC_OS_X_VERSION_MIN_REQUIRED
 CFLAGS += -DMAC_OS_X_VERSION_MIN_REQUIRED=MAC_OS_VERSION_11_0
 CFLAGS += -mmacosx-version-min=11
+CXXFLAGS += -UMAC_OS_X_VERSION_MAX_ALLOWED
 CXXFLAGS += -DMAC_OS_X_VERSION_MAX_ALLOWED=MAC_OS_VERSION_11_0
+CXXFLAGS += -UMAC_OS_X_VERSION_MIN_REQUIRED
 CXXFLAGS += -DMAC_OS_X_VERSION_MIN_REQUIRED=MAC_OS_VERSION_11_0
 CXXFLAGS += -mmacosx-version-min=11
 endif
@@ -153,12 +157,12 @@ BUILD_CXX_FLAGS += -DENABLE_LOGGING
 BUILD_CXX_FLAGS += -DUSE_ONNXRUNTIME
 ifeq ($(WINDOWS),true)
 BUILD_CXX_FLAGS += -DANIRA_ANIRAWINEXPORTS_H
-BUILD_CXX_FLAGS += -DANIRA_API
+BUILD_CXX_FLAGS += -DANIRA_API=
 endif
 
 # from onnxruntime
 ifeq ($(WINDOWS),true)
-BUILD_CXX_FLAGS += -D_Frees_ptr_opt_
+BUILD_CXX_FLAGS += -D_Frees_ptr_opt_=
 endif
 # BUILD_CXX_FLAGS += -DEIGEN_MPL2_ONLY
 # BUILD_CXX_FLAGS += -DORT_ENABLE_STREAM
@@ -429,11 +433,13 @@ endif
 
 ifeq ($(MACOS),true)
 # make sure macOS target matches ours
+SPACE =
+SPACE +=
 ifneq (,$(findstring -arch$(SPACE),$(CXXFLAGS)))
 ONNXRUNTIME_FLAGS += -DCMAKE_OSX_ARCHITECTURES='$(subst $(SPACE),;,$(subst -arch=,,$(filter -arch=%,$(subst -arch$(SPACE),-arch=,$(CXXFLAGS)))))'
 endif
 ifneq (,$(findstring -mmacosx-version-min=,$(CXXFLAGS)))
-export MACOSX_DEPLOYMENT_TARGET = $(subst -mmacosx-version-min=,,$(filter -mmacosx-version-min=%,$(CXXFLAGS)))
+export MACOSX_DEPLOYMENT_TARGET = $(lastword $(subst -mmacosx-version-min=,,$(filter -mmacosx-version-min=%,$(CXXFLAGS))))
 ONNXRUNTIME_FLAGS += -DCMAKE_OSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET)
 endif
 ONNXRUNTIME_FLAGS += -DCMAKE_OSX_SYSROOT="macosx"
@@ -472,6 +478,8 @@ build/deps/onnxruntime/libonnxruntime_webassembly.a: build/deps/onnxruntime/Make
 # 		--parallel
 
 build/deps/onnxruntime/Makefile: deps/onnxruntime/cmake/CMakeLists.txt
+	sed -i -e 's|eigen-e7248b26a1ed53fa030c5c459f7ea095dfd276ac.zip;be8be39fdbc6e60e94fa7870b280707069b5b81a|eigen-e7248b26a1ed53fa030c5c459f7ea095dfd276ac.zip;32b145f525a8308d7ab1c09388b2e288312d8eba|' deps/onnxruntime/cmake/deps.txt
+	sed -i -e 's|COMPILE_WARNING_AS_ERROR ON|COMPILE_WARNING_AS_ERROR OFF|' deps/onnxruntime/cmake/CMakeLists.txt
 	env cmake -S deps/onnxruntime/cmake -B build/deps/onnxruntime \
 		-DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_TLS_VERIFY=ON \
