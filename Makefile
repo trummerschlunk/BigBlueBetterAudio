@@ -141,8 +141,15 @@ BUILD_CXX_FLAGS += -Iplugin/dfn-processing
 BUILD_CXX_FLAGS += -DANIRA_VERSION='"v2.0.3"'
 BUILD_CXX_FLAGS += -DENABLE_LOGGING
 BUILD_CXX_FLAGS += -DUSE_ONNXRUNTIME
+ifeq ($(WINDOWS),true)
+BUILD_CXX_FLAGS += -DANIRA_ANIRAWINEXPORTS_H
+BUILD_CXX_FLAGS += -DANIRA_API
+endif
 
 # from onnxruntime
+ifeq ($(WINDOWS),true)
+BUILD_CXX_FLAGS += -D_Frees_ptr_opt_
+endif
 # BUILD_CXX_FLAGS += -DEIGEN_MPL2_ONLY
 # BUILD_CXX_FLAGS += -DORT_ENABLE_STREAM
 # BUILD_CXX_FLAGS += -DORT_NO_RTTI
@@ -501,6 +508,8 @@ build/deps/onnxruntime-win-x64-$(ONNXRUNTIME_VERSION).zip:
 	wget -O $@ https://github.com/microsoft/onnxruntime/releases/download/v$(ONNXRUNTIME_VERSION)/onnxruntime-win-x64-$(ONNXRUNTIME_VERSION).zip
 else
 build/deps/onnxruntime/Makefile: deps/onnxruntime/cmake/CMakeLists.txt
+	sed -i -e 's|eigen-e7248b26a1ed53fa030c5c459f7ea095dfd276ac.zip;be8be39fdbc6e60e94fa7870b280707069b5b81a|eigen-e7248b26a1ed53fa030c5c459f7ea095dfd276ac.zip;32b145f525a8308d7ab1c09388b2e288312d8eba|' cmake/deps.txt
+	sed -i -e 's|COMPILE_WARNING_AS_ERROR ON|COMPILE_WARNING_AS_ERROR OFF|' deps/onnxruntime/cmake/CMakeLists.txt
 	env cmake -S deps/onnxruntime/cmake -B build/deps/onnxruntime $(ONNXRUNTIME_FLAGS)
 
 build/deps/onnxruntime/_deps/re2-build/libre2.a: build/deps/onnxruntime/libonnxruntime_session.a
