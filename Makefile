@@ -188,7 +188,9 @@ EXTRA_DSP_LIBS += build/deps/onnxruntime/libonnxruntime_webassembly.a
 else ifeq ($(WINDOWS),true)
 EXTRA_DSP_LIBS += build/deps/onnxruntime/lib/onnxruntime.lib
 else
-ifneq ($(MACOS),true)
+ifeq ($(MACOS),true)
+EXTRA_DSP_LIBS += -framework Foundation
+else
 EXTRA_DSP_LIBS += -Wl,--start-group
 # EXTRA_DSP_LIBS += -Wl,--whole-archive
 endif
