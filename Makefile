@@ -87,11 +87,7 @@ endif
 # ---------------------------------------------------------------------------------------------------------------------
 # dpf plugin config
 
-ifeq ($(NOOPT),true)
-NAME = BBBA-nosimd
-else
 NAME = BBBA
-endif
 MAPI_MODULE_NAME = mapi_bbba
 
 # include dpf plugins makefile definitions
