@@ -47,7 +47,7 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: emsdk
-          key: emsdk-v2
+          key: emsdk-v3
       - name: Build for wasm
         run: ./build-for-wasm.sh
       - name: Set sha8
