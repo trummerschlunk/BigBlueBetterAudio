@@ -113,6 +113,16 @@ endif
 # ---------------------------------------------------------------------------------------------------------------------
 # tweak build flags
 
+# TESTING for CI
+ifeq ($(MACOS),true)
+CFLAGS += -DMAC_OS_X_VERSION_MAX_ALLOWED=MAC_OS_VERSION_11_0
+CFLAGS += -DMAC_OS_X_VERSION_MIN_REQUIRED=MAC_OS_VERSION_11_0
+CFLAGS += -mmacosx-version-min=11
+CXXFLAGS += -DMAC_OS_X_VERSION_MAX_ALLOWED=MAC_OS_VERSION_11_0
+CXXFLAGS += -DMAC_OS_X_VERSION_MIN_REQUIRED=MAC_OS_VERSION_11_0
+CXXFLAGS += -mmacosx-version-min=11
+endif
+
 ifeq ($(WASM),true)
 BASE_FLAGS += -sWASM_WORKERS
 endif
