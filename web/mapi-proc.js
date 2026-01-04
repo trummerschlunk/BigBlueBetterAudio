@@ -31,7 +31,7 @@ const createWasmOpts = (wasmBlob, postRunCallback, errorCallback) => {
 // class that holds a mono audio plugin instance
 // see https://github.com/DISTRHO/MAPI for the API used here
 class MapiProcessorInstance {
-    constructor(portm, module) {
+    constructor(port, module) {
         this.port = port;
         this.module = module;
         this.handle = module._mapi_create(sampleRate);
