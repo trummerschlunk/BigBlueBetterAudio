@@ -12,9 +12,10 @@
 // from 0.15 on bbba needs rnnoise for controlling VAD
 // 0.17 looses all internal VAD (minimum tracking, expanders)
 // 0.23 return of the expander, SB: limit pos on edge bands
+// 0.24 vad smoothing in ms
 
 declare name "bbba";
-declare version "0.23";             
+declare version "0.24";             
 declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
@@ -104,8 +105,8 @@ vad_gate_thresh = gui_main(vslider("vad_g_thr[symbol:vad_gate_thresh]",vad_gate_
 vad_gate_thresh_init = 0.9;
 
 vad_smoothing = si.smooth(ba.tau2pole(vad_smoothing_time));
-vad_smoothing_time = gui_main(vslider("vad_smoo_t[symbol:vad_smoothing_time]",vad_smoothing_time_init,0,1,0.01));
-vad_smoothing_time_init = 0.1;
+vad_smoothing_time = gui_main(vslider("vad_smoo_t[unit:ms][symbol:vad_smoothing_time]",vad_smoothing_time_init,0,1000,10)) / 1000;
+vad_smoothing_time_init = 100;
 vad_smoothing_meter = _;//_<: attach(_, gui_main(vbargraph("vad_smoo[symbol:vad_smoothing_meter]",0,1)));
 
 

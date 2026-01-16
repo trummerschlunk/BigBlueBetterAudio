@@ -20,9 +20,10 @@
 // 0.26 no bypass
 // 0.27 lufs->LUFS
 // 0.28 return of the expander
+// 0.29 vad smoothing in ms
 
 declare name "bbba";
-declare version "0.28";             
+declare version "0.29";             
 declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
@@ -151,8 +152,8 @@ vad_gate_thresh = gui_main(vslider("vad_g_thr[symbol:vad_gate_thresh]",vad_gate_
 vad_gate_thresh_init = 0.9;
 
 vad_smoothing = si.smooth(ba.tau2pole(vad_smoothing_time));
-vad_smoothing_time = gui_main(vslider("vad_smoo_t[symbol:vad_smoothing_time]",vad_smoothing_time_init,0,1,0.01));
-vad_smoothing_time_init = 0.1;
+vad_smoothing_time = gui_main(vslider("vad_smoo_t[unit:ms][symbol:vad_smoothing_time]",vad_smoothing_time_init,0,1000,10)) / 1000;
+vad_smoothing_time_init = 100;
 vad_smoothing_meter = _<: attach(_, gui_main(vbargraph("vad_smoo[symbol:vad_smoothing_meter]",0,1)));
 
 
