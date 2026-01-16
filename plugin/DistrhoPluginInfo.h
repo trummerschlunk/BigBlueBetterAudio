@@ -15,10 +15,12 @@
    Stored in a common header file for convenience
  */
 enum ExtraParameters {
+   #ifndef SIMPLIFIED_MAPI_BUILD
     kExtraParamGlobalBypass,
+    kExtraParamEnableVoiceIsolation,
+   #endif
     kExtraParamIntensity,
    #ifndef SIMPLIFIED_MAPI_BUILD
-    kExtraParamEnableVoiceIsolation,
     kExtraParamThreshold,
     kExtraParamGracePeriod,
     kExtraParamEnableStats,

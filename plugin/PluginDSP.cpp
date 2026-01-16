@@ -81,7 +81,10 @@ class BBBAudioPlugin : public FaustGeneratedPlugin
     uint32_t numFramesUntilGracePeriodOver = 0;
 
     // intensity and bypass smoothing
-    LinearValueSmoother dryValue;
+   #ifndef SIMPLIFIED_MAPI_BUILD
+    LinearValueSmoother globalDryValue;
+   #endif
+    LinearValueSmoother denoiserDryValue;
 
     // cached parameter values
     float extraParameters[kExtraParamCount] = {};
@@ -148,8 +151,13 @@ public:
         muteValue.setTimeConstant(kMuteRelease);
         muteValue.setTargetValue(0.f);
 
-        dryValue.setTimeConstant(0.02f);
-        dryValue.setTargetValue(0.f);
+       #ifndef SIMPLIFIED_MAPI_BUILD
+        globalDryValue.setTimeConstant(0.02f);
+        globalDryValue.setTargetValue(0.f);
+       #endif
+
+        denoiserDryValue.setTimeConstant(0.02f);
+        denoiserDryValue.setTargetValue(0.f);
 
         extraParameters[kExtraParamIntensity] = 100.f;
        #ifndef SIMPLIFIED_MAPI_BUILD
@@ -243,9 +251,19 @@ protected:
 
         switch (index - kParameterCount)
         {
+       #ifndef SIMPLIFIED_MAPI_BUILD
         case kExtraParamGlobalBypass:
             parameter.initDesignation(kParameterDesignationBypass);
             break;
+        case kExtraParamEnableVoiceIsolation:
+            parameter.hints |= kParameterIsBoolean | kParameterIsInteger;
+            parameter.name   = "Voice Isolation";
+            parameter.symbol = "voice_isolation";
+            parameter.ranges.def = 1.f;
+            parameter.ranges.min = 0.f;
+            parameter.ranges.max = 1.f;
+            break;
+       #endif
         case kExtraParamIntensity:
             parameter.hints |= kParameterIsInteger;
             parameter.name   = "Intensity";
@@ -256,14 +274,6 @@ protected:
             parameter.ranges.max = 100.f;
             break;
        #ifndef SIMPLIFIED_MAPI_BUILD
-        case kExtraParamEnableVoiceIsolation:
-            parameter.hints |= kParameterIsBoolean | kParameterIsInteger;
-            parameter.name   = "Voice Isolation";
-            parameter.symbol = "voice_isolation";
-            parameter.ranges.def = 1.f;
-            parameter.ranges.min = 0.f;
-            parameter.ranges.max = 1.f;
-            break;
         case kExtraParamThreshold:
             parameter.hints |= kParameterIsInteger;
             parameter.name   = "Threshold";
@@ -358,13 +368,20 @@ protected:
 
         switch (index)
         {
+       #ifdef SIMPLIFIED_MAPI_BUILD
+        case kExtraParamIntensity:
+            denoiserDryValue.setTargetValue(1.f - value * 0.01f);
+            break;
+       #else
         case kExtraParamGlobalBypass:
-            dryValue.setTargetValue(value < 0.5f ? 1.f - extraParameters[kExtraParamIntensity] * 0.01f : 0.f);
+            globalDryValue.setTargetValue(value);
+            break;
+        case kExtraParamEnableVoiceIsolation:
+            denoiserDryValue.setTargetValue(value > 0.5f ? 1.f - extraParameters[kExtraParamIntensity] * 0.01f : 1.f);
             break;
         case kExtraParamIntensity:
-            dryValue.setTargetValue(extraParameters[kExtraParamGlobalBypass] < 0.5f ? 1.f - value * 0.01f : 0.f);
+            denoiserDryValue.setTargetValue(extraParameters[kExtraParamEnableVoiceIsolation] > 0.5f ? 1.f - value * 0.01f : 1.f);
             break;
-       #ifndef SIMPLIFIED_MAPI_BUILD
         case kExtraParamGracePeriod:
             gracePeriodInFrames = d_roundToUnsignedInt(value * getSampleRate() / 1000.0);
             break;
@@ -393,6 +410,8 @@ protected:
         muteValue.setTargetValue(0.f);
         muteValue.clearToTargetValue();
 
+        denoiserDryValue.clearToTargetValue();
+
        #ifndef SIMPLIFIED_MAPI_BUILD
         ringBufferDry2.createBuffer(ringBufferSize);
         ringBufferOut2.createBuffer(ringBufferSize);
@@ -404,7 +423,7 @@ protected:
         extraParameters[kExtraParamMinimumVAD] = 0.f;
         extraParameters[kExtraParamMaximumVAD] = 0.f;
 
-        dryValue.clearToTargetValue();
+        globalDryValue.clearToTargetValue();
 
         stats.reset();
        #endif
@@ -472,12 +491,11 @@ protected:
                 stats.reset();
         }
 
-        const bool denoiseEnabled = extraParameters[kExtraParamGlobalBypass] < 0.5f &&
-                                    extraParameters[kExtraParamEnableVoiceIsolation] >= 0.5f;
-
         // pass this threshold to unmute
         const float threshold = extraParameters[kExtraParamThreshold] * 0.01f;
        #endif
+
+        float dry, wet;
 
         // process audio a few frames at a time, so it always fits nicely into denoise blocks
         for (uint32_t offset = 0; offset != frames;)
@@ -540,9 +558,11 @@ protected:
                     }
 
                     const float muteNextValue = muteValue.next();
+                    bufferIn[i] *= kDenoiseScalingInv;
                     bufferOut[i] *= kDenoiseScalingInv;
                     bufferOut[i] *= muteNextValue;
                    #ifndef SIMPLIFIED_MAPI_BUILD
+                    bufferIn2[i] *= kDenoiseScalingInv;
                     bufferOut2[i] *= kDenoiseScalingInv;
                     bufferOut2[i] *= muteNextValue;
                    #endif
@@ -560,41 +580,31 @@ protected:
                 }
                #endif
 
-                // process denoise output on faust side
-                FaustGeneratedPlugin::setParameterValue(kParameter_vad_ext, vad);
+                // denoiser intensity
+                for (uint32_t i = 0; i < denoiseFrameSize; ++i)
+                {
+                    dry = denoiserDryValue.next();
+                    wet = 1.f - dry;
+                    bufferOut[i] = bufferOut[i] * wet + bufferIn[i] * dry;
+                   #ifndef SIMPLIFIED_MAPI_BUILD
+                    bufferOut2[i] = bufferOut2[i] * wet + bufferIn2[i] * dry;
+                   #endif
+                }
 
                 float* ins[2];
                 float* outs[2];
 
-               #ifdef SIMPLIFIED_MAPI_BUILD
                 // we previously wrote to bufferOut, so use that as faust input
                 ins[0] = bufferOut;
                 outs[0] = bufferIn;
-               #else
-                if (denoiseEnabled)
-                {
-                    // we previously wrote to bufferOut, so use that as faust input
-                    ins[0] = bufferOut;
-                    ins[1] = bufferOut2;
-                    outs[0] = bufferIn;
-                    outs[1] = bufferIn2;
-                }
-                else
-                {
-                    // scale audio down from denoise
-                    for (uint32_t i = 0; i < denoiseFrameSize; ++i)
-                    {
-                        bufferIn[i] *= kDenoiseScalingInv;
-                        bufferIn2[i] *= kDenoiseScalingInv;
-                    }
-
-                    // use dry input as faust input, behaving as if denoise was bypassed
-                    ins[0] = bufferIn;
-                    ins[1] = bufferIn2;
-                    outs[0] = bufferOut;
-                    outs[1] = bufferOut2;
-                }
+               #ifndef SIMPLIFIED_MAPI_BUILD
+                ins[1] = bufferOut2;
+                outs[1] = bufferIn2;
                #endif
+
+                // process denoise output on faust side
+                FaustGeneratedPlugin::setParameterValue(kParameter_vad_ext, vad);
+
                 dsp->compute(denoiseFrameSize, ins, outs);
 
                 // write output into ringbuffer
@@ -615,22 +625,21 @@ protected:
                 ringBufferOut2.readCustomData(outputs[1] + offset, framesCycleF);
                #endif
 
-                // retrieve dry buffer
+                // retrieve dry buffer (bufferIn is being used elsewhere, so use bufferOut instead)
                 ringBufferDry.readCustomData(bufferOut, framesCycleF);
                #ifndef SIMPLIFIED_MAPI_BUILD
                 ringBufferDry2.readCustomData(bufferOut2, framesCycleF);
-               #endif
 
-                float dry, wet;
                 for (uint32_t i = 0; i < framesCycle; ++i)
                 {
-                    dry = dryValue.next();
+                    dry = globalDryValue.next();
                     wet = 1.f - dry;
                     outputs[0][i + offset] = outputs[0][i + offset] * wet + bufferOut[i] * dry;
                    #ifndef SIMPLIFIED_MAPI_BUILD
                     outputs[1][i + offset] = outputs[1][i + offset] * wet + bufferOut2[i] * dry;
                    #endif
                 }
+               #endif
             }
             // capture more audio frames until it fits 1 denoise block
             else
@@ -659,8 +668,9 @@ protected:
         static constexpr const float gracePeriod = 500.f;
        #else
         const float gracePeriod = extraParameters[kExtraParamGracePeriod];
+        globalDryValue.setSampleRate(sampleRate);
        #endif
-        dryValue.setSampleRate(sampleRate);
+        denoiserDryValue.setSampleRate(sampleRate);
         muteValue.setSampleRate(sampleRate);
 
         // update internal value that depends on sample rate
