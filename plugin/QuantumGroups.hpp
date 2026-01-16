@@ -1,4 +1,4 @@
-// Copyright 2025 Filipe Coelho <falktx@falktx.com>
+// Copyright 2025-2026 Filipe Coelho <falktx@falktx.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
@@ -222,14 +222,22 @@ struct VoiceIsolationGroup : QuantumFrame,
 
     QuantumRadioSwitchWithLabel title;
     QuantumSingleSpacer spacer1;
+    QuantumValueSliderWithLabel sliderIntensity;
+    QuantumSingleLabel sliderIntensityLabel;
+    QuantumSingleSpacer spacer2;
     QuantumValueSliderWithLabel sliderThreshold;
     QuantumSingleLabel sliderThresholdLabel;
-    QuantumSingleSpacer spacer2;
+    QuantumSingleSpacer spacer3;
     QuantumValueSliderWithLabel sliderGracePeriod;
     QuantumSingleLabel sliderGracePeriodLabel;
-    QuantumSingleSpacer spacer3;
+    QuantumSingleSpacer spacer4;
+    QuantumSingleLabel vadLabel;
+    QuantumValueSliderWithLabel vadGateThreshold;
+    QuantumValueSliderWithLabel vadSmoothingTime;
+    QuantumValueMeterWithLabel vadRaw;
+    QuantumValueMeterWithLabel vadSmooth;
+    QuantumSingleSpacer spacer5;
     QuantumSingleSwitch switchEnableStats;
-    QuantumValueMeterWithLabel statCurrent;
     QuantumValueMeterWithLabel statAverage;
     QuantumValueMeterWithLabel statMinimum;
     QuantumValueMeterWithLabel statMaximum;
@@ -242,14 +250,22 @@ struct VoiceIsolationGroup : QuantumFrame,
           theme(t),
           title(this, theme),
           spacer1(this),
+          sliderIntensity(this, theme),
+          sliderIntensityLabel(this, theme),
+          spacer2(this),
           sliderThreshold(this, theme),
           sliderThresholdLabel(this, theme),
-          spacer2(this),
+          spacer3(this),
           sliderGracePeriod(this, theme),
           sliderGracePeriodLabel(this, theme),
-          spacer3(this),
+          spacer4(this),
+          vadLabel(this, theme),
+          vadGateThreshold(this, theme),
+          vadSmoothingTime(this, theme),
+          vadRaw(this, theme),
+          vadSmooth(this, theme),
+          spacer5(this),
           switchEnableStats(this, theme),
-          statCurrent(this, theme),
           statAverage(this, theme),
           statMinimum(this, theme),
           statMaximum(this, theme)
@@ -264,6 +280,18 @@ struct VoiceIsolationGroup : QuantumFrame,
         title.switch_.setId(kParameterCount + kExtraParamEnableVoiceIsolation);
         title.label.setCustomFontSize(theme.bigFontSize);
         title.label.setLabel("Voice Isolation");
+
+        sliderIntensity.slider.setCallback(kcb);
+        sliderIntensity.slider.setId(kParameterCount + kExtraParamIntensity);
+        sliderIntensity.slider.setDefault(100);
+        sliderIntensity.slider.setRange(0, 100);
+        sliderIntensity.slider.setStep(1);
+        sliderIntensity.slider.setUnitLabel("%");
+        sliderIntensity.slider.setValue(100, false);
+        sliderIntensity.label.setLabel("Intensity");
+
+        sliderIntensityLabel.label.setCustomFontSize(smallFontSize);
+        sliderIntensityLabel.label.setLabel("Dry/wet mix for voice isolation");
 
         sliderThreshold.slider.setCallback(kcb);
         sliderThreshold.slider.setId(kParameterCount + kExtraParamThreshold);
@@ -289,16 +317,42 @@ struct VoiceIsolationGroup : QuantumFrame,
         sliderGracePeriodLabel.label.setCustomFontSize(smallFontSize);
         sliderGracePeriodLabel.label.setLabel("How long auto-mute waits after voice detection falls below threshold");
 
+        vadLabel.label.setLabel("VAD metering");
+
+        vadGateThreshold.slider.setCallback(kcb);
+        vadGateThreshold.slider.setId(kParameter_vad_gate_thresh);
+        vadGateThreshold.slider.setDefault(kParameterRanges[kParameter_vad_gate_thresh].def);
+        vadGateThreshold.slider.setRange(kParameterRanges[kParameter_vad_gate_thresh].min, kParameterRanges[kParameter_vad_gate_thresh].max);
+        // vadGateThreshold.slider.setStep(1);
+        vadGateThreshold.slider.setUnitLabel(kParameterUnits[kParameter_vad_gate_thresh]);
+        vadGateThreshold.slider.setValue(kParameterRanges[kParameter_vad_gate_thresh].def, false);
+        vadGateThreshold.label.setLabel("Gate Threshold");
+
+        vadSmoothingTime.slider.setCallback(kcb);
+        vadSmoothingTime.slider.setId(kParameter_vad_smoothing_time);
+        vadSmoothingTime.slider.setDefault(kParameterRanges[kParameter_vad_smoothing_time].def);
+        vadSmoothingTime.slider.setRange(kParameterRanges[kParameter_vad_smoothing_time].min, kParameterRanges[kParameter_vad_smoothing_time].max);
+        // vadSmoothingTime.slider.setStep(1);
+        vadSmoothingTime.slider.setUnitLabel(kParameterUnits[kParameter_vad_smoothing_time]);
+        vadSmoothingTime.slider.setValue(kParameterRanges[kParameter_vad_smoothing_time].def, false);
+        vadSmoothingTime.label.setLabel("Smoothing Time");
+
+        vadRaw.label.setLabel("Raw");
+        vadRaw.meter.setRange(0, 100);
+        vadRaw.meter.setUnitLabel("%");
+        vadRaw.meter.setValue(0);
+        vadRaw.meter.setValueCentered(false);
+
+        vadSmooth.label.setLabel("Smooth");
+        vadSmooth.meter.setRange(kParameterRanges[kParameter_vad_smoothing_meter].min, kParameterRanges[kParameter_vad_smoothing_meter].max);
+        vadSmooth.meter.setUnitLabel(kParameterUnits[kParameter_vad_smoothing_meter]);
+        vadSmooth.meter.setValue(kParameterRanges[kParameter_vad_smoothing_meter].def);
+        vadSmooth.meter.setValueCentered(true); // FIXME?
+
         switchEnableStats.switch_.setCallback(bcb);
         switchEnableStats.switch_.setChecked(false, false);
         switchEnableStats.switch_.setId(kParameterCount + kExtraParamEnableStats);
         switchEnableStats.switch_.setLabel("Enable VAD Stats");
-
-        statCurrent.label.setLabel("Current");
-        statCurrent.meter.setRange(0, 100);
-        statCurrent.meter.setUnitLabel("%");
-        statCurrent.meter.setValue(0);
-        statCurrent.meter.setValueCentered(false);
 
         statAverage.label.setLabel("Average");
         statAverage.meter.setRange(0, 100);
@@ -309,7 +363,7 @@ struct VoiceIsolationGroup : QuantumFrame,
         statMinimum.label.setLabel("Minimum");
         statMinimum.meter.setRange(0, 100);
         statMinimum.meter.setUnitLabel("%");
-        statMinimum.meter.setValue(100);
+        statMinimum.meter.setValue(0);
         statMinimum.meter.setValueCentered(false);
 
         statMaximum.label.setLabel("Maximum");
@@ -320,14 +374,22 @@ struct VoiceIsolationGroup : QuantumFrame,
 
         items.push_back(&title);
         items.push_back(&spacer1);
+        items.push_back(&sliderIntensity);
+        items.push_back(&sliderIntensityLabel);
+        items.push_back(&spacer2);
         items.push_back(&sliderThreshold);
         items.push_back(&sliderThresholdLabel);
-        items.push_back(&spacer2);
+        items.push_back(&spacer3);
         items.push_back(&sliderGracePeriod);
         items.push_back(&sliderGracePeriodLabel);
-        items.push_back(&spacer3);
+        items.push_back(&spacer4);
+        items.push_back(&vadLabel);
+        items.push_back(&vadGateThreshold);
+        items.push_back(&vadSmoothingTime);
+        items.push_back(&vadRaw);
+        items.push_back(&vadSmooth);
+        items.push_back(&spacer5);
         items.push_back(&switchEnableStats);
-        items.push_back(&statCurrent);
         items.push_back(&statAverage);
         items.push_back(&statMinimum);
         items.push_back(&statMaximum);
@@ -348,16 +410,25 @@ struct VoiceIsolationGroup : QuantumFrame,
         title.adjustSize(metrics);
         title.label.setWidth(usableWidth);
         spacer1.spacer.setHeight(metrics.label.getHeight());
+        sliderIntensity.adjustSize(metrics);
+        sliderIntensityLabel.adjustSize();
+        sliderIntensityLabel.label.setWidth(usableWidth);
+        spacer2.spacer.setHeight(0);
         sliderThreshold.adjustSize(metrics);
         sliderThresholdLabel.adjustSize();
         sliderThresholdLabel.label.setWidth(usableWidth);
-        spacer2.spacer.setHeight(metrics.label.getHeight());
+        spacer3.spacer.setHeight(metrics.label.getHeight());
         sliderGracePeriod.adjustSize(metrics);
         sliderGracePeriodLabel.adjustSize();
         sliderGracePeriodLabel.label.setWidth(usableWidth);
-        spacer3.spacer.setHeight(metrics.label.getHeight());
+        spacer4.spacer.setHeight(metrics.label.getHeight());
+        vadLabel.adjustSize();
+        vadGateThreshold.adjustSize(metrics);
+        vadSmoothingTime.adjustSize(metrics);
+        vadRaw.adjustSize(metrics);
+        vadSmooth.adjustSize(metrics);
+        spacer5.spacer.setHeight(metrics.label.getHeight());
         switchEnableStats.adjustSize();
-        statCurrent.adjustSize(metrics);
         statAverage.adjustSize(metrics);
         statMinimum.adjustSize(metrics);
         statMaximum.adjustSize(metrics);
@@ -378,21 +449,40 @@ struct VoiceIsolationGroup : QuantumFrame,
 
         const Color& sliderTextColor = enabled ? theme.textLightColor : theme.textDarkColor;
         const Color& sliderMeterColor = enabled ? theme.widgetActiveColor : theme.textMidColor;
+        const Color& vadMeterColor = enabled ? theme.levelMeterAlternativeColor : theme.textMidColor;
         const Color& statsTextColor = enabledStats ? theme.textLightColor : theme.textDarkColor;
         const Color& statsMeterColor = enabledStats ? theme.levelMeterAlternativeColor : theme.textMidColor;
+
+        sliderIntensity.slider.setBackgroundColor(sliderMeterColor);
+        sliderIntensity.slider.setTextColor(sliderTextColor);
+        sliderIntensity.label.setLabelColor(sliderTextColor);
 
         sliderThreshold.slider.setBackgroundColor(sliderMeterColor);
         sliderThreshold.slider.setTextColor(sliderTextColor);
         sliderThreshold.label.setLabelColor(sliderTextColor);
-        sliderThresholdLabel.label.setLabelColor(sliderTextColor);
+
         sliderGracePeriod.slider.setBackgroundColor(sliderMeterColor);
         sliderGracePeriod.slider.setTextColor(sliderTextColor);
         sliderGracePeriod.label.setLabelColor(sliderTextColor);
+
+        sliderIntensityLabel.label.setLabelColor(sliderTextColor);
+        sliderThresholdLabel.label.setLabelColor(sliderTextColor);
         sliderGracePeriodLabel.label.setLabelColor(sliderTextColor);
 
-        statCurrent.meter.setBackgroundColor(statsMeterColor);
-        statCurrent.meter.setTextColor(statsTextColor);
-        statCurrent.label.setLabelColor(statsTextColor);
+        vadLabel.label.setLabelColor(sliderTextColor);
+        vadGateThreshold.slider.setBackgroundColor(sliderMeterColor);
+        vadGateThreshold.slider.setTextColor(sliderTextColor);
+        vadGateThreshold.label.setLabelColor(sliderTextColor);
+        vadSmoothingTime.slider.setBackgroundColor(sliderMeterColor);
+        vadSmoothingTime.slider.setTextColor(sliderTextColor);
+        vadSmoothingTime.label.setLabelColor(sliderTextColor);
+        vadRaw.meter.setBackgroundColor(vadMeterColor);
+        vadRaw.meter.setTextColor(sliderTextColor);
+        vadRaw.label.setLabelColor(sliderTextColor);
+        vadSmooth.meter.setBackgroundColor(vadMeterColor);
+        vadSmooth.meter.setTextColor(sliderTextColor);
+        vadSmooth.label.setLabelColor(sliderTextColor);
+
         statAverage.meter.setBackgroundColor(statsMeterColor);
         statAverage.meter.setTextColor(statsTextColor);
         statAverage.label.setLabelColor(statsTextColor);
@@ -407,8 +497,8 @@ struct VoiceIsolationGroup : QuantumFrame,
 
 // --------------------------------------------------------------------------------------------------------------------
 
-struct VoiceOptimizationGroup : public QuantumFrame,
-                                  VerticallyStackedHorizontalLayout
+struct VoiceOptimizationGroup : QuantumFrame,
+                                VerticallyStackedHorizontalLayout
 {
     const BBBAudioTheme& theme;
 
@@ -419,6 +509,10 @@ struct VoiceOptimizationGroup : public QuantumFrame,
     QuantumSingleSpacer spacer2;
     QuantumSingleLabel mbDynamicsTitle;
     BBBAudioValueMeters mbDynamicsMeters;
+    QuantumSingleSpacer spacer3;
+    QuantumSingleLabel mbExpanderTitle;
+    BBBAudioValueMeters mbExpanderMeters;
+    QuantumValueCenteredSliderWithLabel mbExpanderThreshold;
 
     explicit VoiceOptimizationGroup(NanoTopLevelWidget* const parent,
                                     ButtonEventHandler::Callback* const bcb,
@@ -432,7 +526,11 @@ struct VoiceOptimizationGroup : public QuantumFrame,
           balancerMeters(this, theme, QuantumValueMeter::MiddleToEdges),
           spacer2(this),
           mbDynamicsTitle(this, theme),
-          mbDynamicsMeters(this, theme, QuantumValueMeter::MiddleToEdges)
+          mbDynamicsMeters(this, theme, QuantumValueMeter::MiddleToEdges),
+          spacer3(this),
+          mbExpanderTitle(this, theme),
+          mbExpanderMeters(this, theme, QuantumValueMeter::BottomToTop),
+          mbExpanderThreshold(this, theme)
     {
         setName("Voice Optimization");
 
@@ -448,11 +546,25 @@ struct VoiceOptimizationGroup : public QuantumFrame,
         mbDynamicsTitle.label.setAlignment(ALIGN_CENTER|ALIGN_MIDDLE);
         mbDynamicsTitle.label.setLabel("Multiband Dynamics");
 
+        mbExpanderTitle.label.setAlignment(ALIGN_CENTER|ALIGN_MIDDLE);
+        mbExpanderTitle.label.setLabel("Multiband Expander");
+
+        mbExpanderThreshold.slider.setCallback(kcb);
+        mbExpanderThreshold.slider.setId(kParameter_mb_exp_thresh);
+        mbExpanderThreshold.slider.setDefault(kParameterRanges[kParameter_mb_exp_thresh].def);
+        mbExpanderThreshold.slider.setRange(kParameterRanges[kParameter_mb_exp_thresh].min, kParameterRanges[kParameter_mb_exp_thresh].max);
+        // mbExpanderThreshold.slider.setStep(1);
+        mbExpanderThreshold.slider.setUnitLabel(kParameterUnits[kParameter_mb_exp_thresh]);
+        mbExpanderThreshold.slider.setValue(kParameterRanges[kParameter_mb_exp_thresh].def, false);
+        mbExpanderThreshold.label.setLabel("Threshold");
+
         setupMeters(balancerMeters, kParameter_sb_strength, kParameter_sb_gain__0);
         setupMeters(mbDynamicsMeters, kParameter_mb_strength, kParameter_mb_comp_gain_0);
+        setupMeters(mbExpanderMeters, kParameter_mb_exp_strength, kParameter_mb_exp_meter0);
 
         balancerMeters.knob.setCallback(kcb);
         mbDynamicsMeters.knob.setCallback(kcb);
+        mbExpanderMeters.knob.setCallback(kcb);
 
         items.push_back(&title);
         items.push_back(&spacer1);
@@ -461,6 +573,10 @@ struct VoiceOptimizationGroup : public QuantumFrame,
         items.push_back(&spacer2);
         items.push_back(&mbDynamicsTitle);
         items.push_back(&mbDynamicsMeters);
+        items.push_back(&spacer3);
+        items.push_back(&mbExpanderTitle);
+        items.push_back(&mbExpanderMeters);
+        items.push_back(&mbExpanderThreshold);
 
         updateColors();
     }
@@ -473,13 +589,16 @@ struct VoiceOptimizationGroup : public QuantumFrame,
         title.adjustSize(metrics);
         title.label.setWidth(width - title.switch_.getWidth() - theme.padding * 2);
         spacer1.spacer.setSize(0, metrics.label.getHeight());
+        spacer2.spacer.setSize(0, metrics.label.getHeight());
+        spacer3.spacer.setSize(0, metrics.label.getHeight());
+
         balancerTitle.adjustSize();
         balancerTitle.label.setWidth(width);
         balancerMeters.adjustSize(metrics);
         balancerMeters.knob.setOrientation(QuantumSmallKnobWithUnitInNewline::LeftToRight);
         balancerMeters.knob.setSize(knobSize, knobSize);
         balancerMeters.knob.setValueFontSize(theme.fontSize);
-        spacer2.spacer.setSize(0, metrics.label.getHeight());
+
         mbDynamicsTitle.adjustSize();
         mbDynamicsTitle.label.setWidth(width);
         mbDynamicsMeters.adjustSize(metrics);
@@ -487,8 +606,16 @@ struct VoiceOptimizationGroup : public QuantumFrame,
         mbDynamicsMeters.knob.setSize(knobSize, knobSize);
         mbDynamicsMeters.knob.setValueFontSize(theme.fontSize);
 
-        setSize(width, height);
+        mbExpanderTitle.adjustSize();
+        mbExpanderTitle.label.setWidth(width);
+        mbExpanderMeters.adjustSize(metrics);
+        mbExpanderMeters.knob.setOrientation(QuantumSmallKnobWithUnitInNewline::LeftToRight);
+        mbExpanderMeters.knob.setSize(knobSize, knobSize);
+        mbExpanderMeters.knob.setValueFontSize(theme.fontSize);
 
+        mbExpanderThreshold.adjustSize(metrics);
+
+        setSize(width, height);
     }
 
     void setAbsolutePos(int x, int y)
@@ -508,6 +635,9 @@ struct VoiceOptimizationGroup : public QuantumFrame,
         const Color& textColor = enabled ? theme.textLightColor : theme.textDarkColor;
 
         balancerTitle.label.setLabelColor(textColor);
+        mbDynamicsTitle.label.setLabelColor(textColor);
+        mbExpanderTitle.label.setLabelColor(textColor);
+
         balancerMeters.knob.setEnabled(enabled, false);
         balancerMeters.knob.setRingColor(enabled ? theme.knobRingColor : theme.textDarkColor);
         balancerMeters.m1.setBackgroundColor(meterColor);
@@ -519,7 +649,6 @@ struct VoiceOptimizationGroup : public QuantumFrame,
         balancerMeters.m7.setBackgroundColor(meterColor);
         balancerMeters.m8.setBackgroundColor(meterColor);
 
-        mbDynamicsTitle.label.setLabelColor(textColor);
         mbDynamicsMeters.knob.setEnabled(enabled, false);
         mbDynamicsMeters.knob.setRingColor(enabled ? theme.knobAlternativeRingColor : theme.textDarkColor);
         mbDynamicsMeters.m1.setBackgroundColor(meterAltColor);
@@ -530,6 +659,21 @@ struct VoiceOptimizationGroup : public QuantumFrame,
         mbDynamicsMeters.m6.setBackgroundColor(meterAltColor);
         mbDynamicsMeters.m7.setBackgroundColor(meterAltColor);
         mbDynamicsMeters.m8.setBackgroundColor(meterAltColor);
+
+        mbExpanderMeters.knob.setEnabled(enabled, false);
+        mbExpanderMeters.knob.setRingColor(enabled ? theme.knobAlternativeRingColor : theme.textDarkColor);
+        mbExpanderMeters.m1.setBackgroundColor(meterAltColor);
+        mbExpanderMeters.m2.setBackgroundColor(meterAltColor);
+        mbExpanderMeters.m3.setBackgroundColor(meterAltColor);
+        mbExpanderMeters.m4.setBackgroundColor(meterAltColor);
+        mbExpanderMeters.m5.setBackgroundColor(meterAltColor);
+        mbExpanderMeters.m6.setBackgroundColor(meterAltColor);
+        mbExpanderMeters.m7.setBackgroundColor(meterAltColor);
+        mbExpanderMeters.m8.setBackgroundColor(meterAltColor);
+
+        mbExpanderThreshold.slider.setBackgroundColor(meterColor);
+        mbExpanderThreshold.slider.setTextColor(textColor);
+        mbExpanderThreshold.label.setLabelColor(textColor);
     }
 
     inline void setupMeters(BBBAudioValueMeters& w, const int idKnob, const int idStart)

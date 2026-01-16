@@ -69,8 +69,7 @@ class MapiProcessorInstance {
             const value = this.module._mapi_get_parameter(this.handle, this.monitor_param);
             if (this.monitor_value != value) {
                 this.monitor_value = value;
-                // TODO report value changed, can't be done from within process?
-                // this.port.postMessage({ type: 'monitor', value: value });
+                this.port.postMessage({ type: 'monitor', value: value });
             }
         }
     }

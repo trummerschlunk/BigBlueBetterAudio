@@ -9,7 +9,7 @@
 // Author: Klaus Scheuermann
 // Copyright: 
 // License: GPLv3+
-// Version: 0.27
+// Version: 0.28
 //------------------------------------------------------------------------------
 
 
@@ -42,7 +42,9 @@ enum Parameters {
     kParameter_vad_ext,
     kParameter_leveler_target,
     kParameter_leveler_scale,
+    kParameter_mb_exp_strength,
     kParameter_mb_strength,
+    kParameter_mb_exp_thresh,
     kParameter_pre_lowcut,
     kParameter_vad_gate_thresh,
     kParameter_vad_smoothing_time,
@@ -72,6 +74,14 @@ enum Parameters {
     kParameter_output_peak_channel_1,
     kParameter_vad_meter,
     kParameter_leveler_gain,
+    kParameter_mb_exp_meter0,
+    kParameter_mb_exp_meter1,
+    kParameter_mb_exp_meter2,
+    kParameter_mb_exp_meter3,
+    kParameter_mb_exp_meter4,
+    kParameter_mb_exp_meter5,
+    kParameter_mb_exp_meter6,
+    kParameter_mb_exp_meter7,
     kParameter_mb_comp_gain_0,
     kParameter_mb_comp_gain_1,
     kParameter_mb_comp_gain_2,
@@ -94,7 +104,7 @@ enum States {
     kStateCount
 };
 
-static constexpr const char* kParameterNames[51] = {
+static constexpr const char* kParameterNames[61] = {
     // inputs
     "sb_strength",
     "spec 0",
@@ -110,7 +120,9 @@ static constexpr const char* kParameterNames[51] = {
     "vad_ext",
     "target",
     "leveler_scale",
+    "mb_exp_strength",
     "mb_strength",
+    "mb_exp_thresh",
     "preLowcut_freq",
     "vad_g_thr",
     "vad_smoo_t",
@@ -140,6 +152,14 @@ static constexpr const char* kParameterNames[51] = {
     "Out 1",
     "vad_meter",
     "gain",
+    "Exp0",
+    "Exp1",
+    "Exp2",
+    "Exp3",
+    "Exp4",
+    "Exp5",
+    "Exp6",
+    "Exp7",
     "MBgr 0",
     "MBgr 1",
     "MBgr 2",
@@ -152,7 +172,7 @@ static constexpr const char* kParameterNames[51] = {
     
 };
 
-static constexpr const struct { float def, min, max; } kParameterRanges[51] = {
+static constexpr const struct { float def, min, max; } kParameterRanges[61] = {
     // inputs
     { 50.0, 0.0, 100.0 },
     { -10.0, -20.0, 0.0 },
@@ -168,7 +188,9 @@ static constexpr const struct { float def, min, max; } kParameterRanges[51] = {
     { 1.0, 0.0, 1.0 },
     { -23.0, -60.0, 0.0 },
     { 1.0, 0.0, 1.0 },
+    { 100.0, 0.0, 100.0 },
     { 80.0, 0.0, 100.0 },
+    { 0.0, -12.0, 12.0 },
     { 42.0, 1.0, 400.0 },
     { 0.9, 0.0, 1.0 },
     { 0.1, 0.0, 1.0 },
@@ -198,6 +220,14 @@ static constexpr const struct { float def, min, max; } kParameterRanges[51] = {
     { 0, -70.0, 0.0 },
     { 0, 0.0, 1.0 },
     { 0, -50.0, 50.0 },
+    { 0, -12.0, 0.0 },
+    { 0, -12.0, 0.0 },
+    { 0, -12.0, 0.0 },
+    { 0, -12.0, 0.0 },
+    { 0, -12.0, 0.0 },
+    { 0, -12.0, 0.0 },
+    { 0, -12.0, 0.0 },
+    { 0, -12.0, 0.0 },
     { 0, -12.0, 12.0 },
     { 0, -12.0, 12.0 },
     { 0, -12.0, 12.0 },
@@ -210,7 +240,7 @@ static constexpr const struct { float def, min, max; } kParameterRanges[51] = {
     
 };
 
-static constexpr const char* kParameterSymbols[51] = {
+static constexpr const char* kParameterSymbols[61] = {
     // inputs
     "sb_strength",
     "sb_target_spectrum_0",
@@ -226,7 +256,9 @@ static constexpr const char* kParameterSymbols[51] = {
     "vad_ext",
     "leveler_target",
     "leveler_scale",
+    "mb_exp_strength",
     "mb_strength",
+    "mb_exp_thresh",
     "pre_lowcut",
     "vad_gate_thresh",
     "vad_smoothing_time",
@@ -256,6 +288,14 @@ static constexpr const char* kParameterSymbols[51] = {
     "output_peak_channel_1",
     "vad_meter",
     "leveler_gain",
+    "mb_exp_meter0",
+    "mb_exp_meter1",
+    "mb_exp_meter2",
+    "mb_exp_meter3",
+    "mb_exp_meter4",
+    "mb_exp_meter5",
+    "mb_exp_meter6",
+    "mb_exp_meter7",
     "mb_comp_gain_0",
     "mb_comp_gain_1",
     "mb_comp_gain_2",
@@ -268,7 +308,7 @@ static constexpr const char* kParameterSymbols[51] = {
     
 };
 
-static constexpr const char* kParameterUnits[51] = {
+static constexpr const char* kParameterUnits[61] = {
     // inputs
     "%",
     "",
@@ -285,6 +325,8 @@ static constexpr const char* kParameterUnits[51] = {
     "LUFS",
     "",
     "%",
+    "%",
+    "dB",
     "",
     "",
     "",
@@ -313,6 +355,14 @@ static constexpr const char* kParameterUnits[51] = {
     "",
     "",
     "",
+    "dB",
+    "dB",
+    "dB",
+    "dB",
+    "dB",
+    "dB",
+    "dB",
+    "dB",
     "dB",
     "dB",
     "dB",

@@ -1,4 +1,4 @@
-// Copyright 2025 Filipe Coelho <falktx@falktx.com>
+// Copyright 2025-2026 Filipe Coelho <falktx@falktx.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
@@ -138,6 +138,35 @@ struct QuantumValueSliderWithLabel : HorizontalLayout
     {
         widgets.push_back({ &slider, Fixed });
         widgets.push_back({ &label, Expanding });
+    }
+
+    void adjustSize(const QuantumMetrics& metrics)
+    {
+        slider.setSize(metrics.valueSlider);
+        label.adjustSize();
+    }
+};
+
+// --------------------------------------------------------------------------------------------------------------------
+// fixed slider and label, centered
+
+struct QuantumValueCenteredSliderWithLabel : HorizontalLayout
+{
+    QuantumSpacer spacerL;
+    QuantumValueSlider slider;
+    QuantumLabel label;
+    QuantumSpacer spacerR;
+
+    explicit QuantumValueCenteredSliderWithLabel(NanoSubWidget* const parent, const QuantumTheme& theme)
+        : spacerL(parent),
+          slider(parent, theme),
+          label(parent, theme),
+          spacerR(parent)
+    {
+        widgets.push_back({ &spacerL, Expanding });
+        widgets.push_back({ &slider, Fixed });
+        widgets.push_back({ &label, Fixed });
+        widgets.push_back({ &spacerR, Expanding });
     }
 
     void adjustSize(const QuantumMetrics& metrics)

@@ -1,4 +1,4 @@
-// Copyright 2025 Filipe Coelho <falktx@falktx.com>
+// Copyright 2025-2026 Filipe Coelho <falktx@falktx.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "DistrhoPluginInfo.h"
@@ -215,8 +215,14 @@ protected:
             inputLevelerGroup.leveler.setEnabled(enabled.global && enabled.leveler);
             inputLevelerGroup.targetKnob.setEnabled(enabled.global && enabled.leveler, false);
             return;
+        case kParameter_mb_exp_strength:
+            voiceOptimizationGroup.mbExpanderMeters.knob.setValue(value, false);
+            return;
         case kParameter_mb_strength:
             voiceOptimizationGroup.mbDynamicsMeters.knob.setValue(value, false);
+            return;
+        case kParameter_mb_exp_thresh:
+            voiceOptimizationGroup.mbExpanderThreshold.slider.setValue(value, false);
             return;
         // outputs
         case kParameter_sb_gain__0:
@@ -264,6 +270,30 @@ protected:
         case kParameter_leveler_gain:
             inputLevelerGroup.leveler.setValue(value);
             return;
+        case kParameter_mb_exp_meter0:
+            voiceOptimizationGroup.mbExpanderMeters.m1.setValue(value);
+            return;
+        case kParameter_mb_exp_meter1:
+            voiceOptimizationGroup.mbExpanderMeters.m2.setValue(value);
+            return;
+        case kParameter_mb_exp_meter2:
+            voiceOptimizationGroup.mbExpanderMeters.m3.setValue(value);
+            return;
+        case kParameter_mb_exp_meter3:
+            voiceOptimizationGroup.mbExpanderMeters.m4.setValue(value);
+            return;
+        case kParameter_mb_exp_meter4:
+            voiceOptimizationGroup.mbExpanderMeters.m5.setValue(value);
+            return;
+        case kParameter_mb_exp_meter5:
+            voiceOptimizationGroup.mbExpanderMeters.m6.setValue(value);
+            return;
+        case kParameter_mb_exp_meter6:
+            voiceOptimizationGroup.mbExpanderMeters.m7.setValue(value);
+            return;
+        case kParameter_mb_exp_meter7:
+            voiceOptimizationGroup.mbExpanderMeters.m8.setValue(value);
+            return;
         case kParameter_mb_comp_gain_0:
             voiceOptimizationGroup.mbDynamicsMeters.m1.setValue(value);
             return;
@@ -288,6 +318,9 @@ protected:
         case kParameter_mb_comp_gain_7:
             voiceOptimizationGroup.mbDynamicsMeters.m8.setValue(value);
             return;
+        case kParameter_vad_smoothing_meter:
+            voiceIsolationGroup.vadSmooth.meter.setValue(value);
+            return;
         case kParameter_sb_target_spectrum_0:
         case kParameter_sb_target_spectrum_1:
         case kParameter_sb_target_spectrum_2:
@@ -309,7 +342,6 @@ protected:
         case kParameter_sb_meter__6:
         case kParameter_sb_meter__7:
         case kParameter_vad_meter:
-        case kParameter_vad_smoothing_meter:
             return;
             // unused
             return;
@@ -336,6 +368,9 @@ protected:
             voiceOptimizationGroup.updateColors();
             outputGroup.meter.setEnabled(enabled.global);
             break;
+        case kExtraParamIntensity:
+            voiceIsolationGroup.sliderIntensity.slider.setValue(value, false);
+            break;
         case kExtraParamEnableVoiceIsolation:
             enabled.voiceIsolation = value >= 0.5f;
             voiceIsolationGroup.title.switch_.setChecked(enabled.voiceIsolation, false);
@@ -353,7 +388,7 @@ protected:
             voiceIsolationGroup.updateColors();
             break;
         case kExtraParamCurrentVAD:
-            voiceIsolationGroup.statCurrent.meter.setValue(value);
+            voiceIsolationGroup.vadRaw.meter.setValue(value);
             break;
         case kExtraParamAverageVAD:
             voiceIsolationGroup.statAverage.meter.setValue(value);

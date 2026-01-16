@@ -1,4 +1,4 @@
-// Copyright 2025 Filipe Coelho <falktx@falktx.com>
+// Copyright 2025-2026 Filipe Coelho <falktx@falktx.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
@@ -15,8 +15,9 @@
    Stored in a common header file for convenience
  */
 enum ExtraParameters {
-   #ifndef SIMPLIFIED_MAPI_BUILD
     kExtraParamGlobalBypass,
+    kExtraParamIntensity,
+   #ifndef SIMPLIFIED_MAPI_BUILD
     kExtraParamEnableVoiceIsolation,
     kExtraParamThreshold,
     kExtraParamGracePeriod,
@@ -64,7 +65,7 @@ enum ExtraParameters {
 
    When this macro is defined, the companion DISTRHO_UI_DEFAULT_WIDTH macro must be defined as well.
  */
-#define DISTRHO_UI_DEFAULT_HEIGHT 430
+#define DISTRHO_UI_DEFAULT_HEIGHT 630
 
 /**
    Whether the UI uses NanoVG for drawing instead of the default raw OpenGL calls.

@@ -1,6 +1,10 @@
-// Copyright 2025 Filipe Coelho <falktx@falktx.com>
+// Copyright 2025-2026 Filipe Coelho <falktx@falktx.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+/**
+ TODO items
+  - rnnoise bypass smoothing
+ */
 #include "DistrhoPlugin.hpp"
 #include "DistrhoPluginInfo.h"
 #include "extra/RingBuffer.hpp"
@@ -76,10 +80,10 @@ class BBBAudioPlugin : public FaustGeneratedPlugin
     // assigned to gracePeriodInFrames when going mute
     uint32_t numFramesUntilGracePeriodOver = 0;
 
-   #ifndef SIMPLIFIED_MAPI_BUILD
-    // smooth bypass
+    // intensity and bypass smoothing
     LinearValueSmoother dryValue;
 
+   #ifndef SIMPLIFIED_MAPI_BUILD
     // cached parameter values
     float extraParameters[kExtraParamCount] = {};
 
@@ -144,10 +148,11 @@ public:
         muteValue.setTimeConstant(kMuteRelease);
         muteValue.setTargetValue(0.f);
 
-       #ifndef SIMPLIFIED_MAPI_BUILD
         dryValue.setTimeConstant(0.02f);
         dryValue.setTargetValue(0.f);
 
+        extraParameters[kExtraParamIntensity] = 100.f;
+       #ifndef SIMPLIFIED_MAPI_BUILD
         extraParameters[kExtraParamEnableVoiceIsolation] = 1.f;
         extraParameters[kExtraParamGracePeriod] = 1000.f;
        #endif
@@ -180,7 +185,6 @@ protected:
         Plugin::initAudioPort(input, index, port);
     }
 
-   #ifndef SIMPLIFIED_MAPI_BUILD
    /**
       Initialize the parameter @a index.
       This function will be called once, shortly after the plugin is created.
@@ -216,7 +220,6 @@ protected:
             case kParameter_sb_target_spectrum_5:
             case kParameter_sb_target_spectrum_6:
             case kParameter_sb_target_spectrum_7:
-            case kParameter_vad_ext:
             case kParameter_pre_lowcut:
             case kParameter_sb_meter__0:
             case kParameter_sb_meter__1:
@@ -239,6 +242,16 @@ protected:
         case kExtraParamGlobalBypass:
             parameter.initDesignation(kParameterDesignationBypass);
             break;
+        case kExtraParamIntensity:
+            parameter.hints |= kParameterIsInteger;
+            parameter.name   = "Intensity";
+            parameter.symbol = "intensity";
+            parameter.unit   = "%";
+            parameter.ranges.def = 100.f;
+            parameter.ranges.min = 0.f;
+            parameter.ranges.max = 100.f;
+            break;
+       #ifndef SIMPLIFIED_MAPI_BUILD
         case kExtraParamEnableVoiceIsolation:
             parameter.hints |= kParameterIsBoolean | kParameterIsInteger;
             parameter.name   = "Voice Isolation";
@@ -296,7 +309,7 @@ protected:
             parameter.name   = "Minimum VAD";
             parameter.symbol = "min_vad";
             parameter.unit   = "%";
-            parameter.ranges.def = 100.f;
+            parameter.ranges.def = 0.f;
             parameter.ranges.min = 0.f;
             parameter.ranges.max = 100.f;
             break;
@@ -309,6 +322,7 @@ protected:
             parameter.ranges.min = 0.f;
             parameter.ranges.max = 100.f;
             break;
+       #endif
         }
     }
 
@@ -341,14 +355,18 @@ protected:
         switch (index)
         {
         case kExtraParamGlobalBypass:
-            dryValue.setTargetValue(value);
+            dryValue.setTargetValue(value < 0.5f ? extraParameters[kExtraParamIntensity] : 0.f);
             break;
+        case kExtraParamIntensity:
+            dryValue.setTargetValue(extraParameters[kExtraParamGlobalBypass] < 0.5f ? value : 0.f);
+            break;
+       #ifndef SIMPLIFIED_MAPI_BUILD
         case kExtraParamGracePeriod:
             gracePeriodInFrames = d_roundToUnsignedInt(value * getSampleRate() / 1000.0);
             break;
+       #endif
         }
     }
-   #endif
 
    /* -----------------------------------------------------------------------------------------------------------------
     * Audio/MIDI Processing */
@@ -671,8 +689,8 @@ protected:
         static constexpr const float gracePeriod = 500.f;
        #else
         const float gracePeriod = extraParameters[kExtraParamGracePeriod];
-        dryValue.setSampleRate(sampleRate);
        #endif
+        dryValue.setSampleRate(sampleRate);
         muteValue.setSampleRate(sampleRate);
 
         // update internal value that depends on sample rate
