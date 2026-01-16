@@ -1,4 +1,4 @@
-// Copyright 2025 Filipe Coelho <falktx@falktx.com>
+// Copyright 2025-2026 Filipe Coelho <falktx@falktx.com>
 // SPDX-License-Identifier: ISC
 
 // known constants
@@ -10,13 +10,6 @@ const createWasmOpts = (wasmBlob, postRunCallback, errorCallback) => {
         // override to use previously retrieved blob data, as `fetch` is not allowed in worklets
         instantiateWasm: (imports, successCallback) => {
             WebAssembly.instantiate(wasmBlob, imports).then(output => {
-                // Taken from emscripten example:
-                // When overriding instantiateWasm, in asan builds, we also need
-                // to take care of creating the WasmOffsetConverter
-                if (typeof WasmOffsetConverter != "undefined") {
-                    wasmOffsetConverter = new WasmOffsetConverter(wasmBlob, output.module);
-                }
-
                 successCallback(output.instance, output.module);
             }).catch(error => {
                 errorCallback(error);

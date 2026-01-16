@@ -83,10 +83,10 @@ class BBBAudioPlugin : public FaustGeneratedPlugin
     // intensity and bypass smoothing
     LinearValueSmoother dryValue;
 
-   #ifndef SIMPLIFIED_MAPI_BUILD
     // cached parameter values
     float extraParameters[kExtraParamCount] = {};
 
+   #ifndef SIMPLIFIED_MAPI_BUILD
     // denoise statistics
     // mostly just for testing
     struct {
@@ -212,6 +212,7 @@ protected:
                 parameter.symbol = "voice_optimization";
                 break;
             // hide some unused parameters
+           #ifndef SIMPLIFIED_MAPI_BUILD
             case kParameter_sb_target_spectrum_0:
             case kParameter_sb_target_spectrum_1:
             case kParameter_sb_target_spectrum_2:
@@ -220,7 +221,9 @@ protected:
             case kParameter_sb_target_spectrum_5:
             case kParameter_sb_target_spectrum_6:
             case kParameter_sb_target_spectrum_7:
+           #endif
             case kParameter_pre_lowcut:
+           #ifndef SIMPLIFIED_MAPI_BUILD
             case kParameter_sb_meter__0:
             case kParameter_sb_meter__1:
             case kParameter_sb_meter__2:
@@ -229,6 +232,7 @@ protected:
             case kParameter_sb_meter__5:
             case kParameter_sb_meter__6:
             case kParameter_sb_meter__7:
+           #endif
                 parameter.hints |= kParameterIsHidden;
                 break;
             }
@@ -355,10 +359,10 @@ protected:
         switch (index)
         {
         case kExtraParamGlobalBypass:
-            dryValue.setTargetValue(value < 0.5f ? extraParameters[kExtraParamIntensity] : 0.f);
+            dryValue.setTargetValue(value < 0.5f ? 1.f - extraParameters[kExtraParamIntensity] * 0.01f : 0.f);
             break;
         case kExtraParamIntensity:
-            dryValue.setTargetValue(extraParameters[kExtraParamGlobalBypass] < 0.5f ? value : 0.f);
+            dryValue.setTargetValue(extraParameters[kExtraParamGlobalBypass] < 0.5f ? 1.f - value * 0.01f : 0.f);
             break;
        #ifndef SIMPLIFIED_MAPI_BUILD
         case kExtraParamGracePeriod:
@@ -433,15 +437,12 @@ protected:
     void run(const float** const inputs, float** const outputs, const uint32_t frames) override
     {
        #ifdef SIMPLIFIED_MAPI_BUILD
-        const float* const input = inputs[0];
-        /* */ float* const output = outputs[0];
-
         // optimize for non-denormal usage
         for (uint32_t i = 0; i < frames; ++i)
         {
-            if (!std::isfinite(input[i]))
+            if (!std::isfinite(inputs[0][i]))
                 __builtin_unreachable();
-            if (!std::isfinite(output[i]))
+            if (!std::isfinite(outputs[0][i]))
                 __builtin_unreachable();
         }
 
@@ -485,10 +486,8 @@ protected:
             const uint32_t framesCycleF = framesCycle * sizeof(float);
 
             // copy input data into buffer
-           #ifdef SIMPLIFIED_MAPI_BUILD
-            std::memcpy(bufferIn + bufferInPos, input + offset, framesCycleF);
-           #else
             std::memcpy(bufferIn + bufferInPos, inputs[0] + offset, framesCycleF);
+           #ifndef SIMPLIFIED_MAPI_BUILD
             std::memcpy(bufferIn2 + bufferInPos, inputs[1] + offset, framesCycleF);
            #endif
 
@@ -610,64 +609,35 @@ protected:
             // we have enough audio frames in the ring buffer, can give back audio to host
             if (processing)
             {
-               #ifdef SIMPLIFIED_MAPI_BUILD
                 // copy processed buffer directly into output
-                ringBufferOut.readCustomData(output + offset, framesCycleF);
-
-                // retrieve dry buffer (doing nothing with it)
-                ringBufferDry.readCustomData(bufferOut, framesCycleF);
-               #else
-                // apply smooth bypass
-                if (d_isNotEqual(dryValue.getCurrentValue(), dryValue.getTargetValue()))
-                {
-                    // copy processed buffer directly into output
-                    ringBufferOut.readCustomData(outputs[0] + offset, framesCycleF);
-                    ringBufferOut2.readCustomData(outputs[1] + offset, framesCycleF);
-
-                    // retrieve dry buffer
-                    ringBufferDry.readCustomData(bufferOut, framesCycleF);
-                    ringBufferDry2.readCustomData(bufferOut2, framesCycleF);
-
-                    for (uint32_t i = 0; i < framesCycle; ++i)
-                    {
-                        const float dry = dryValue.next();
-                        const float wet = 1.f - dry;
-                        outputs[0][i + offset] = outputs[0][i + offset] * wet + bufferOut[i] * dry;
-                        outputs[1][i + offset] = outputs[1][i + offset] * wet + bufferOut2[i] * dry;
-                    }
-                }
-                // disable (bypass on)
-                else if (d_isNotZero(dryValue.getTargetValue()))
-                {
-                    // copy dry buffer directly into output
-                    ringBufferDry.readCustomData(outputs[0] + offset, framesCycleF);
-                    ringBufferDry2.readCustomData(outputs[1] + offset, framesCycleF);
-
-                    // retrieve processed buffer (doing nothing with it)
-                    ringBufferOut.readCustomData(bufferOut, framesCycleF);
-                    ringBufferOut2.readCustomData(bufferOut2, framesCycleF);
-                }
-                // enabled (bypass off)
-                else
-                {
-                    // copy processed buffer directly into output
-                    ringBufferOut.readCustomData(outputs[0] + offset, framesCycleF);
-                    ringBufferOut2.readCustomData(outputs[1] + offset, framesCycleF);
-
-                    // retrieve dry buffer (doing nothing with it)
-                    ringBufferDry.readCustomData(bufferOut, framesCycleF);
-                    ringBufferDry2.readCustomData(bufferOut2, framesCycleF);
-                }
+                ringBufferOut.readCustomData(outputs[0] + offset, framesCycleF);
+               #ifndef SIMPLIFIED_MAPI_BUILD
+                ringBufferOut2.readCustomData(outputs[1] + offset, framesCycleF);
                #endif
+
+                // retrieve dry buffer
+                ringBufferDry.readCustomData(bufferOut, framesCycleF);
+               #ifndef SIMPLIFIED_MAPI_BUILD
+                ringBufferDry2.readCustomData(bufferOut2, framesCycleF);
+               #endif
+
+                float dry, wet;
+                for (uint32_t i = 0; i < framesCycle; ++i)
+                {
+                    dry = dryValue.next();
+                    wet = 1.f - dry;
+                    outputs[0][i + offset] = outputs[0][i + offset] * wet + bufferOut[i] * dry;
+                   #ifndef SIMPLIFIED_MAPI_BUILD
+                    outputs[1][i + offset] = outputs[1][i + offset] * wet + bufferOut2[i] * dry;
+                   #endif
+                }
             }
             // capture more audio frames until it fits 1 denoise block
             else
             {
                 // mute output while still capturing audio frames
-               #ifdef SIMPLIFIED_MAPI_BUILD
-                std::memset(output, 0, framesCycleF);
-               #else
                 std::memset(outputs[0] + offset, 0, framesCycleF);
+               #ifndef SIMPLIFIED_MAPI_BUILD
                 std::memset(outputs[1] + offset, 0, framesCycleF);
                #endif
 

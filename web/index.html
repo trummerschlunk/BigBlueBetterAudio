@@ -9,6 +9,7 @@
 // known constants
 const kParameter_leveler_target = 13;
 const kParameter_mb_strength = 15;
+const kParameter_intensity = 22;
 
 // load the wasm modules
 function init(callback) {
@@ -89,6 +90,7 @@ function enableStream() {
             setWasmProcessorEnabled(document.getElementById('enable-bbba').checked);
             setWasmProcessorParameter(kParameter_mb_strength, document.getElementById('bbba-strength').value);
             setWasmProcessorParameter(kParameter_leveler_target, document.getElementById('bbba-target').value);
+            setWasmProcessorParameter(kParameter_intensity, document.getElementById('bbba-intensity').value);
 
             // create delay node just before the speakers
             const delayOpts = {
@@ -124,11 +126,14 @@ window.addEventListener('DOMContentLoaded', function() {
             strengthVal: document.getElementById('bbba-strength-value'),
             target: document.getElementById('bbba-target'),
             targetVal: document.getElementById('bbba-target-value'),
+            intensity: document.getElementById('bbba-intensity'),
+            intensityVal: document.getElementById('bbba-intensity-value'),
             delay: document.getElementById('delay'),
             delayVal: document.getElementById('delay-value'),
         };
         elems.strengthVal.textContent = elems.strength.value;
         elems.targetVal.textContent = elems.target.value;
+        elems.intensityVal.textContent = elems.intensity.value;
         elems.delayVal.textContent = elems.delay.value;
 
         document.getElementById('gum-autoGainControl').addEventListener('click', changeAudioConstraints);
@@ -146,6 +151,10 @@ window.addEventListener('DOMContentLoaded', function() {
         elems.target.addEventListener('input', function(event) {
             elems.targetVal.textContent = event.target.value;
             setWasmProcessorParameter(kParameter_leveler_target, event.target.value);
+        });
+        elems.intensity.addEventListener('input', function(event) {
+            elems.intensityVal.textContent = event.target.value;
+            setWasmProcessorParameter(kParameter_intensity, event.target.value);
         });
         elems.delay.addEventListener('input', function(event) {
             elems.delayVal.textContent = event.target.value;
@@ -199,6 +208,11 @@ window.addEventListener('DOMContentLoaded', function() {
                         <label for="enable-bbba">Active</label>
                     </div>
                     <table>
+                        <tr>
+                            <td>Intensity: (Wet %)</td>
+                            <td><output id="bbba-intensity-value"></output></td>
+                            <td><input autocomplete="off" id="bbba-intensity" type="range" value="100" min="0" max="100" /></td>
+                        </tr>
                         <tr>
                             <td>Strength:</td>
                             <td><output id="bbba-strength-value"></output></td>
