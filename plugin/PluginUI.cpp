@@ -467,6 +467,7 @@ protected:
         {
         case kParameter_sbmb_strength:
             enabled.voiceOptimization = qenabled;
+            voiceOptimizationGroup.title.switch_.setEnabled(enabled.global && enabled.voiceOptimization, false);
             voiceOptimizationGroup.updateColors();
             value = qenabled ? 100.f : 0.f;
             break;

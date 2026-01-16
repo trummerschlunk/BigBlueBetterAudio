@@ -1,10 +1,6 @@
 // Copyright 2025-2026 Filipe Coelho <falktx@falktx.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-/**
- TODO items
-  - rnnoise bypass smoothing
- */
 #include "DistrhoPlugin.hpp"
 #include "DistrhoPluginInfo.h"
 #include "extra/RingBuffer.hpp"
@@ -21,6 +17,7 @@
 #endif
 
 #include "rnnoise.h"
+#include "../src/denoise.h"
 
 // checks to ensure things are still as we expect them to be from faust dsp side
 #ifdef SIMPLIFIED_MAPI_BUILD
@@ -37,13 +34,9 @@ START_NAMESPACE_DISTRHO
 
 class BBBAudioPlugin : public FaustGeneratedPlugin
 {
-    // scaling used for denoise processing
-    static constexpr const uint32_t kDenoiseScaling = std::numeric_limits<short>::max();
-    static constexpr const float kDenoiseScalingInv = 1.f / kDenoiseScaling;
-
     // denoise block size
-    const uint32_t denoiseFrameSize = static_cast<uint32_t>(rnnoise_get_frame_size());
-    const uint32_t denoiseFrameSizeF = denoiseFrameSize * sizeof(float);
+    static constexpr const uint32_t denoiseFrameSize = FRAME_SIZE;
+    static constexpr const uint32_t denoiseFrameSizeF = denoiseFrameSize * sizeof(float);
 
     // denoise handle, keep it const so we never modify it
     DenoiseState* const denoise = rnnoise_create(nullptr);
@@ -54,6 +47,9 @@ class BBBAudioPlugin : public FaustGeneratedPlugin
     // buffers for latent processing
     float* bufferIn;
     float* bufferOut;
+    // TODO use pointer swap instead of always copying
+    float* bufferPrevIn;
+    float* bufferOldPrevIn;
     HeapRingBuffer ringBufferDry;
     HeapRingBuffer ringBufferOut;
     uint32_t bufferInPos;
@@ -61,6 +57,8 @@ class BBBAudioPlugin : public FaustGeneratedPlugin
     // stereo variant
     float* bufferIn2;
     float* bufferOut2;
+    float* bufferPrevIn2;
+    float* bufferOldPrevIn2;
     HeapRingBuffer ringBufferDry2;
     HeapRingBuffer ringBufferOut2;
    #endif
@@ -403,8 +401,13 @@ protected:
 
         bufferIn = new float[denoiseFrameSize];
         bufferOut = new float[denoiseFrameSize];
+        bufferPrevIn = new float[denoiseFrameSize];
+        bufferOldPrevIn = new float[denoiseFrameSize];
         bufferInPos = 0;
         processing = false;
+
+        std::memset(bufferPrevIn, 0, denoiseFrameSizeF);
+        std::memset(bufferOldPrevIn, 0, denoiseFrameSizeF);
 
         muteValue.setTimeConstant(kMuteRelease);
         muteValue.setTargetValue(0.f);
@@ -417,6 +420,11 @@ protected:
         ringBufferOut2.createBuffer(ringBufferSize);
         bufferIn2 = new float[denoiseFrameSize];
         bufferOut2 = new float[denoiseFrameSize];
+        bufferPrevIn2 = new float[denoiseFrameSize];
+        bufferOldPrevIn2 = new float[denoiseFrameSize];
+
+        std::memset(bufferPrevIn2, 0, denoiseFrameSizeF);
+        std::memset(bufferOldPrevIn2, 0, denoiseFrameSizeF);
 
         extraParameters[kExtraParamCurrentVAD] = 0.f;
         extraParameters[kExtraParamAverageVAD] = 0.f;
@@ -436,6 +444,8 @@ protected:
     {
         delete[] bufferIn;
         delete[] bufferOut;
+        delete[] bufferPrevIn;
+        delete[] bufferOldPrevIn;
 
         ringBufferDry.deleteBuffer();
         ringBufferOut.deleteBuffer();
@@ -443,6 +453,8 @@ protected:
        #ifndef SIMPLIFIED_MAPI_BUILD
         delete[] bufferIn2;
         delete[] bufferOut2;
+        delete[] bufferPrevIn2;
+        delete[] bufferOldPrevIn2;
 
         ringBufferDry2.deleteBuffer();
         ringBufferOut2.deleteBuffer();
@@ -514,23 +526,17 @@ protected:
             {
                 bufferInPos = 0;
 
-                // keep hold of dry signal so we can do smooth bypass
-                ringBufferDry.writeCustomData(bufferIn, denoiseFrameSizeF);
+                // store old dry signal so we can do smooth bypass later
+                ringBufferDry.writeCustomData(bufferOldPrevIn, denoiseFrameSizeF);
                 ringBufferDry.commitWrite();
-
-                // scale audio input for denoise
-                for (uint32_t i = 0; i < denoiseFrameSize; ++i)
-                    bufferIn[i] *= kDenoiseScaling;
 
                 // run denoise
                 float vad = rnnoise_process_frame(denoise, bufferOut, bufferIn);
 
                #ifndef SIMPLIFIED_MAPI_BUILD
                 // stereo
-                ringBufferDry2.writeCustomData(bufferIn2, denoiseFrameSizeF);
+                ringBufferDry2.writeCustomData(bufferOldPrevIn2, denoiseFrameSizeF);
                 ringBufferDry2.commitWrite();
-                for (uint32_t i = 0; i < denoiseFrameSize; ++i)
-                    bufferIn2[i] *= kDenoiseScaling;
 
                 vad = std::max(vad, rnnoise_process_frame(denoise2, bufferOut2, bufferIn2));
                #endif
@@ -548,7 +554,7 @@ protected:
                     muteValue.setTargetValue(0.f);
                 }
 
-                // scale back down to regular audio level, also apply mute as needed
+                // apply mute as needed
                 for (uint32_t i = 0; i < denoiseFrameSize; ++i)
                 {
                     if (numFramesUntilGracePeriodOver != 0 && --numFramesUntilGracePeriodOver == 0)
@@ -558,12 +564,8 @@ protected:
                     }
 
                     const float muteNextValue = muteValue.next();
-                    bufferIn[i] *= kDenoiseScalingInv;
-                    bufferOut[i] *= kDenoiseScalingInv;
                     bufferOut[i] *= muteNextValue;
                    #ifndef SIMPLIFIED_MAPI_BUILD
-                    bufferIn2[i] *= kDenoiseScalingInv;
-                    bufferOut2[i] *= kDenoiseScalingInv;
                     bufferOut2[i] *= muteNextValue;
                    #endif
                 }
@@ -585,16 +587,23 @@ protected:
                 {
                     dry = denoiserDryValue.next();
                     wet = 1.f - dry;
-                    bufferOut[i] = bufferOut[i] * wet + bufferIn[i] * dry;
+                    bufferOut[i] = bufferOut[i] * wet + bufferOldPrevIn[i] * dry;
                    #ifndef SIMPLIFIED_MAPI_BUILD
-                    bufferOut2[i] = bufferOut2[i] * wet + bufferIn2[i] * dry;
+                    bufferOut2[i] = bufferOut2[i] * wet + bufferOldPrevIn2[i] * dry;
                    #endif
                 }
 
+                // keep hold of current dry signal for next cycle
+                std::memcpy(bufferOldPrevIn, bufferPrevIn, denoiseFrameSizeF);
+                std::memcpy(bufferPrevIn, bufferIn, denoiseFrameSizeF);
+               #ifndef SIMPLIFIED_MAPI_BUILD
+                std::memcpy(bufferOldPrevIn2, bufferPrevIn2, denoiseFrameSizeF);
+                std::memcpy(bufferPrevIn2, bufferIn2, denoiseFrameSizeF);
+               #endif
+
+                // process denoise output on faust side, reuse input buffers as not allocate memory here
                 float* ins[2];
                 float* outs[2];
-
-                // we previously wrote to bufferOut, so use that as faust input
                 ins[0] = bufferOut;
                 outs[0] = bufferIn;
                #ifndef SIMPLIFIED_MAPI_BUILD
@@ -602,7 +611,6 @@ protected:
                 outs[1] = bufferIn2;
                #endif
 
-                // process denoise output on faust side
                 FaustGeneratedPlugin::setParameterValue(kParameter_vad_ext, vad);
 
                 dsp->compute(denoiseFrameSize, ins, outs);
@@ -677,7 +685,7 @@ protected:
         gracePeriodInFrames = d_roundToUnsignedInt(gracePeriod * sampleRate / 1000.0);
 
         // report latency to host
-        setLatency(denoiseFrameSize + d_roundToUnsignedInt(sampleRate * 0.005));
+        setLatency(denoiseFrameSize * 3 + d_roundToUnsignedInt(sampleRate * 0.005));
     }
 
     // ----------------------------------------------------------------------------------------------------------------
