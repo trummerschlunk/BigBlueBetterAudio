@@ -9,7 +9,7 @@
 // Author: Klaus Scheuermann
 // Copyright: 
 // License: GPLv3+
-// Version: 0.28
+// Version: 0.29
 //------------------------------------------------------------------------------
 
 
@@ -193,7 +193,7 @@ static constexpr const struct { float def, min, max; } kParameterRanges[61] = {
     { 0.0, -12.0, 12.0 },
     { 42.0, 1.0, 400.0 },
     { 0.9, 0.0, 1.0 },
-    { 0.1, 0.0, 1.0 },
+    { 100.0, 0.0, 1000.0 },
     
     // ouputs
     { 0, -40.0, 40.0 },
@@ -329,7 +329,7 @@ static constexpr const char* kParameterUnits[61] = {
     "dB",
     "",
     "",
-    "",
+    "ms",
     
     // ouputs
     "dB",

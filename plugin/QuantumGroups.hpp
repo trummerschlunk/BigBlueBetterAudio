@@ -332,7 +332,7 @@ struct VoiceIsolationGroup : QuantumFrame,
         vadSmoothingTime.slider.setId(kParameter_vad_smoothing_time);
         vadSmoothingTime.slider.setDefault(kParameterRanges[kParameter_vad_smoothing_time].def);
         vadSmoothingTime.slider.setRange(kParameterRanges[kParameter_vad_smoothing_time].min, kParameterRanges[kParameter_vad_smoothing_time].max);
-        // vadSmoothingTime.slider.setStep(1);
+        vadSmoothingTime.slider.setStep(1);
         vadSmoothingTime.slider.setUnitLabel(kParameterUnits[kParameter_vad_smoothing_time]);
         vadSmoothingTime.slider.setValue(kParameterRanges[kParameter_vad_smoothing_time].def, false);
         vadSmoothingTime.label.setLabel("Smoothing Time");

@@ -9,7 +9,7 @@
 // Author: Klaus Scheuermann
 // Copyright: 
 // License: GPLv3+
-// Version: 0.28
+// Version: 0.29
 //------------------------------------------------------------------------------
 
 
@@ -703,7 +703,7 @@ class mydsp : public dsp {
 		m->declare("basics.lib/peakholder:copyright", "Copyright (C) 2022 Dario Sanfilippo <sanfilippo.dario@gmail.com>");
 		m->declare("basics.lib/peakholder:license", "MIT-style STK-4.3 license");
 		m->declare("basics.lib/version", "1.21.0");
-		m->declare("compile_options", "-a /tmp/tmpwatuiyxv.cpp -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("compile_options", "-a /tmp/tmp06hhgon4.cpp -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("compressors.lib/expanderSC_N_chan:author", "Bart Brouns");
 		m->declare("compressors.lib/expanderSC_N_chan:license", "GPLv3");
 		m->declare("compressors.lib/expander_N_chan:author", "Bart Brouns");
@@ -769,7 +769,7 @@ class mydsp : public dsp {
 		m->declare("signals.lib/onePoleSwitching:author", "Jonatan Liljedahl, revised by Dario Sanfilippo");
 		m->declare("signals.lib/onePoleSwitching:licence", "STK-4.3");
 		m->declare("signals.lib/version", "1.6.0");
-		m->declare("version", "0.28");
+		m->declare("version", "0.29");
 	}
 
 	FAUSTPP_VIRTUAL int getNumInputs() {
@@ -958,7 +958,7 @@ class mydsp : public dsp {
 		fVslider0 = FAUSTFLOAT(0.0f);
 		fVslider1 = FAUSTFLOAT(-23.0f);
 		fVslider2 = FAUSTFLOAT(0.9f);
-		fVslider3 = FAUSTFLOAT(0.1f);
+		fVslider3 = FAUSTFLOAT(1e+02f);
 		fVslider4 = FAUSTFLOAT(1.0f);
 		fVslider5 = FAUSTFLOAT(1.0f);
 		fVslider6 = FAUSTFLOAT(42.0f);
@@ -2200,7 +2200,8 @@ class mydsp : public dsp {
 		ui_interface->declare(&fVbargraph0, "symbol", "vad_smoothing_meter");
 		ui_interface->addVerticalBargraph("vad_smoo", &fVbargraph0, FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f));
 		ui_interface->declare(&fVslider3, "symbol", "vad_smoothing_time");
-		ui_interface->addVerticalSlider("vad_smoo_t", &fVslider3, FAUSTFLOAT(0.1f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f), FAUSTFLOAT(0.01f));
+		ui_interface->declare(&fVslider3, "unit", "ms");
+		ui_interface->addVerticalSlider("vad_smoo_t", &fVslider3, FAUSTFLOAT(1e+02f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+03f), FAUSTFLOAT(1e+01f));
 		ui_interface->closeBox();
 		ui_interface->closeBox();
 	}
@@ -2215,7 +2216,7 @@ class mydsp : public dsp {
 		float fSlow2 = fSlow1 + -12.0f;
 		float fSlow3 = fSlow0 + -12.5f;
 		float fSlow4 = float(fVslider2);
-		float fSlow5 = float(fVslider3);
+		float fSlow5 = 0.001f * float(fVslider3);
 		int iSlow6 = std::fabs(fSlow5) < 1.1920929e-07f;
 		float fSlow7 = ((iSlow6) ? 0.0f : std::exp(-(fConst7 / ((iSlow6) ? 1.0f : fSlow5))));
 		float fSlow8 = float(fVslider4) * (1.0f - fSlow7);
