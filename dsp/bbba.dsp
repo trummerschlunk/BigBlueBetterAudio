@@ -11,9 +11,10 @@
 
 // from 0.15 on bbba needs rnnoise for controlling VAD
 // 0.17 looses all internal VAD (minimum tracking, expanders)
+// 0.23 return of the expander, SB: limit pos on edge bands
 
 declare name "bbba";
-declare version "0.22";             
+declare version "0.23";             
 declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
@@ -39,6 +40,8 @@ sb_strength_init = 50;
 sb_target_spectrum_init = -10, -5, -5, -8, -9, -10, -7, -4;
 
 mb_strength_init = 80;
+
+mb_exp_strength_init = 100;
 
 meters_minimum = -70;
 
@@ -73,6 +76,8 @@ sb_target_spectrum = par(i,Nbands, vslider("h:[1]Spectral Ballancer/h:Target Cur
 
 mb_strength = gui_mb(vslider("mb_strength[symbol:mb_strength]", mb_strength_init,0,100,1)) / 100 : _*sbmb_strength;
 
+mb_exp_thresh = 0; //gui_main(vslider("mb_exp_thresh[unit:dB][symbol:mb_exp_thresh]",0,-12,12,1));
+mb_exp_strength = mb_exp_strength_init; //gui_mb(vslider("mb_exp_strength[unit:%][symbol:mb_exp_strength]", mb_exp_strength_init,0,100,1)) / 100;
 
 // METERS
 
@@ -299,60 +304,7 @@ dynamicSmoothing(sensitivity, baseCF, x) = f ~ _ : ! , ! , _
 
 
 
-//             _     ______             _____                      
-//            | |   |  ____|           / ____|                     
-//   _ __ ___ | |__ | |__  __  ___ __ | |     ___  _ __ ___  _ __  
-//  | '_ ` _ \| '_ \|  __| \ \/ / '_ \| |    / _ \| '_ ` _ \| '_ \ 
-//  | | | | | | |_) | |____ >  <| |_) | |___| (_) | | | | | | |_) |
-//  |_| |_| |_|_.__/|______/_/\_\ .__/ \_____\___/|_| |_| |_| .__/ 
-//                              | |                         | |    
-//                              |_|                         |_|    
 
-mbExpComp = 
-    
-    compressor8
-    :> si.bus(1)
-
-    with {
-
-        xo1 = 100;
-        xo2 = 200;
-        xo3 = 400;
-        xo4 = 800;
-        xo5 = 1600;
-        xo6 = 3200;
-        xo7 = 6400;
-
-
-        mb_makeup = 1.5;
-        
-        compressor8 = par (i,8, compressor8_mono(i)) with {
-            compressor8_mono(i,l) = l * 
-                                (l:co.peak_compression_gain_mono(
-                                    ratio2strength(ratio : ba.selector(i,Nbands)),
-                                    target + (thresh : ba.selector(i,Nbands)),
-                                    att : ba.selector(i,Nbands) : _*0.001,
-                                    rel : ba.selector(i,Nbands) : _*0.001,
-                                    knee,
-                                    prePost)
-                                    : ba.linear2db + mb_makeup : ba.db2linear
-                                    : scale_by_mb_strength
-                                    :compressor_meter(i)
-                                );
-            ratio = 4,4,4,4,4,4,4,4;
-            thresh = -6,-6,-7,-8,-11,-12,-12,-13;
-            att = 30,25,20,15,10,5,3,2;
-            rel = 100,80,60,40,20,15,15,15;
-            knee = 1;
-            prePost= 1;
-
-            scale_by_mb_strength = ba.linear2db : _ * mb_strength : ba.db2linear;
-
-        };
-
-         
-
-    };
 
 /*
    _____                 _             _   ____        _ _                           
@@ -387,19 +339,19 @@ ballancer(l) = l <:
         
         : par(i,Nbands,(((((_-_)                         // substract target spectrum
         : sb_envelope(i)                                // gainchange smoothing (dependent on frequency band)
-        : sb_limit                                      // limit gainchange
+        : sb_limit(i)                                      // limit gainchange
         : _*sb_strength                                 // apply strength
         : _*sbmb_strength                               // apply overall strength
-        : _* vad : ba.db2linear)     )              // multiply with external VAD (voice activity detection)
+        : _* vad : ba.db2linear)     )                 // multiply with external VAD (voice activity detection)
         : sb_gainmeter(i)),_))                          // meter the gainchange
         : par(i,Nbands,gainchange(l))                    // do the actual gainchange to each band
         
         with {
         
             xoverbank = crossover;
-            sb_limitUP = 12;
+            sb_limitUP = 6, 9, 12, 12, 12, 12, 9, 6;
             sb_limitDOWN = 12;
-            sb_limit = max(ma.neg(sb_limitDOWN)) : min(sb_limitUP);
+            sb_limit(i) = max(ma.neg(sb_limitDOWN)) : min(sb_limitUP : ba.selector(i,Nbands));
         
             sb_envelope(i) = si.smooth(ba.tau2pole(tau)) with{
                 tau = 0.2 * ((Nbands-i) / Nbands);
@@ -420,6 +372,79 @@ ballancer(l) = l <:
                             : ba.linear2db;
 
         };    
+
+
+
+
+//             _     ______             _____                      
+//            | |   |  ____|           / ____|                     
+//   _ __ ___ | |__ | |__  __  ___ __ | |     ___  _ __ ___  _ __  
+//  | '_ ` _ \| '_ \|  __| \ \/ / '_ \| |    / _ \| '_ ` _ \| '_ \ 
+//  | | | | | | |_) | |____ >  <| |_) | |___| (_) | | | | | | |_) |
+//  |_| |_| |_|_.__/|______/_/\_\ .__/ \_____\___/|_| |_| |_| .__/ 
+//                              | |                         | |    
+//                              |_|                         |_|    
+
+mbExpComp = 
+    
+      compressor8
+    : expander8
+    :> si.bus(1)
+
+    with {
+
+        mb_makeup = 1.5;
+        
+        compressor8 = par (i,8, compressor8_mono(i)) with {
+            compressor8_mono(i,l) = l * 
+                                (l:co.peak_compression_gain_mono(
+                                    ratio2strength(ratio : ba.selector(i,Nbands)),
+                                    target + (thresh : ba.selector(i,Nbands)),
+                                    att : ba.selector(i,Nbands) : _*0.001,
+                                    rel : ba.selector(i,Nbands) : _*0.001,
+                                    knee,
+                                    prePost)
+                                    : ba.linear2db + mb_makeup : ba.db2linear
+                                    : scale_by_mb_strength
+                                    :compressor_meter(i)
+                                );
+            ratio = 4,4,4,4,4,4,4,4;
+            thresh = -6,-6,-7,-8,-11,-12,-12,-13;
+            att = 30,25,20,15,10,5,3,2;
+            rel = 100,80,60,40,20,15,15,15;
+            knee = 1;
+            prePost= 1;
+
+            scale_by_mb_strength = ba.linear2db : _ * mb_strength : ba.db2linear;
+
+        };
+
+        expander8 = par(i,Nbands,
+            co.expander_N_chan(
+                ratio2strength(ratio_array : ba.selector(i,Nbands)) * mb_exp_strength * (1-(vad/2)), // strength is reduced by half, when VAD is 1
+                target + mb_exp_thresh + (thresh_array : ba.selector(i,Nbands)),
+                range_array : ba.selector(i,Nbands),
+                (att_array : ba.selector(i,Nbands)) /1000,
+                hold,
+                (rel_array : ba.selector(i,Nbands)) /1000,
+                knee,
+                prePost,
+                link,meter(i),maxHold,1)) with {
+            ratio_array = 4,4,4,4,4,4,4,4;
+            thresh_array = -12,-12,-12,-12,-13,-13,-14,-15;
+            range_array = -12,-12,-12,-12,-12,-12,-12,-12;
+            att_array = 8,7,6,5,4,3,2,1;
+            hold = 0.001;
+            rel_array = 200,200,200,200,160,120,80,50;
+            knee = 6;
+            prePost = 1;
+            link = 0.25;
+            meter(i) = _; //mb_exp_meter(i);
+            maxHold = 1000;
+        };
+
+    };
+
 
 
 

@@ -19,9 +19,10 @@
 // 0.25 correct [unit]s
 // 0.26 no bypass
 // 0.27 lufs->LUFS
+// 0.28 return of the expander
 
 declare name "bbba";
-declare version "0.27";             
+declare version "0.28";             
 declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
@@ -57,8 +58,8 @@ maxSR = 48000;                      // maximum samplerate
 sbmb_strength_init = 100;
 
 lev_target_init = -23;
-lev_maxboost_init = 20;
-lev_maxcut_init = 20;
+lev_maxboost_init = 30;
+lev_maxcut_init = 30;
 lev_brake_threshold_init = -22;
 lev_speed_init = 80;
 lev_scale_init =100;
@@ -67,6 +68,7 @@ sb_strength_init = 50;
 sb_target_spectrum_init = -10, -5, -5, -8, -9, -10, -7, -4;
 
 mb_strength_init = 80;
+mb_exp_strength_init = 100;
 
 meters_minimum = -70;
 
@@ -101,6 +103,8 @@ sb_target_spectrum = par(i,Nbands, vslider("h:[1]Spectral Ballancer/h:Target Cur
 
 mb_strength = gui_mb(vslider("mb_strength[unit:%][symbol:mb_strength]", mb_strength_init,0,100,1)) / 100 : _*sbmb_strength;
 
+mb_exp_thresh = gui_main(vslider("mb_exp_thresh[unit:dB][symbol:mb_exp_thresh]",0,-12,12,1));
+mb_exp_strength = gui_mb(vslider("mb_exp_strength[unit:%][symbol:mb_exp_strength]", mb_exp_strength_init,0,100,1)) / 100;
 
 // METERS
 
@@ -110,7 +114,8 @@ sb_meter(i) = _ <: attach(_, vbargraph("h:[1]Spectral Ballancer/h:[2]loudness no
 sb_gainmeter(i) = _ <: attach(_, (ba.linear2db:vbargraph("h:[1]Spectral Ballancer/h:[3]resulting gain/[1]sb_gain %2i[symbol:sb_gain_%2i]",-12,12)));
 
 compressor_meter(i) = _ <: attach(_,ba.linear2db:gui_mb(vbargraph("[2]MBgr%2i[unit:dB][symbol:mb_comp_gain%2i]",-12,12)));
-
+expander_meter = _ <: attach(_,ba.linear2db:gui_mb(vbargraph("[2]EXgr[unit:dB][symbol:mb_exp_gain]",-12,12)));
+mb_exp_meter(i) = _<:(_, ((gui_mb(vbargraph("[1]Exp%i[unit:dB][symbol:mb_exp_meter%i]", -12, 0))))):attach;
 limiter_meter = _ <: attach(_,abs : ba.linear2db : gui_main(vbargraph("[99][symbol:limiter_gain]LimiterGR",-12,0)));
 
 
@@ -381,7 +386,7 @@ ballancer(l) = l <:
         
         : par(i,Nbands,(((((_-_)                         // substract target spectrum
         : sb_envelope(i)                                // gainchange smoothing (dependent on frequency band)
-        : sb_limit                                      // limit gainchange
+        : sb_limit(i)                                      // limit gainchange
         : _*sb_strength                                 // apply strength
         : _*sbmb_strength                               // apply overall strength
         : _* vad : ba.db2linear)     )                 // multiply with external VAD (voice activity detection)
@@ -391,9 +396,9 @@ ballancer(l) = l <:
         with {
         
             xoverbank = crossover;
-            sb_limitUP = 12;
+            sb_limitUP = 6, 9, 12, 12, 12, 12, 9, 6;
             sb_limitDOWN = 12;
-            sb_limit = max(ma.neg(sb_limitDOWN)) : min(sb_limitUP);
+            sb_limit(i) = max(ma.neg(sb_limitDOWN)) : min(sb_limitUP : ba.selector(i,Nbands));
         
             sb_envelope(i) = si.smooth(ba.tau2pole(tau)) with{
                 tau = 0.2 * ((Nbands-i) / Nbands);
@@ -428,7 +433,8 @@ ballancer(l) = l <:
 
 mbExpComp = 
     
-    compressor8
+      compressor8
+    : expander8
     :> si.bus(1)
 
     with {
@@ -459,7 +465,29 @@ mbExpComp =
 
         };
 
-         
+        expander8 = par(i,Nbands,
+            co.expander_N_chan(
+                ratio2strength(ratio_array : ba.selector(i,Nbands)) * mb_exp_strength * (1-(vad/2)), // strength is reduced by half, when VAD is 1
+                target + mb_exp_thresh + (thresh_array : ba.selector(i,Nbands)),
+                range_array : ba.selector(i,Nbands),
+                (att_array : ba.selector(i,Nbands)) /1000,
+                hold,
+                (rel_array : ba.selector(i,Nbands)) /1000,
+                knee,
+                prePost,
+                link,meter(i),maxHold,1)) with {
+            ratio_array = 4,4,4,4,4,4,4,4;
+            thresh_array = -12,-12,-12,-12,-13,-13,-14,-15;
+            range_array = -12,-12,-12,-12,-12,-12,-12,-12;
+            att_array = 8,7,6,5,4,3,2,1;
+            hold = 0.001;
+            rel_array = 200,200,200,200,160,120,80,50;
+            knee = 6;
+            prePost = 1;
+            link = 0.25;
+            meter(i) = mb_exp_meter(i);
+            maxHold = 1000;
+        };
 
     };
 
