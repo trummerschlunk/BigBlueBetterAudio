@@ -62,8 +62,8 @@ jobs:
         with:
           name: ${{ env.ARTIFACT_BASENAME }}
           path: |
-            bin/BBBA-mapi.*
-            bin-nosimd/BBBA-mapi-nosimd.*
+            bin/*.*
+            bin-nosimd/*.*
 
   windows:
     strategy:
