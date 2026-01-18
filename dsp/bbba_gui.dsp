@@ -20,7 +20,7 @@
 // 0.26 no bypass
 // 0.27 lufs->LUFS
 // 0.28 return of the expander
-// 0.29 vad smoothing in ms
+// 0.29 modified vad for spectral ballancer
 
 declare name "bbba";
 declare version "0.29";             
@@ -148,12 +148,12 @@ vad_meter = _<: attach(_, gui_main(vbargraph("[symbol:vad_meter]vad_meter",0,1))
 vad = vad_ext : vad_smoothing : vad_smoothing_meter : vad_gate : vad_meter;
 
 vad_gate(x) = x * (x > vad_gate_thresh);
-vad_gate_thresh = gui_main(vslider("vad_g_thr[symbol:vad_gate_thresh]",vad_gate_thresh_init,0,1,00.1));
+vad_gate_thresh = gui_main(vslider("vad_g_thr[symbol:vad_gate_thresh]",vad_gate_thresh_init,0,1,0.01));
 vad_gate_thresh_init = 0.9;
 
 vad_smoothing = si.smooth(ba.tau2pole(vad_smoothing_time));
 vad_smoothing_time = gui_main(vslider("vad_smoo_t[unit:ms][symbol:vad_smoothing_time]",vad_smoothing_time_init,0,1000,10)) / 1000;
-vad_smoothing_time_init = 100;
+vad_smoothing_time_init = 50;
 vad_smoothing_meter = _<: attach(_, gui_main(vbargraph("vad_smoo[symbol:vad_smoothing_meter]",0,1)));
 
 
@@ -386,11 +386,13 @@ ballancer(l) = l <:
         :sb_meter(i)),_))                               // meter (incoming frequency spectrum loudness-normalized)
         
         : par(i,Nbands,(((((_-_)                         // substract target spectrum
-        : sb_envelope(i)                                // gainchange smoothing (dependent on frequency band)
         : sb_limit(i)                                      // limit gainchange
         : _*sb_strength                                 // apply strength
         : _*sbmb_strength                               // apply overall strength
-        : _* vad : ba.db2linear)     )                 // multiply with external VAD (voice activity detection)
+        : _* vad_ext
+        : sb_envelope(i)                                // gainchange smoothing (dependent on frequency band)
+
+        : ba.db2linear)     )                 // multiply with external VAD (voice activity detection)
         : sb_gainmeter(i)),_))                          // meter the gainchange
         : par(i,Nbands,gainchange(l))                    // do the actual gainchange to each band
         

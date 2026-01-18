@@ -12,7 +12,8 @@
 // from 0.15 on bbba needs rnnoise for controlling VAD
 // 0.17 looses all internal VAD (minimum tracking, expanders)
 // 0.23 return of the expander, SB: limit pos on edge bands
-// 0.24 vad smoothing in ms
+// 0.24 modified vad for spectral ballancer
+
 
 declare name "bbba";
 declare version "0.24";             
@@ -106,7 +107,7 @@ vad_gate_thresh_init = 0.9;
 
 vad_smoothing = si.smooth(ba.tau2pole(vad_smoothing_time));
 vad_smoothing_time = gui_main(vslider("vad_smoo_t[unit:ms][symbol:vad_smoothing_time]",vad_smoothing_time_init,0,1000,10)) / 1000;
-vad_smoothing_time_init = 100;
+vad_smoothing_time_init = 50;
 vad_smoothing_meter = _;//_<: attach(_, gui_main(vbargraph("vad_smoo[symbol:vad_smoothing_meter]",0,1)));
 
 
@@ -307,17 +308,6 @@ dynamicSmoothing(sensitivity, baseCF, x) = f ~ _ : ! , ! , _
 
 
 
-/*
-   _____                 _             _   ____        _ _                           
-  / ____|               | |           | | |  _ \      | | |                          
- | (___  _ __   ___  ___| |_ _ __ __ _| | | |_) | __ _| | | __ _ _ __   ___ ___ _ __ 
-  \___ \| '_ \ / _ \/ __| __| '__/ _` | | |  _ < / _` | | |/ _` | '_ \ / __/ _ \ '__|
-  ____) | |_) |  __/ (__| |_| | | (_| | | | |_) | (_| | | | (_| | | | | (_|  __/ |   
- |_____/| .__/ \___|\___|\__|_|  \__,_|_| |____/ \__,_|_|_|\__,_|_| |_|\___\___|_|   
-        | |                                                                          
-        |_|                                                                        */
-
-
 //----------------------- Ballancer Section -----------------------
 
 ballancer(l) = l <: 
@@ -339,11 +329,13 @@ ballancer(l) = l <:
         :sb_meter(i)),_))                               // meter (incoming frequency spectrum loudness-normalized)
         
         : par(i,Nbands,(((((_-_)                         // substract target spectrum
-        : sb_envelope(i)                                // gainchange smoothing (dependent on frequency band)
         : sb_limit(i)                                      // limit gainchange
         : _*sb_strength                                 // apply strength
         : _*sbmb_strength                               // apply overall strength
-        : _* vad : ba.db2linear)     )                 // multiply with external VAD (voice activity detection)
+        : _* vad_ext
+        : sb_envelope(i)                                // gainchange smoothing (dependent on frequency band)
+
+        : ba.db2linear)     )                 // multiply with external VAD (voice activity detection)
         : sb_gainmeter(i)),_))                          // meter the gainchange
         : par(i,Nbands,gainchange(l))                    // do the actual gainchange to each band
         
