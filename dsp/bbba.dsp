@@ -41,9 +41,10 @@ lev_scale_init =100;
 sb_strength_init = 50;
 sb_target_spectrum_init = -10, -5, -5, -8, -9, -10, -7, -4;
 
-mb_strength_init = 80;
+mb_strength_init = 50;
 
 mb_exp_strength_init = 100;
+mb_exp_thresh_init = 6;
 
 meters_minimum = -70;
 
@@ -78,8 +79,8 @@ sb_target_spectrum = par(i,Nbands, vslider("h:[1]Spectral Ballancer/h:Target Cur
 
 mb_strength = gui_mb(vslider("mb_strength[symbol:mb_strength]", mb_strength_init,0,100,1)) / 100 : _*sbmb_strength;
 
-mb_exp_thresh = 0; //gui_main(vslider("mb_exp_thresh[unit:dB][symbol:mb_exp_thresh]",0,-12,12,1));
-mb_exp_strength = mb_exp_strength_init; //gui_mb(vslider("mb_exp_strength[unit:%][symbol:mb_exp_strength]", mb_exp_strength_init,0,100,1)) / 100;
+mb_exp_thresh = mb_exp_thresh_init; //gui_main(vslider("mb_exp_thresh[unit:dB][symbol:mb_exp_thresh]",0,-12,12,1));
+mb_exp_strength = mb_exp_strength_init : _*sbmb_strength; //gui_mb(vslider("mb_exp_strength[unit:%][symbol:mb_exp_strength]", mb_exp_strength_init,0,100,1)) / 100;
 
 // METERS
 

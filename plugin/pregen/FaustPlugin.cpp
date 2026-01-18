@@ -576,7 +576,7 @@ class mydsp : public dsp {
 		m->declare("basics.lib/peakholder:license", "MIT-style STK-4.3 license");
 		m->declare("basics.lib/tabulateNd", "Copyright (C) 2023 Bart Brouns <bart@magnetophon.nl>");
 		m->declare("basics.lib/version", "1.21.0");
-		m->declare("compile_options", "-a /Users/klausscheuermann/Library/Caches/TemporaryItems/faustpp/58955-md.cpp -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("compile_options", "-a /Users/klausscheuermann/Library/Caches/TemporaryItems/faustpp/63895-md.cpp -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("compressors.lib/expanderSC_N_chan:author", "Bart Brouns");
 		m->declare("compressors.lib/expanderSC_N_chan:license", "GPLv3");
 		m->declare("compressors.lib/expander_N_chan:author", "Bart Brouns");
@@ -800,8 +800,8 @@ class mydsp : public dsp {
 		fVslider4 = FAUSTFLOAT(5e+01f);
 		fVslider5 = FAUSTFLOAT(0.9f);
 		fVslider6 = FAUSTFLOAT(-23.0f);
-		fVslider7 = FAUSTFLOAT(5e+01f);
-		fVslider8 = FAUSTFLOAT(8e+01f);
+		fVslider7 = FAUSTFLOAT(8e+01f);
+		fVslider8 = FAUSTFLOAT(5e+01f);
 		fVslider9 = FAUSTFLOAT(-1e+01f);
 		fVslider10 = FAUSTFLOAT(-5.0f);
 		fVslider11 = FAUSTFLOAT(-5.0f);
@@ -810,7 +810,7 @@ class mydsp : public dsp {
 		fVslider14 = FAUSTFLOAT(-1e+01f);
 		fVslider15 = FAUSTFLOAT(-7.0f);
 		fVslider16 = FAUSTFLOAT(-4.0f);
-		fVslider17 = FAUSTFLOAT(8e+01f);
+		fVslider17 = FAUSTFLOAT(5e+01f);
 	}
 	
 	FAUSTPP_VIRTUAL void instanceClear() {
@@ -1672,10 +1672,10 @@ class mydsp : public dsp {
 		ui_interface->declare(0, "1", "");
 		ui_interface->openHorizontalBox("Spectral Ballancer");
 		ui_interface->openHorizontalBox("Parameters");
-		ui_interface->declare(&fVslider7, "1", "");
-		ui_interface->declare(&fVslider7, "symbol", "sb_strength");
-		ui_interface->declare(&fVslider7, "unit", "%");
-		ui_interface->addVerticalSlider("sb_strength", &fVslider7, FAUSTFLOAT(5e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+02f), FAUSTFLOAT(1.0f));
+		ui_interface->declare(&fVslider8, "1", "");
+		ui_interface->declare(&fVslider8, "symbol", "sb_strength");
+		ui_interface->declare(&fVslider8, "unit", "%");
+		ui_interface->addVerticalSlider("sb_strength", &fVslider8, FAUSTFLOAT(5e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+02f), FAUSTFLOAT(1.0f));
 		ui_interface->closeBox();
 		ui_interface->openHorizontalBox("Target Curve");
 		ui_interface->declare(&fVslider9, "symbol", "sb_target_spectrum_0");
@@ -1704,9 +1704,9 @@ class mydsp : public dsp {
 		ui_interface->declare(&fVslider1, "symbol", "pre_gain");
 		ui_interface->declare(&fVslider1, "unit", "dB");
 		ui_interface->addVerticalSlider("PreGain", &fVslider1, FAUSTFLOAT(0.0f), FAUSTFLOAT(-2e+01f), FAUSTFLOAT(2e+01f), FAUSTFLOAT(0.1f));
-		ui_interface->declare(&fVslider8, "2", "");
-		ui_interface->declare(&fVslider8, "symbol", "sbmb_strength");
-		ui_interface->addVerticalSlider("sbmb_strength", &fVslider8, FAUSTFLOAT(8e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+02f), FAUSTFLOAT(1.0f));
+		ui_interface->declare(&fVslider7, "2", "");
+		ui_interface->declare(&fVslider7, "symbol", "sbmb_strength");
+		ui_interface->addVerticalSlider("sbmb_strength", &fVslider7, FAUSTFLOAT(8e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+02f), FAUSTFLOAT(1.0f));
 		ui_interface->declare(&fVslider3, "3", "");
 		ui_interface->declare(&fVslider3, "symbol", "vad_ext");
 		ui_interface->addVerticalSlider("vad_ext", &fVslider3, FAUSTFLOAT(1.0f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f), FAUSTFLOAT(0.001f));
@@ -1725,7 +1725,7 @@ class mydsp : public dsp {
 		ui_interface->closeBox();
 		ui_interface->openHorizontalBox("mbExpComp");
 		ui_interface->declare(&fVslider17, "symbol", "mb_strength");
-		ui_interface->addVerticalSlider("mb_strength", &fVslider17, FAUSTFLOAT(8e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+02f), FAUSTFLOAT(1.0f));
+		ui_interface->addVerticalSlider("mb_strength", &fVslider17, FAUSTFLOAT(5e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+02f), FAUSTFLOAT(1.0f));
 		ui_interface->closeBox();
 		ui_interface->declare(&fVslider0, "scale", "log");
 		ui_interface->declare(&fVslider0, "symbol", "pre_lowcut");
@@ -1755,8 +1755,8 @@ class mydsp : public dsp {
 		float fSlow10 = fSlow6 * (1.0f - fSlow9);
 		float fSlow11 = float(fVslider5);
 		float fSlow12 = float(fVslider6);
-		float fSlow13 = float(fVslider8);
-		float fSlow14 = fSlow6 * float(fVslider7) * fSlow13;
+		float fSlow13 = float(fVslider7);
+		float fSlow14 = fSlow13 * fSlow6 * float(fVslider8);
 		float fSlow15 = fConst81 * fSlow14;
 		float fSlow16 = float(fVslider9);
 		float fSlow17 = fConst90 * fSlow14;
@@ -1776,20 +1776,21 @@ class mydsp : public dsp {
 		float fSlow31 = 0.0001f * fSlow13 * float(fVslider17);
 		float fSlow32 = fSlow12 + -6.5f;
 		float fSlow33 = fSlow12 + -5.5f;
-		float fSlow34 = fSlow12 + -15.0f;
-		float fSlow35 = fSlow12 + -9.0f;
-		float fSlow36 = fSlow12 + -7.5f;
-		float fSlow37 = fSlow12 + -8.5f;
-		float fSlow38 = fSlow12 + -11.5f;
-		float fSlow39 = fSlow12 + -10.5f;
-		float fSlow40 = fSlow12 + -16.0f;
+		float fSlow34 = fSlow12 + -9.0f;
+		float fSlow35 = fSlow12 + -3.0f;
+		float fSlow36 = 0.75f * fSlow13;
+		float fSlow37 = fSlow12 + -7.5f;
+		float fSlow38 = fSlow12 + -8.5f;
+		float fSlow39 = fSlow12 + -11.5f;
+		float fSlow40 = fSlow12 + -10.5f;
 		float fSlow41 = fSlow12 + -1e+01f;
-		float fSlow42 = fSlow12 + -12.5f;
-		float fSlow43 = fSlow12 + -17.0f;
+		float fSlow42 = fSlow12 + -4.0f;
+		float fSlow43 = fSlow12 + -12.5f;
 		float fSlow44 = fSlow12 + -11.0f;
-		float fSlow45 = fSlow12 + -13.5f;
-		float fSlow46 = fSlow12 + -18.0f;
+		float fSlow45 = fSlow12 + -5.0f;
+		float fSlow46 = fSlow12 + -13.5f;
 		float fSlow47 = fSlow12 + -12.0f;
+		float fSlow48 = fSlow12 + -6.0f;
 		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
 			float fTemp0 = float(input0[i0]);
 			fRec0[0] = fSlow0 + fConst2 * fRec0[1];
@@ -2196,11 +2197,11 @@ class mydsp : public dsp {
 			fVec44[IOTA0 & 511] = std::max<float>(fTemp137, fVec43[(IOTA0 - 256) & 511]);
 			float fTemp138 = 2e+01f * std::log10(std::max<float>(1.1754944e-38f, std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(((iConst103) ? fTemp129 : -3.4028235e+38f), ((iConst104) ? fVec36[iConst103] : -3.4028235e+38f)), ((iConst105) ? fVec37[iConst106] : -3.4028235e+38f)), ((iConst107) ? fVec38[iConst108] : -3.4028235e+38f)), ((iConst109) ? fVec39[(IOTA0 - iConst110) & 31] : -3.4028235e+38f)), ((iConst111) ? fVec40[(IOTA0 - iConst112) & 63] : -3.4028235e+38f)), ((iConst113) ? fVec41[(IOTA0 - iConst114) & 127] : -3.4028235e+38f)), ((iConst115) ? fVec42[(IOTA0 - iConst116) & 255] : -3.4028235e+38f)), ((iConst117) ? fVec43[(IOTA0 - iConst118) & 511] : -3.4028235e+38f)), ((iConst119) ? fVec44[(IOTA0 - iConst120) & 511] : -3.4028235e+38f))));
 			int iTemp139 = (fTemp138 > fSlow34) + (fTemp138 > fSlow35);
-			float fTemp140 = 75.0f * (1.0f - 0.5f * fTemp3);
+			float fTemp140 = fSlow36 * (1.0f - 0.5f * fTemp3);
 			float fTemp141 = std::fabs(fTemp140);
 			int iTemp142 = fTemp140 > 0.0f;
 			float fTemp143 = float(2 * iTemp142 + -1);
-			float fTemp144 = std::max<float>(-12.0f, ((iTemp139 == 0) ? fTemp138 + 12.0f - fSlow12 : ((iTemp139 == 1) ? -(0.083333336f * mydsp_faustpower2_f(fTemp138 + 9.0f - fSlow12)) : 0.0f)) * fTemp141) * fTemp143;
+			float fTemp144 = std::max<float>(-12.0f, ((iTemp139 == 0) ? fTemp138 + 6.0f - fSlow12 : ((iTemp139 == 1) ? -(0.083333336f * mydsp_faustpower2_f(fTemp138 + 3.0f - fSlow12)) : 0.0f)) * fTemp141) * fTemp143;
 			float fTemp145 = ((iTemp142) ? 0.2f : 0.008f);
 			int iTemp146 = std::fabs(fTemp145) < 1.1920929e-07f;
 			float fTemp147 = ((iTemp142) ? 0.008f : 0.2f);
@@ -2234,7 +2235,7 @@ class mydsp : public dsp {
 			fVec54[IOTA0 & 511] = std::max<float>(fTemp163, fVec53[(IOTA0 - 256) & 511]);
 			float fTemp164 = 2e+01f * std::log10(std::max<float>(1.1754944e-38f, std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(((iConst103) ? fTemp155 : -3.4028235e+38f), ((iConst104) ? fVec46[iConst103] : -3.4028235e+38f)), ((iConst105) ? fVec47[iConst106] : -3.4028235e+38f)), ((iConst107) ? fVec48[iConst108] : -3.4028235e+38f)), ((iConst109) ? fVec49[(IOTA0 - iConst110) & 31] : -3.4028235e+38f)), ((iConst111) ? fVec50[(IOTA0 - iConst112) & 63] : -3.4028235e+38f)), ((iConst113) ? fVec51[(IOTA0 - iConst114) & 127] : -3.4028235e+38f)), ((iConst115) ? fVec52[(IOTA0 - iConst116) & 255] : -3.4028235e+38f)), ((iConst117) ? fVec53[(IOTA0 - iConst118) & 511] : -3.4028235e+38f)), ((iConst119) ? fVec54[(IOTA0 - iConst120) & 511] : -3.4028235e+38f))));
 			int iTemp165 = (fTemp164 > fSlow34) + (fTemp164 > fSlow35);
-			float fTemp166 = fTemp143 * std::max<float>(-12.0f, fTemp141 * ((iTemp165 == 0) ? fTemp164 + 12.0f - fSlow12 : ((iTemp165 == 1) ? -(0.083333336f * mydsp_faustpower2_f(fTemp164 + 9.0f - fSlow12)) : 0.0f)));
+			float fTemp166 = fTemp143 * std::max<float>(-12.0f, fTemp141 * ((iTemp165 == 0) ? fTemp164 + 6.0f - fSlow12 : ((iTemp165 == 1) ? -(0.083333336f * mydsp_faustpower2_f(fTemp164 + 3.0f - fSlow12)) : 0.0f)));
 			float fTemp167 = ((iTemp142) ? 0.2f : 0.007f);
 			int iTemp168 = std::fabs(fTemp167) < 1.1920929e-07f;
 			float fTemp169 = ((iTemp142) ? 0.007f : 0.2f);
@@ -2242,7 +2243,7 @@ class mydsp : public dsp {
 			float fTemp171 = ((fTemp166 > fRec225[1]) ? ((iTemp170) ? 0.0f : std::exp(-(fConst28 / ((iTemp170) ? 1.0f : fTemp169)))) : ((iTemp168) ? 0.0f : std::exp(-(fConst28 / ((iTemp168) ? 1.0f : fTemp167)))));
 			fRec225[0] = fTemp166 * (1.0f - fTemp171) + fRec225[1] * fTemp171;
 			float fTemp172 = 2e+01f * std::log10(std::max<float>(1.1754944e-38f, std::fabs(fRec8)));
-			int iTemp173 = (fTemp172 > fSlow36) + (fTemp172 > fSlow32);
+			int iTemp173 = (fTemp172 > fSlow37) + (fTemp172 > fSlow32);
 			float fTemp174 = std::max<float>(0.0f, ((iTemp173 == 0) ? 0.0f : ((iTemp173 == 1) ? 0.5f * mydsp_faustpower2_f(fTemp172 + 7.5f - fSlow12) : fTemp172 + 7.0f - fSlow12)));
 			float fTemp175 = ((-(0.75f * fTemp174) > fRec226[1]) ? fConst123 : fConst122);
 			fRec226[0] = fRec226[1] * fTemp175 - 0.75f * fTemp174 * (1.0f - fTemp175);
@@ -2268,7 +2269,7 @@ class mydsp : public dsp {
 			fVec64[IOTA0 & 511] = std::max<float>(fTemp185, fVec63[(IOTA0 - 256) & 511]);
 			float fTemp186 = 2e+01f * std::log10(std::max<float>(1.1754944e-38f, std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(((iConst103) ? fTemp177 : -3.4028235e+38f), ((iConst104) ? fVec56[iConst103] : -3.4028235e+38f)), ((iConst105) ? fVec57[iConst106] : -3.4028235e+38f)), ((iConst107) ? fVec58[iConst108] : -3.4028235e+38f)), ((iConst109) ? fVec59[(IOTA0 - iConst110) & 31] : -3.4028235e+38f)), ((iConst111) ? fVec60[(IOTA0 - iConst112) & 63] : -3.4028235e+38f)), ((iConst113) ? fVec61[(IOTA0 - iConst114) & 127] : -3.4028235e+38f)), ((iConst115) ? fVec62[(IOTA0 - iConst116) & 255] : -3.4028235e+38f)), ((iConst117) ? fVec63[(IOTA0 - iConst118) & 511] : -3.4028235e+38f)), ((iConst119) ? fVec64[(IOTA0 - iConst120) & 511] : -3.4028235e+38f))));
 			int iTemp187 = (fTemp186 > fSlow34) + (fTemp186 > fSlow35);
-			float fTemp188 = fTemp143 * std::max<float>(-12.0f, fTemp141 * ((iTemp187 == 0) ? fTemp186 + 12.0f - fSlow12 : ((iTemp187 == 1) ? -(0.083333336f * mydsp_faustpower2_f(fTemp186 + 9.0f - fSlow12)) : 0.0f)));
+			float fTemp188 = fTemp143 * std::max<float>(-12.0f, fTemp141 * ((iTemp187 == 0) ? fTemp186 + 6.0f - fSlow12 : ((iTemp187 == 1) ? -(0.083333336f * mydsp_faustpower2_f(fTemp186 + 3.0f - fSlow12)) : 0.0f)));
 			float fTemp189 = ((iTemp142) ? 0.2f : 0.006f);
 			int iTemp190 = std::fabs(fTemp189) < 1.1920929e-07f;
 			float fTemp191 = ((iTemp142) ? 0.006f : 0.2f);
@@ -2276,7 +2277,7 @@ class mydsp : public dsp {
 			float fTemp193 = ((fTemp188 > fRec227[1]) ? ((iTemp192) ? 0.0f : std::exp(-(fConst28 / ((iTemp192) ? 1.0f : fTemp191)))) : ((iTemp190) ? 0.0f : std::exp(-(fConst28 / ((iTemp190) ? 1.0f : fTemp189)))));
 			fRec227[0] = fTemp188 * (1.0f - fTemp193) + fRec227[1] * fTemp193;
 			float fTemp194 = 2e+01f * std::log10(std::max<float>(1.1754944e-38f, std::fabs(fRec9)));
-			int iTemp195 = (fTemp194 > fSlow37) + (fTemp194 > fSlow36);
+			int iTemp195 = (fTemp194 > fSlow38) + (fTemp194 > fSlow37);
 			float fTemp196 = std::max<float>(0.0f, ((iTemp195 == 0) ? 0.0f : ((iTemp195 == 1) ? 0.5f * mydsp_faustpower2_f(fTemp194 + 8.5f - fSlow12) : fTemp194 + 8.0f - fSlow12)));
 			float fTemp197 = ((-(0.75f * fTemp196) > fRec228[1]) ? fConst125 : fConst124);
 			fRec228[0] = fRec228[1] * fTemp197 - 0.75f * fTemp196 * (1.0f - fTemp197);
@@ -2302,7 +2303,7 @@ class mydsp : public dsp {
 			fVec74[IOTA0 & 511] = std::max<float>(fTemp207, fVec73[(IOTA0 - 256) & 511]);
 			float fTemp208 = 2e+01f * std::log10(std::max<float>(1.1754944e-38f, std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(((iConst103) ? fTemp199 : -3.4028235e+38f), ((iConst104) ? fVec66[iConst103] : -3.4028235e+38f)), ((iConst105) ? fVec67[iConst106] : -3.4028235e+38f)), ((iConst107) ? fVec68[iConst108] : -3.4028235e+38f)), ((iConst109) ? fVec69[(IOTA0 - iConst110) & 31] : -3.4028235e+38f)), ((iConst111) ? fVec70[(IOTA0 - iConst112) & 63] : -3.4028235e+38f)), ((iConst113) ? fVec71[(IOTA0 - iConst114) & 127] : -3.4028235e+38f)), ((iConst115) ? fVec72[(IOTA0 - iConst116) & 255] : -3.4028235e+38f)), ((iConst117) ? fVec73[(IOTA0 - iConst118) & 511] : -3.4028235e+38f)), ((iConst119) ? fVec74[(IOTA0 - iConst120) & 511] : -3.4028235e+38f))));
 			int iTemp209 = (fTemp208 > fSlow34) + (fTemp208 > fSlow35);
-			float fTemp210 = fTemp143 * std::max<float>(-12.0f, fTemp141 * ((iTemp209 == 0) ? fTemp208 + 12.0f - fSlow12 : ((iTemp209 == 1) ? -(0.083333336f * mydsp_faustpower2_f(fTemp208 + 9.0f - fSlow12)) : 0.0f)));
+			float fTemp210 = fTemp143 * std::max<float>(-12.0f, fTemp141 * ((iTemp209 == 0) ? fTemp208 + 6.0f - fSlow12 : ((iTemp209 == 1) ? -(0.083333336f * mydsp_faustpower2_f(fTemp208 + 3.0f - fSlow12)) : 0.0f)));
 			float fTemp211 = ((iTemp142) ? 0.2f : 0.005f);
 			int iTemp212 = std::fabs(fTemp211) < 1.1920929e-07f;
 			float fTemp213 = ((iTemp142) ? 0.005f : 0.2f);
@@ -2310,7 +2311,7 @@ class mydsp : public dsp {
 			float fTemp215 = ((fTemp210 > fRec229[1]) ? ((iTemp214) ? 0.0f : std::exp(-(fConst28 / ((iTemp214) ? 1.0f : fTemp213)))) : ((iTemp212) ? 0.0f : std::exp(-(fConst28 / ((iTemp212) ? 1.0f : fTemp211)))));
 			fRec229[0] = fTemp210 * (1.0f - fTemp215) + fRec229[1] * fTemp215;
 			float fTemp216 = 2e+01f * std::log10(std::max<float>(1.1754944e-38f, std::fabs(fRec10)));
-			int iTemp217 = (fTemp216 > fSlow38) + (fTemp216 > fSlow39);
+			int iTemp217 = (fTemp216 > fSlow39) + (fTemp216 > fSlow40);
 			float fTemp218 = std::max<float>(0.0f, ((iTemp217 == 0) ? 0.0f : ((iTemp217 == 1) ? 0.5f * mydsp_faustpower2_f(fTemp216 + 11.5f - fSlow12) : fTemp216 + 11.0f - fSlow12)));
 			float fTemp219 = ((-(0.75f * fTemp218) > fRec230[1]) ? fConst122 : fConst82);
 			fRec230[0] = fRec230[1] * fTemp219 - 0.75f * fTemp218 * (1.0f - fTemp219);
@@ -2335,8 +2336,8 @@ class mydsp : public dsp {
 			fVec83[IOTA0 & 511] = fTemp229;
 			fVec84[IOTA0 & 511] = std::max<float>(fTemp229, fVec83[(IOTA0 - 256) & 511]);
 			float fTemp230 = 2e+01f * std::log10(std::max<float>(1.1754944e-38f, std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(((iConst103) ? fTemp221 : -3.4028235e+38f), ((iConst104) ? fVec76[iConst103] : -3.4028235e+38f)), ((iConst105) ? fVec77[iConst106] : -3.4028235e+38f)), ((iConst107) ? fVec78[iConst108] : -3.4028235e+38f)), ((iConst109) ? fVec79[(IOTA0 - iConst110) & 31] : -3.4028235e+38f)), ((iConst111) ? fVec80[(IOTA0 - iConst112) & 63] : -3.4028235e+38f)), ((iConst113) ? fVec81[(IOTA0 - iConst114) & 127] : -3.4028235e+38f)), ((iConst115) ? fVec82[(IOTA0 - iConst116) & 255] : -3.4028235e+38f)), ((iConst117) ? fVec83[(IOTA0 - iConst118) & 511] : -3.4028235e+38f)), ((iConst119) ? fVec84[(IOTA0 - iConst120) & 511] : -3.4028235e+38f))));
-			int iTemp231 = (fTemp230 > fSlow40) + (fTemp230 > fSlow41);
-			float fTemp232 = fTemp143 * std::max<float>(-12.0f, fTemp141 * ((iTemp231 == 0) ? fTemp230 + 13.0f - fSlow12 : ((iTemp231 == 1) ? -(0.083333336f * mydsp_faustpower2_f(fTemp230 + 1e+01f - fSlow12)) : 0.0f)));
+			int iTemp231 = (fTemp230 > fSlow41) + (fTemp230 > fSlow42);
+			float fTemp232 = fTemp143 * std::max<float>(-12.0f, fTemp141 * ((iTemp231 == 0) ? fTemp230 + 7.0f - fSlow12 : ((iTemp231 == 1) ? -(0.083333336f * mydsp_faustpower2_f(fTemp230 + 4.0f - fSlow12)) : 0.0f)));
 			float fTemp233 = ((iTemp142) ? 0.16f : 0.004f);
 			int iTemp234 = std::fabs(fTemp233) < 1.1920929e-07f;
 			float fTemp235 = ((iTemp142) ? 0.004f : 0.16f);
@@ -2344,7 +2345,7 @@ class mydsp : public dsp {
 			float fTemp237 = ((fTemp232 > fRec231[1]) ? ((iTemp236) ? 0.0f : std::exp(-(fConst28 / ((iTemp236) ? 1.0f : fTemp235)))) : ((iTemp234) ? 0.0f : std::exp(-(fConst28 / ((iTemp234) ? 1.0f : fTemp233)))));
 			fRec231[0] = fTemp232 * (1.0f - fTemp237) + fRec231[1] * fTemp237;
 			float fTemp238 = 2e+01f * std::log10(std::max<float>(1.1754944e-38f, std::fabs(fRec11)));
-			int iTemp239 = (fTemp238 > fSlow42) + (fTemp238 > fSlow38);
+			int iTemp239 = (fTemp238 > fSlow43) + (fTemp238 > fSlow39);
 			float fTemp240 = std::max<float>(0.0f, ((iTemp239 == 0) ? 0.0f : ((iTemp239 == 1) ? 0.5f * mydsp_faustpower2_f(fTemp238 + 12.5f - fSlow12) : fTemp238 + 12.0f - fSlow12)));
 			float fTemp241 = ((-(0.75f * fTemp240) > fRec232[1]) ? fConst124 : fConst126);
 			fRec232[0] = fRec232[1] * fTemp241 - 0.75f * fTemp240 * (1.0f - fTemp241);
@@ -2369,8 +2370,8 @@ class mydsp : public dsp {
 			fVec93[IOTA0 & 511] = fTemp251;
 			fVec94[IOTA0 & 511] = std::max<float>(fTemp251, fVec93[(IOTA0 - 256) & 511]);
 			float fTemp252 = 2e+01f * std::log10(std::max<float>(1.1754944e-38f, std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(((iConst103) ? fTemp243 : -3.4028235e+38f), ((iConst104) ? fVec86[iConst103] : -3.4028235e+38f)), ((iConst105) ? fVec87[iConst106] : -3.4028235e+38f)), ((iConst107) ? fVec88[iConst108] : -3.4028235e+38f)), ((iConst109) ? fVec89[(IOTA0 - iConst110) & 31] : -3.4028235e+38f)), ((iConst111) ? fVec90[(IOTA0 - iConst112) & 63] : -3.4028235e+38f)), ((iConst113) ? fVec91[(IOTA0 - iConst114) & 127] : -3.4028235e+38f)), ((iConst115) ? fVec92[(IOTA0 - iConst116) & 255] : -3.4028235e+38f)), ((iConst117) ? fVec93[(IOTA0 - iConst118) & 511] : -3.4028235e+38f)), ((iConst119) ? fVec94[(IOTA0 - iConst120) & 511] : -3.4028235e+38f))));
-			int iTemp253 = (fTemp252 > fSlow40) + (fTemp252 > fSlow41);
-			float fTemp254 = fTemp143 * std::max<float>(-12.0f, fTemp141 * ((iTemp253 == 0) ? fTemp252 + 13.0f - fSlow12 : ((iTemp253 == 1) ? -(0.083333336f * mydsp_faustpower2_f(fTemp252 + 1e+01f - fSlow12)) : 0.0f)));
+			int iTemp253 = (fTemp252 > fSlow41) + (fTemp252 > fSlow42);
+			float fTemp254 = fTemp143 * std::max<float>(-12.0f, fTemp141 * ((iTemp253 == 0) ? fTemp252 + 7.0f - fSlow12 : ((iTemp253 == 1) ? -(0.083333336f * mydsp_faustpower2_f(fTemp252 + 4.0f - fSlow12)) : 0.0f)));
 			float fTemp255 = ((iTemp142) ? 0.12f : 0.003f);
 			int iTemp256 = std::fabs(fTemp255) < 1.1920929e-07f;
 			float fTemp257 = ((iTemp142) ? 0.003f : 0.12f);
@@ -2378,7 +2379,7 @@ class mydsp : public dsp {
 			float fTemp259 = ((fTemp254 > fRec233[1]) ? ((iTemp258) ? 0.0f : std::exp(-(fConst28 / ((iTemp258) ? 1.0f : fTemp257)))) : ((iTemp256) ? 0.0f : std::exp(-(fConst28 / ((iTemp256) ? 1.0f : fTemp255)))));
 			fRec233[0] = fTemp254 * (1.0f - fTemp259) + fRec233[1] * fTemp259;
 			float fTemp260 = 2e+01f * std::log10(std::max<float>(1.1754944e-38f, std::fabs(fRec12)));
-			int iTemp261 = (fTemp260 > fSlow42) + (fTemp260 > fSlow38);
+			int iTemp261 = (fTemp260 > fSlow43) + (fTemp260 > fSlow39);
 			float fTemp262 = std::max<float>(0.0f, ((iTemp261 == 0) ? 0.0f : ((iTemp261 == 1) ? 0.5f * mydsp_faustpower2_f(fTemp260 + 12.5f - fSlow12) : fTemp260 + 12.0f - fSlow12)));
 			float fTemp263 = ((-(0.75f * fTemp262) > fRec234[1]) ? fConst124 : fConst127);
 			fRec234[0] = fRec234[1] * fTemp263 - 0.75f * fTemp262 * (1.0f - fTemp263);
@@ -2403,8 +2404,8 @@ class mydsp : public dsp {
 			fVec103[IOTA0 & 511] = fTemp273;
 			fVec104[IOTA0 & 511] = std::max<float>(fTemp273, fVec103[(IOTA0 - 256) & 511]);
 			float fTemp274 = 2e+01f * std::log10(std::max<float>(1.1754944e-38f, std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(((iConst103) ? fTemp265 : -3.4028235e+38f), ((iConst104) ? fVec96[iConst103] : -3.4028235e+38f)), ((iConst105) ? fVec97[iConst106] : -3.4028235e+38f)), ((iConst107) ? fVec98[iConst108] : -3.4028235e+38f)), ((iConst109) ? fVec99[(IOTA0 - iConst110) & 31] : -3.4028235e+38f)), ((iConst111) ? fVec100[(IOTA0 - iConst112) & 63] : -3.4028235e+38f)), ((iConst113) ? fVec101[(IOTA0 - iConst114) & 127] : -3.4028235e+38f)), ((iConst115) ? fVec102[(IOTA0 - iConst116) & 255] : -3.4028235e+38f)), ((iConst117) ? fVec103[(IOTA0 - iConst118) & 511] : -3.4028235e+38f)), ((iConst119) ? fVec104[(IOTA0 - iConst120) & 511] : -3.4028235e+38f))));
-			int iTemp275 = (fTemp274 > fSlow43) + (fTemp274 > fSlow44);
-			float fTemp276 = fTemp143 * std::max<float>(-12.0f, fTemp141 * ((iTemp275 == 0) ? fTemp274 + 14.0f - fSlow12 : ((iTemp275 == 1) ? -(0.083333336f * mydsp_faustpower2_f(fTemp274 + 11.0f - fSlow12)) : 0.0f)));
+			int iTemp275 = (fTemp274 > fSlow44) + (fTemp274 > fSlow45);
+			float fTemp276 = fTemp143 * std::max<float>(-12.0f, fTemp141 * ((iTemp275 == 0) ? fTemp274 + 8.0f - fSlow12 : ((iTemp275 == 1) ? -(0.083333336f * mydsp_faustpower2_f(fTemp274 + 5.0f - fSlow12)) : 0.0f)));
 			float fTemp277 = ((iTemp142) ? 0.08f : 0.002f);
 			int iTemp278 = std::fabs(fTemp277) < 1.1920929e-07f;
 			float fTemp279 = ((iTemp142) ? 0.002f : 0.08f);
@@ -2412,7 +2413,7 @@ class mydsp : public dsp {
 			float fTemp281 = ((fTemp276 > fRec235[1]) ? ((iTemp280) ? 0.0f : std::exp(-(fConst28 / ((iTemp280) ? 1.0f : fTemp279)))) : ((iTemp278) ? 0.0f : std::exp(-(fConst28 / ((iTemp278) ? 1.0f : fTemp277)))));
 			fRec235[0] = fTemp276 * (1.0f - fTemp281) + fRec235[1] * fTemp281;
 			float fTemp282 = 2e+01f * std::log10(std::max<float>(1.1754944e-38f, std::fabs(fRec13)));
-			int iTemp283 = (fTemp282 > fSlow45) + (fTemp282 > fSlow42);
+			int iTemp283 = (fTemp282 > fSlow46) + (fTemp282 > fSlow43);
 			float fTemp284 = std::max<float>(0.0f, ((iTemp283 == 0) ? 0.0f : ((iTemp283 == 1) ? 0.5f * mydsp_faustpower2_f(fTemp282 + 13.5f - fSlow12) : fTemp282 + 13.0f - fSlow12)));
 			float fTemp285 = ((-(0.75f * fTemp284) > fRec236[1]) ? fConst124 : fConst128);
 			fRec236[0] = fRec236[1] * fTemp285 - 0.75f * fTemp284 * (1.0f - fTemp285);
@@ -2437,8 +2438,8 @@ class mydsp : public dsp {
 			fVec113[IOTA0 & 511] = fTemp295;
 			fVec114[IOTA0 & 511] = std::max<float>(fTemp295, fVec113[(IOTA0 - 256) & 511]);
 			float fTemp296 = 2e+01f * std::log10(std::max<float>(1.1754944e-38f, std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(std::max<float>(((iConst103) ? fTemp287 : -3.4028235e+38f), ((iConst104) ? fVec106[iConst103] : -3.4028235e+38f)), ((iConst105) ? fVec107[iConst106] : -3.4028235e+38f)), ((iConst107) ? fVec108[iConst108] : -3.4028235e+38f)), ((iConst109) ? fVec109[(IOTA0 - iConst110) & 31] : -3.4028235e+38f)), ((iConst111) ? fVec110[(IOTA0 - iConst112) & 63] : -3.4028235e+38f)), ((iConst113) ? fVec111[(IOTA0 - iConst114) & 127] : -3.4028235e+38f)), ((iConst115) ? fVec112[(IOTA0 - iConst116) & 255] : -3.4028235e+38f)), ((iConst117) ? fVec113[(IOTA0 - iConst118) & 511] : -3.4028235e+38f)), ((iConst119) ? fVec114[(IOTA0 - iConst120) & 511] : -3.4028235e+38f))));
-			int iTemp297 = (fTemp296 > fSlow46) + (fTemp296 > fSlow47);
-			float fTemp298 = fTemp143 * std::max<float>(-12.0f, fTemp141 * ((iTemp297 == 0) ? fTemp296 + 15.0f - fSlow12 : ((iTemp297 == 1) ? -(0.083333336f * mydsp_faustpower2_f(fTemp296 + 12.0f - fSlow12)) : 0.0f)));
+			int iTemp297 = (fTemp296 > fSlow47) + (fTemp296 > fSlow48);
+			float fTemp298 = fTemp143 * std::max<float>(-12.0f, fTemp141 * ((iTemp297 == 0) ? fTemp296 + 9.0f - fSlow12 : ((iTemp297 == 1) ? -(0.083333336f * mydsp_faustpower2_f(fTemp296 + 6.0f - fSlow12)) : 0.0f)));
 			float fTemp299 = ((iTemp142) ? 0.05f : 0.001f);
 			int iTemp300 = std::fabs(fTemp299) < 1.1920929e-07f;
 			float fTemp301 = ((iTemp142) ? 0.001f : 0.05f);
@@ -3155,7 +3156,7 @@ protected:
         switch (index)
         {
         case kParameter_sb_strength:
-            return dsp->fVslider7;
+            return dsp->fVslider8;
         case kParameter_sb_target_spectrum_0:
             return dsp->fVslider9;
         case kParameter_sb_target_spectrum_1:
@@ -3177,7 +3178,7 @@ protected:
         case kParameter_pre_gain:
             return dsp->fVslider1;
         case kParameter_sbmb_strength:
-            return dsp->fVslider8;
+            return dsp->fVslider7;
         case kParameter_vad_ext:
             return dsp->fVslider3;
         case kParameter_leveler_target:
@@ -3207,7 +3208,7 @@ protected:
         switch (index)
         {
         case kParameter_sb_strength:
-            dsp->fVslider7 = value;
+            dsp->fVslider8 = value;
             break;
         case kParameter_sb_target_spectrum_0:
             dsp->fVslider9 = value;
@@ -3240,7 +3241,7 @@ protected:
             dsp->fVslider1 = value;
             break;
         case kParameter_sbmb_strength:
-            dsp->fVslider8 = value;
+            dsp->fVslider7 = value;
             break;
         case kParameter_vad_ext:
             dsp->fVslider3 = value;
@@ -3279,7 +3280,7 @@ protected:
     {
         // retrieve parameter info first
         float params[19] = {
-            dsp->fVslider7,
+            dsp->fVslider8,
             dsp->fVslider9,
             dsp->fVslider10,
             dsp->fVslider11,
@@ -3290,7 +3291,7 @@ protected:
             dsp->fVslider16,
             dsp->fCheckbox0,
             dsp->fVslider1,
-            dsp->fVslider8,
+            dsp->fVslider7,
             dsp->fVslider3,
             dsp->fVslider6,
             dsp->fVslider2,
@@ -3305,7 +3306,7 @@ protected:
         dsp->init(newSampleRate);
 
         // set parameters back, which have been reset in the dsp
-        dsp->fVslider7 = params[0];
+        dsp->fVslider8 = params[0];
         dsp->fVslider9 = params[1];
         dsp->fVslider10 = params[2];
         dsp->fVslider11 = params[3];
@@ -3316,7 +3317,7 @@ protected:
         dsp->fVslider16 = params[8];
         dsp->fCheckbox0 = params[9];
         dsp->fVslider1 = params[10];
-        dsp->fVslider8 = params[11];
+        dsp->fVslider7 = params[11];
         dsp->fVslider3 = params[12];
         dsp->fVslider6 = params[13];
         dsp->fVslider2 = params[14];

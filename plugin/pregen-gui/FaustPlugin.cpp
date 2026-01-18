@@ -705,7 +705,7 @@ class mydsp : public dsp {
 		m->declare("basics.lib/peakholder:license", "MIT-style STK-4.3 license");
 		m->declare("basics.lib/tabulateNd", "Copyright (C) 2023 Bart Brouns <bart@magnetophon.nl>");
 		m->declare("basics.lib/version", "1.21.0");
-		m->declare("compile_options", "-a /Users/klausscheuermann/Library/Caches/TemporaryItems/faustpp/58985-md.cpp -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("compile_options", "-a /Users/klausscheuermann/Library/Caches/TemporaryItems/faustpp/63927-md.cpp -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("compressors.lib/expanderSC_N_chan:author", "Bart Brouns");
 		m->declare("compressors.lib/expanderSC_N_chan:license", "GPLv3");
 		m->declare("compressors.lib/expander_N_chan:author", "Bart Brouns");
@@ -965,8 +965,8 @@ class mydsp : public dsp {
 		fVslider4 = FAUSTFLOAT(5e+01f);
 		fVslider5 = FAUSTFLOAT(0.9f);
 		fVslider6 = FAUSTFLOAT(-23.0f);
-		fVslider7 = FAUSTFLOAT(5e+01f);
-		fVslider8 = FAUSTFLOAT(1e+02f);
+		fVslider7 = FAUSTFLOAT(1e+02f);
+		fVslider8 = FAUSTFLOAT(5e+01f);
 		fVslider9 = FAUSTFLOAT(-1e+01f);
 		fVslider10 = FAUSTFLOAT(-5.0f);
 		fVslider11 = FAUSTFLOAT(-5.0f);
@@ -975,8 +975,8 @@ class mydsp : public dsp {
 		fVslider14 = FAUSTFLOAT(-1e+01f);
 		fVslider15 = FAUSTFLOAT(-7.0f);
 		fVslider16 = FAUSTFLOAT(-4.0f);
-		fVslider17 = FAUSTFLOAT(8e+01f);
-		fVslider18 = FAUSTFLOAT(0.0f);
+		fVslider17 = FAUSTFLOAT(5e+01f);
+		fVslider18 = FAUSTFLOAT(6.0f);
 		fVslider19 = FAUSTFLOAT(1e+02f);
 	}
 	
@@ -1995,10 +1995,10 @@ class mydsp : public dsp {
 		ui_interface->declare(0, "1", "");
 		ui_interface->openHorizontalBox("Spectral Ballancer");
 		ui_interface->openHorizontalBox("Parameters");
-		ui_interface->declare(&fVslider7, "1", "");
-		ui_interface->declare(&fVslider7, "symbol", "sb_strength");
-		ui_interface->declare(&fVslider7, "unit", "%");
-		ui_interface->addVerticalSlider("sb_strength", &fVslider7, FAUSTFLOAT(5e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+02f), FAUSTFLOAT(1.0f));
+		ui_interface->declare(&fVslider8, "1", "");
+		ui_interface->declare(&fVslider8, "symbol", "sb_strength");
+		ui_interface->declare(&fVslider8, "unit", "%");
+		ui_interface->addVerticalSlider("sb_strength", &fVslider8, FAUSTFLOAT(5e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+02f), FAUSTFLOAT(1.0f));
 		ui_interface->closeBox();
 		ui_interface->openHorizontalBox("Target Curve");
 		ui_interface->declare(&fVslider9, "symbol", "sb_target_spectrum_0");
@@ -2086,9 +2086,9 @@ class mydsp : public dsp {
 		ui_interface->declare(&fVslider1, "symbol", "pre_gain");
 		ui_interface->declare(&fVslider1, "unit", "dB");
 		ui_interface->addVerticalSlider("PreGain", &fVslider1, FAUSTFLOAT(0.0f), FAUSTFLOAT(-2e+01f), FAUSTFLOAT(2e+01f), FAUSTFLOAT(0.1f));
-		ui_interface->declare(&fVslider8, "2", "");
-		ui_interface->declare(&fVslider8, "symbol", "sbmb_strength");
-		ui_interface->addVerticalSlider("sbmb_strength", &fVslider8, FAUSTFLOAT(1e+02f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+02f), FAUSTFLOAT(1.0f));
+		ui_interface->declare(&fVslider7, "2", "");
+		ui_interface->declare(&fVslider7, "symbol", "sbmb_strength");
+		ui_interface->addVerticalSlider("sbmb_strength", &fVslider7, FAUSTFLOAT(1e+02f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+02f), FAUSTFLOAT(1.0f));
 		ui_interface->declare(&fVslider3, "3", "");
 		ui_interface->declare(&fVslider3, "symbol", "vad_ext");
 		ui_interface->addVerticalSlider("vad_ext", &fVslider3, FAUSTFLOAT(1.0f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f), FAUSTFLOAT(0.001f));
@@ -2190,11 +2190,11 @@ class mydsp : public dsp {
 		ui_interface->addVerticalSlider("mb_exp_strength", &fVslider19, FAUSTFLOAT(1e+02f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+02f), FAUSTFLOAT(1.0f));
 		ui_interface->declare(&fVslider17, "symbol", "mb_strength");
 		ui_interface->declare(&fVslider17, "unit", "%");
-		ui_interface->addVerticalSlider("mb_strength", &fVslider17, FAUSTFLOAT(8e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+02f), FAUSTFLOAT(1.0f));
+		ui_interface->addVerticalSlider("mb_strength", &fVslider17, FAUSTFLOAT(5e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+02f), FAUSTFLOAT(1.0f));
 		ui_interface->closeBox();
 		ui_interface->declare(&fVslider18, "symbol", "mb_exp_thresh");
 		ui_interface->declare(&fVslider18, "unit", "dB");
-		ui_interface->addVerticalSlider("mb_exp_thresh", &fVslider18, FAUSTFLOAT(0.0f), FAUSTFLOAT(-12.0f), FAUSTFLOAT(12.0f), FAUSTFLOAT(1.0f));
+		ui_interface->addVerticalSlider("mb_exp_thresh", &fVslider18, FAUSTFLOAT(6.0f), FAUSTFLOAT(-12.0f), FAUSTFLOAT(12.0f), FAUSTFLOAT(1.0f));
 		ui_interface->declare(&fVslider0, "scale", "log");
 		ui_interface->declare(&fVslider0, "symbol", "pre_lowcut");
 		ui_interface->addVerticalSlider("preLowcut_freq", &fVslider0, FAUSTFLOAT(42.0f), FAUSTFLOAT(1.0f), FAUSTFLOAT(4e+02f), FAUSTFLOAT(1.0f));
@@ -2228,8 +2228,8 @@ class mydsp : public dsp {
 		float fSlow11 = fSlow7 * (1.0f - fSlow10);
 		float fSlow12 = float(fVslider5);
 		float fSlow13 = float(fVslider6);
-		float fSlow14 = float(fVslider8);
-		float fSlow15 = fSlow7 * float(fVslider7) * fSlow14;
+		float fSlow14 = float(fVslider7);
+		float fSlow15 = fSlow14 * fSlow7 * float(fVslider8);
 		float fSlow16 = fConst82 * fSlow15;
 		float fSlow17 = float(fVslider9);
 		float fSlow18 = fConst91 * fSlow15;
@@ -2252,7 +2252,7 @@ class mydsp : public dsp {
 		float fSlow35 = fSlow13 + float(fVslider18);
 		float fSlow36 = fSlow35 + -15.0f;
 		float fSlow37 = fSlow35 + -9.0f;
-		float fSlow38 = 0.0075f * float(fVslider19);
+		float fSlow38 = 7.5e-05f * float(fVslider19) * fSlow14;
 		float fSlow39 = fSlow13 + -7.5f;
 		float fSlow40 = fSlow13 + -8.5f;
 		float fSlow41 = fSlow13 + -11.5f;
@@ -4416,7 +4416,7 @@ protected:
         switch (index)
         {
         case kParameter_sb_strength:
-            return dsp->fVslider7;
+            return dsp->fVslider8;
         case kParameter_sb_target_spectrum_0:
             return dsp->fVslider9;
         case kParameter_sb_target_spectrum_1:
@@ -4436,7 +4436,7 @@ protected:
         case kParameter_pre_gain:
             return dsp->fVslider1;
         case kParameter_sbmb_strength:
-            return dsp->fVslider8;
+            return dsp->fVslider7;
         case kParameter_vad_ext:
             return dsp->fVslider3;
         case kParameter_leveler_target:
@@ -4548,7 +4548,7 @@ protected:
         switch (index)
         {
         case kParameter_sb_strength:
-            dsp->fVslider7 = value;
+            dsp->fVslider8 = value;
             break;
         case kParameter_sb_target_spectrum_0:
             dsp->fVslider9 = value;
@@ -4578,7 +4578,7 @@ protected:
             dsp->fVslider1 = value;
             break;
         case kParameter_sbmb_strength:
-            dsp->fVslider8 = value;
+            dsp->fVslider7 = value;
             break;
         case kParameter_vad_ext:
             dsp->fVslider3 = value;
@@ -4623,7 +4623,7 @@ protected:
     {
         // retrieve parameter info first
         float params[20] = {
-            dsp->fVslider7,
+            dsp->fVslider8,
             dsp->fVslider9,
             dsp->fVslider10,
             dsp->fVslider11,
@@ -4633,7 +4633,7 @@ protected:
             dsp->fVslider15,
             dsp->fVslider16,
             dsp->fVslider1,
-            dsp->fVslider8,
+            dsp->fVslider7,
             dsp->fVslider3,
             dsp->fVslider6,
             dsp->fVslider2,
@@ -4650,7 +4650,7 @@ protected:
         dsp->init(newSampleRate);
 
         // set parameters back, which have been reset in the dsp
-        dsp->fVslider7 = params[0];
+        dsp->fVslider8 = params[0];
         dsp->fVslider9 = params[1];
         dsp->fVslider10 = params[2];
         dsp->fVslider11 = params[3];
@@ -4660,7 +4660,7 @@ protected:
         dsp->fVslider15 = params[7];
         dsp->fVslider16 = params[8];
         dsp->fVslider1 = params[9];
-        dsp->fVslider8 = params[10];
+        dsp->fVslider7 = params[10];
         dsp->fVslider3 = params[11];
         dsp->fVslider6 = params[12];
         dsp->fVslider2 = params[13];
