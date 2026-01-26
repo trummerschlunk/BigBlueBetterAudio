@@ -159,6 +159,7 @@ public:
 
         extraParameters[kExtraParamIntensity] = 100.f;
        #ifndef SIMPLIFIED_MAPI_BUILD
+        extraParameters[kExtraParamThreshold] = 50.f;
         extraParameters[kExtraParamEnableVoiceIsolation] = 1.f;
         extraParameters[kExtraParamGracePeriod] = 1000.f;
        #endif
@@ -277,7 +278,7 @@ protected:
             parameter.name   = "Threshold";
             parameter.symbol = "threshold";
             parameter.unit   = "%";
-            parameter.ranges.def = 0.f;
+            parameter.ranges.def = 50.f;
             parameter.ranges.min = 0.f;
             parameter.ranges.max = 100.f;
             break;

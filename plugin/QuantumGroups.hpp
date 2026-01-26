@@ -295,7 +295,7 @@ struct VoiceIsolationGroup : QuantumFrame,
 
         sliderThreshold.slider.setCallback(kcb);
         sliderThreshold.slider.setId(kParameterCount + kExtraParamThreshold);
-        sliderThreshold.slider.setDefault(0);
+        sliderThreshold.slider.setDefault(50);
         sliderThreshold.slider.setRange(0, 100);
         sliderThreshold.slider.setStep(1);
         sliderThreshold.slider.setUnitLabel("%");
