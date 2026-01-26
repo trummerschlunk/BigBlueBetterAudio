@@ -13,10 +13,11 @@
 // 0.17 looses all internal VAD (minimum tracking, expanders)
 // 0.23 return of the expander, SB: limit pos on edge bands
 // 0.24 modified vad for spectral ballancer
+// 0.25 intro of * voice_isolation_intensity
 
 
 declare name "bbba";
-declare version "0.24";             
+declare version "0.25";             
 declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
@@ -81,6 +82,9 @@ mb_strength = gui_mb(vslider("mb_strength[symbol:mb_strength]", mb_strength_init
 
 mb_exp_thresh = mb_exp_thresh_init; //gui_main(vslider("mb_exp_thresh[unit:dB][symbol:mb_exp_thresh]",0,-12,12,1));
 mb_exp_strength = mb_exp_strength_init : _*sbmb_strength; //gui_mb(vslider("mb_exp_strength[unit:%][symbol:mb_exp_strength]", mb_exp_strength_init,0,100,1)) / 100;
+
+voice_isolation_intensity = gui_main(vslider("VIintense[symbol:voice_isolation_intensity]",1,0,1,0.01));
+
 
 // METERS
 
@@ -415,7 +419,7 @@ mbExpComp =
 
         expander8 = par(i,Nbands,
             co.expander_N_chan(
-                ratio2strength(ratio_array : ba.selector(i,Nbands)) * mb_exp_strength * (1-(vad/2)), // strength is reduced by half, when VAD is 1
+                ratio2strength(ratio_array : ba.selector(i,Nbands)) * mb_exp_strength * voice_isolation_intensity * (1-(vad/2)), // strength is reduced by half, when VAD is 1
                 target + mb_exp_thresh + (thresh_array : ba.selector(i,Nbands)),
                 range_array : ba.selector(i,Nbands),
                 (att_array : ba.selector(i,Nbands)) /1000,

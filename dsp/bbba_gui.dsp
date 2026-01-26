@@ -21,9 +21,10 @@
 // 0.27 lufs->LUFS
 // 0.28 return of the expander
 // 0.29 modified vad for spectral ballancer
+// 0.30 new [symbol:voice_isolation_intensity]
 
 declare name "bbba";
-declare version "0.29";             
+declare version "0.30";             
 declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
@@ -37,6 +38,7 @@ import("stdfaust.lib");
 // [symbol:sbmb_strength]           Sound Shaping Enable 100 / 0
 // [symbol:sb_strength]             Spectral Ballancer Strength 0/100 %
 // [symbol:mb_strength]             Multiband Dynamics Strength 0/100 %
+// [symbol:voice_isolation_intensity]   voice isolation intensity from Plugin
 
 // SYMBOLS FOR PLUGIN METERS
 // [symbol:input_peak_channel_0]    Left Input Peak Meter -70 / 0 dbFS
@@ -107,6 +109,8 @@ mb_strength = gui_mb(vslider("mb_strength[unit:%][symbol:mb_strength]", mb_stren
 
 mb_exp_thresh = gui_main(vslider("mb_exp_thresh[unit:dB][symbol:mb_exp_thresh]",mb_exp_thresh_init,-12,12,1));
 mb_exp_strength = gui_mb(vslider("mb_exp_strength[unit:%][symbol:mb_exp_strength]", mb_exp_strength_init,0,100,1)) / 100 : _*sbmb_strength;
+
+voice_isolation_intensity = gui_main(vslider("VIintense[symbol:voice_isolation_intensity]",1,0,1,0.01));
 
 // METERS
 
@@ -471,7 +475,7 @@ mbExpComp =
 
         expander8 = par(i,Nbands,
             co.expander_N_chan(
-                ratio2strength(ratio_array : ba.selector(i,Nbands)) * mb_exp_strength * (1-(vad/2)), // strength is reduced by half, when VAD is 1
+                ratio2strength(ratio_array : ba.selector(i,Nbands)) * mb_exp_strength * voice_isolation_intensity * (1-(vad/2) ), // strength is reduced by half, when VAD is 1
                 target + mb_exp_thresh + (thresh_array : ba.selector(i,Nbands)),
                 range_array : ba.selector(i,Nbands),
                 (att_array : ba.selector(i,Nbands)) /1000,
