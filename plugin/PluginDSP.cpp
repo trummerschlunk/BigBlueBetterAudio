@@ -219,7 +219,6 @@ protected:
                 parameter.symbol = "voice_optimization";
                 break;
             // hide some unused parameters
-           #ifndef SIMPLIFIED_MAPI_BUILD
             case kParameter_sb_target_spectrum_0:
             case kParameter_sb_target_spectrum_1:
             case kParameter_sb_target_spectrum_2:
@@ -228,7 +227,7 @@ protected:
             case kParameter_sb_target_spectrum_5:
             case kParameter_sb_target_spectrum_6:
             case kParameter_sb_target_spectrum_7:
-           #endif
+            case kParameter_voice_isolation_intensity:
             case kParameter_pre_lowcut:
            #ifndef SIMPLIFIED_MAPI_BUILD
             case kParameter_sb_meter__0:
@@ -612,6 +611,8 @@ protected:
                 outs[1] = bufferIn2;
                #endif
 
+                FaustGeneratedPlugin::setParameterValue(kParameter_voice_isolation_intensity,
+                                                        denoiserDryValue.getCurrentValue());
                 FaustGeneratedPlugin::setParameterValue(kParameter_vad_ext, vad);
 
                 dsp->compute(denoiseFrameSize, ins, outs);
