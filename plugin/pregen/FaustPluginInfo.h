@@ -9,7 +9,7 @@
 // Author: Klaus Scheuermann
 // Copyright: 
 // License: GPLv3+
-// Version: 0.24
+// Version: 0.25
 //------------------------------------------------------------------------------
 
 
@@ -37,6 +37,7 @@ enum Parameters {
     kParameter_sb_target_spectrum_5,
     kParameter_sb_target_spectrum_6,
     kParameter_sb_target_spectrum_7,
+    kParameter_voice_isolation_intensity,
     kParameter_bypass,
     kParameter_pre_gain,
     kParameter_sbmb_strength,
@@ -64,7 +65,7 @@ enum States {
     kStateCount
 };
 
-static constexpr const char* kParameterNames[21] = {
+static constexpr const char* kParameterNames[22] = {
     // inputs
     "sb_strength",
     "spec 0",
@@ -75,6 +76,7 @@ static constexpr const char* kParameterNames[21] = {
     "spec 5",
     "spec 6",
     "spec 7",
+    "VIintense",
     "bypass",
     "PreGain",
     "sbmb_strength",
@@ -92,35 +94,36 @@ static constexpr const char* kParameterNames[21] = {
     
 };
 
-static constexpr const struct { float def, min, max; } kParameterRanges[21] = {
+static constexpr const struct { float def, min, max; } kParameterRanges[22] = {
     // inputs
-    { 50, 0, 100 },
-    { -10, -20, 0 },
-    { -5, -20, 0 },
-    { -5, -20, 0 },
-    { -8, -20, 0 },
-    { -9, -20, 0 },
-    { -10, -20, 0 },
-    { -7, -20, 0 },
-    { -4, -20, 0 },
+    { 50.0, 0.0, 100.0 },
+    { -10.0, -20.0, 0.0 },
+    { -5.0, -20.0, 0.0 },
+    { -5.0, -20.0, 0.0 },
+    { -8.0, -20.0, 0.0 },
+    { -9.0, -20.0, 0.0 },
+    { -10.0, -20.0, 0.0 },
+    { -7.0, -20.0, 0.0 },
+    { -4.0, -20.0, 0.0 },
+    { 1.0, 0.0, 1.0 },
     { 0, 0, 1 },
-    { 0, -20, 20 },
-    { 80, 0, 100 },
-    { 1, 0, 1 },
-    { -23, -60, 0 },
-    { 1, 0, 1 },
-    { 50, 0, 100 },
-    { 42, 1, 400 },
-    { 0.89999998, 0, 1 },
-    { 50, 0, 1000 },
+    { 0.0, -20.0, 20.0 },
+    { 80.0, 0.0, 100.0 },
+    { 1.0, 0.0, 1.0 },
+    { -23.0, -60.0, 0.0 },
+    { 1.0, 0.0, 1.0 },
+    { 50.0, 0.0, 100.0 },
+    { 42.0, 1.0, 400.0 },
+    { 0.9, 0.0, 1.0 },
+    { 50.0, 0.0, 1000.0 },
     
     // ouputs
-    { 0, -12, 0 },
-    { 0, 0, 1 },
+    { 0, -12.0, 0.0 },
+    { 0, 0.0, 1.0 },
     
 };
 
-static constexpr const char* kParameterSymbols[21] = {
+static constexpr const char* kParameterSymbols[22] = {
     // inputs
     "sb_strength",
     "sb_target_spectrum_0",
@@ -131,6 +134,7 @@ static constexpr const char* kParameterSymbols[21] = {
     "sb_target_spectrum_5",
     "sb_target_spectrum_6",
     "sb_target_spectrum_7",
+    "voice_isolation_intensity",
     "bypass",
     "pre_gain",
     "sbmb_strength",
@@ -148,9 +152,10 @@ static constexpr const char* kParameterSymbols[21] = {
     
 };
 
-static constexpr const char* kParameterUnits[21] = {
+static constexpr const char* kParameterUnits[22] = {
     // inputs
     "%",
+    "",
     "",
     "",
     "",
@@ -175,6 +180,5 @@ static constexpr const char* kParameterUnits[21] = {
     "",
     
 };
-
 
 

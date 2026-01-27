@@ -529,7 +529,7 @@ struct VoiceOptimizationGroup : QuantumFrame,
           mbDynamicsMeters(this, theme, QuantumValueMeter::MiddleToEdges),
           spacer3(this),
           mbExpanderTitle(this, theme),
-          mbExpanderMeters(this, theme, QuantumValueMeter::BottomToTop),
+          mbExpanderMeters(this, theme, QuantumValueMeter::TopToBottom),
           mbExpanderThreshold(this, theme)
     {
         setName("Voice Optimization");

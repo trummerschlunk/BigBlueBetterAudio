@@ -9,7 +9,7 @@
 // Author: Klaus Scheuermann
 // Copyright: 
 // License: GPLv3+
-// Version: 0.29
+// Version: 0.30
 //------------------------------------------------------------------------------
 
 
@@ -37,6 +37,7 @@ enum Parameters {
     kParameter_sb_target_spectrum_5,
     kParameter_sb_target_spectrum_6,
     kParameter_sb_target_spectrum_7,
+    kParameter_voice_isolation_intensity,
     kParameter_pre_gain,
     kParameter_sbmb_strength,
     kParameter_vad_ext,
@@ -104,7 +105,7 @@ enum States {
     kStateCount
 };
 
-static constexpr const char* kParameterNames[61] = {
+static constexpr const char* kParameterNames[62] = {
     // inputs
     "sb_strength",
     "spec 0",
@@ -115,6 +116,7 @@ static constexpr const char* kParameterNames[61] = {
     "spec 5",
     "spec 6",
     "spec 7",
+    "VIintense",
     "PreGain",
     "sbmb_strength",
     "vad_ext",
@@ -172,75 +174,76 @@ static constexpr const char* kParameterNames[61] = {
     
 };
 
-static constexpr const struct { float def, min, max; } kParameterRanges[61] = {
+static constexpr const struct { float def, min, max; } kParameterRanges[62] = {
     // inputs
-    { 50, 0, 100 },
-    { -10, -20, 0 },
-    { -5, -20, 0 },
-    { -5, -20, 0 },
-    { -8, -20, 0 },
-    { -9, -20, 0 },
-    { -10, -20, 0 },
-    { -7, -20, 0 },
-    { -4, -20, 0 },
-    { 0, -20, 20 },
-    { 100, 0, 100 },
-    { 1, 0, 1 },
-    { -23, -60, 0 },
-    { 1, 0, 1 },
-    { 100, 0, 100 },
-    { 50, 0, 100 },
-    { 6, -12, 12 },
-    { 42, 1, 400 },
-    { 0.89999998, 0, 1 },
-    { 50, 0, 1000 },
+    { 50.0, 0.0, 100.0 },
+    { -10.0, -20.0, 0.0 },
+    { -5.0, -20.0, 0.0 },
+    { -5.0, -20.0, 0.0 },
+    { -8.0, -20.0, 0.0 },
+    { -9.0, -20.0, 0.0 },
+    { -10.0, -20.0, 0.0 },
+    { -7.0, -20.0, 0.0 },
+    { -4.0, -20.0, 0.0 },
+    { 1.0, 0.0, 1.0 },
+    { 0.0, -20.0, 20.0 },
+    { 100.0, 0.0, 100.0 },
+    { 1.0, 0.0, 1.0 },
+    { -23.0, -60.0, 0.0 },
+    { 1.0, 0.0, 1.0 },
+    { 100.0, 0.0, 100.0 },
+    { 50.0, 0.0, 100.0 },
+    { 6.0, -12.0, 12.0 },
+    { 42.0, 1.0, 400.0 },
+    { 0.9, 0.0, 1.0 },
+    { 50.0, 0.0, 1000.0 },
     
     // ouputs
-    { 0, -40, 40 },
-    { 0, -40, 40 },
-    { 0, -40, 40 },
-    { 0, -40, 40 },
-    { 0, -40, 40 },
-    { 0, -40, 40 },
-    { 0, -40, 40 },
-    { 0, -40, 40 },
-    { 0, -12, 12 },
-    { 0, -12, 12 },
-    { 0, -12, 12 },
-    { 0, -12, 12 },
-    { 0, -12, 12 },
-    { 0, -12, 12 },
-    { 0, -12, 12 },
-    { 0, -12, 12 },
-    { 0, -12, 0 },
-    { 0, -70, 0 },
-    { 0, -70, 0 },
-    { 0, -70, 0 },
-    { 0, -70, 0 },
-    { 0, -70, 0 },
-    { 0, 0, 1 },
-    { 0, -50, 50 },
-    { 0, -12, 0 },
-    { 0, -12, 0 },
-    { 0, -12, 0 },
-    { 0, -12, 0 },
-    { 0, -12, 0 },
-    { 0, -12, 0 },
-    { 0, -12, 0 },
-    { 0, -12, 0 },
-    { 0, -12, 12 },
-    { 0, -12, 12 },
-    { 0, -12, 12 },
-    { 0, -12, 12 },
-    { 0, -12, 12 },
-    { 0, -12, 12 },
-    { 0, -12, 12 },
-    { 0, -12, 12 },
-    { 0, 0, 1 },
+    { 0, -40.0, 40.0 },
+    { 0, -40.0, 40.0 },
+    { 0, -40.0, 40.0 },
+    { 0, -40.0, 40.0 },
+    { 0, -40.0, 40.0 },
+    { 0, -40.0, 40.0 },
+    { 0, -40.0, 40.0 },
+    { 0, -40.0, 40.0 },
+    { 0, -12.0, 12.0 },
+    { 0, -12.0, 12.0 },
+    { 0, -12.0, 12.0 },
+    { 0, -12.0, 12.0 },
+    { 0, -12.0, 12.0 },
+    { 0, -12.0, 12.0 },
+    { 0, -12.0, 12.0 },
+    { 0, -12.0, 12.0 },
+    { 0, -12.0, 0.0 },
+    { 0, -70.0, 0.0 },
+    { 0, -70.0, 0.0 },
+    { 0, -70.0, 0.0 },
+    { 0, -70.0, 0.0 },
+    { 0, -70.0, 0.0 },
+    { 0, 0.0, 1.0 },
+    { 0, -50.0, 50.0 },
+    { 0, -12.0, 0.0 },
+    { 0, -12.0, 0.0 },
+    { 0, -12.0, 0.0 },
+    { 0, -12.0, 0.0 },
+    { 0, -12.0, 0.0 },
+    { 0, -12.0, 0.0 },
+    { 0, -12.0, 0.0 },
+    { 0, -12.0, 0.0 },
+    { 0, -12.0, 12.0 },
+    { 0, -12.0, 12.0 },
+    { 0, -12.0, 12.0 },
+    { 0, -12.0, 12.0 },
+    { 0, -12.0, 12.0 },
+    { 0, -12.0, 12.0 },
+    { 0, -12.0, 12.0 },
+    { 0, -12.0, 12.0 },
+    { 0, 0.0, 1.0 },
     
 };
 
-static constexpr const char* kParameterSymbols[61] = {
+static constexpr const char* kParameterSymbols[62] = {
     // inputs
     "sb_strength",
     "sb_target_spectrum_0",
@@ -251,6 +254,7 @@ static constexpr const char* kParameterSymbols[61] = {
     "sb_target_spectrum_5",
     "sb_target_spectrum_6",
     "sb_target_spectrum_7",
+    "voice_isolation_intensity",
     "pre_gain",
     "sbmb_strength",
     "vad_ext",
@@ -308,9 +312,10 @@ static constexpr const char* kParameterSymbols[61] = {
     
 };
 
-static constexpr const char* kParameterUnits[61] = {
+static constexpr const char* kParameterUnits[62] = {
     // inputs
     "%",
+    "",
     "",
     "",
     "",
@@ -375,6 +380,5 @@ static constexpr const char* kParameterUnits[61] = {
     "",
     
 };
-
 
 
