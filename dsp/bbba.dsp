@@ -14,10 +14,11 @@
 // 0.23 return of the expander, SB: limit pos on edge bands
 // 0.24 modified vad for spectral ballancer
 // 0.25 intro of * voice_isolation_intensity
+// 0.26 add lowpass filter
 
 
 declare name "bbba";
-declare version "0.25";             
+declare version "0.26";             
 declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
@@ -131,6 +132,8 @@ process = si.bus(Nch)
             <: par(i,Nbands*2,_) :    (par(i,Nbands,_):>_) , par(i,Nbands,_) ) ~_  : (!,par(i,Nbands,_))    
             
             : mbExpComp
+
+            : postHighcut
             
             //: limiter_mono
             : limiter_lookahead
@@ -183,6 +186,11 @@ preFilter = preFilter_hp with {
 // CROSSOVER for spectral ballancer (and multiband compressor)
 
 crossover = fi.crossover8LR4(100,200,400,800,1600,3200,6400);
+
+// lowpass
+postHighcut = fi.lowpass(3,postHighcut_freq);
+postHighcut_freq = 12000; // gui_main(vslider("postHighcut_freq[scale:log][symbol:postHighcut_freq]",12000,5000,22000,1));
+
 
 
 // LIMITER MONO

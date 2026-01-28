@@ -22,6 +22,7 @@
 // 0.28 return of the expander
 // 0.29 modified vad for spectral ballancer
 // 0.30 new [symbol:voice_isolation_intensity]
+// 0.31 add lowpass filter (commented out in gui version)
 
 declare name "bbba";
 declare version "0.30";             
@@ -176,6 +177,8 @@ process = _,_
         <: par(i,Nbands*2,_) :    (par(i,Nbands,_):>_) , par(i,Nbands,_) ) ~_  : (!,par(i,Nbands,_))    
         
         : mbExpComp
+
+        // : postHighcut
         
         : limiter_lookahead
         
@@ -243,6 +246,11 @@ crossover = fi.crossover8LR4(xo1,xo2,xo3,xo4,xo5,xo6,xo7) with{
         xo7 = 6400;
 
 };
+
+// lowpass
+postHighcut = fi.lowpass(3,postHighcut_freq);
+postHighcut_freq = 12000; // gui_main(vslider("postHighcut_freq[scale:log][symbol:postHighcut_freq]",12000,5000,22000,1));
+
 
 
 // LIMITER with LOOKAHEAD
