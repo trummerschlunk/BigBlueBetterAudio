@@ -419,7 +419,7 @@ mbExpComp =
 
         expander8 = par(i,Nbands,
             co.expander_N_chan(
-                ratio2strength(ratio_array : ba.selector(i,Nbands)) * mb_exp_strength * voice_isolation_intensity * (1-(vad/2)), // strength is reduced by half, when VAD is 1
+                ratio2strength(ratio_array : ba.selector(i,Nbands)) * mb_exp_strength * (1-voice_isolation_intensity) * (1-(vad/2)), // strength is reduced by half, when VAD is 1
                 target + mb_exp_thresh + (thresh_array : ba.selector(i,Nbands)),
                 range_array : ba.selector(i,Nbands),
                 (att_array : ba.selector(i,Nbands)) /1000,
