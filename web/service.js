@@ -12,7 +12,7 @@ const loadedFiles = {
 };
 
 // known constants
-const kParameter_vad_meter = 20;
+const kParameter_vad_meter = 21; // was 20
 
 // global audio processor so we can communicate with it
 let audioProcessor = null;
