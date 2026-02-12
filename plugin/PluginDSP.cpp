@@ -164,6 +164,9 @@ public:
         extraParameters[kExtraParamGracePeriod] = 1000.f;
        #endif
 
+       for (int i = 0; i < kParameterCount; ++i)
+       d_stdout("name of %d is %s", i, kParameterNames[i]);
+
         // initial sample rate setup
         sampleRateChanged(getSampleRate());
     }
