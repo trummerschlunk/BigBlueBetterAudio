@@ -15,10 +15,11 @@
 // 0.24 modified vad for spectral ballancer
 // 0.25 intro of * voice_isolation_intensity
 // 0.26 add lowpass filter
+// 0.27 LaSuite version: leveler +/- 3dB, target -18lufs
 
 
 declare name "bbba";
-declare version "0.26";             
+declare version "0.27";             
 declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
@@ -33,12 +34,12 @@ maxSR = 48000;                      // maximum samplerate
 
 sbmb_strength_init = 80;
 
-lev_target_init = -23;
-lev_maxboost_init = 30;
-lev_maxcut_init = 30;
+lev_target_init = -18;
+lev_maxboost_init = 3;
+lev_maxcut_init = 3;
 lev_brake_threshold_init = -22;
-lev_speed_init = 80;
-lev_scale_init =100;
+lev_speed_init = 50;
+lev_scale_init = 100;
 
 sb_strength_init = 50;
 sb_target_spectrum_init = -10, -5, -5, -8, -9, -10, -7, -4;
@@ -76,7 +77,7 @@ sbmb_strength = gui_main(vslider("[2]sbmb_strength[symbol:sbmb_strength]",sbmb_s
 
 
 sb_strength = vslider("h:[1]Spectral Ballancer/h:Parameters/[1][unit:%]sb_strength[symbol:sb_strength]", sb_strength_init,0,100,1) : _/100;    // strength of the spectral ballancer
-sb_target_spectrum = par(i,Nbands, vslider("h:[1]Spectral Ballancer/h:Target Curve/spec %i[symbol:sb_target_spectrum_%i]", (sb_target_spectrum_init : ba.selector(i,Nbands)),-20,0,1));
+sb_target_spectrum = sb_target_spectrum_init; //par(i,Nbands, vslider("h:[1]Spectral Ballancer/h:Target Curve/spec %i[symbol:sb_target_spectrum_%i]", (sb_target_spectrum_init : ba.selector(i,Nbands)),-20,0,1));
 
 
 mb_strength = gui_mb(vslider("mb_strength[symbol:mb_strength]", mb_strength_init,0,100,1)) / 100 : _*sbmb_strength;
@@ -124,6 +125,7 @@ vad_smoothing_meter = _;//_<: attach(_, gui_main(vbargraph("vad_smoo[symbol:vad_
 
 process = si.bus(Nch) 
         : bp1(bypass,
+
               pregain(1)
             : preFilter
 
@@ -132,10 +134,8 @@ process = si.bus(Nch)
             <: par(i,Nbands*2,_) :    (par(i,Nbands,_):>_) , par(i,Nbands,_) ) ~_  : (!,par(i,Nbands,_))    
             
             : mbExpComp
-
             : postHighcut
-            
-            //: limiter_mono
+            : postgain(1)
             : limiter_lookahead
 
         );
@@ -178,13 +178,11 @@ ratio2strength(ratio) = 1-(1/ratio);
 
 // PRE FILTER
 preFilter = preFilter_hp with {
-
     preFilter_hp = fi.highpass(1,preFilter_hp_freq);
-
 };
 
-// CROSSOVER for spectral ballancer (and multiband compressor)
 
+// CROSSOVER for spectral ballancer (and multiband compressor)
 crossover = fi.crossover8LR4(100,200,400,800,1600,3200,6400);
 
 // lowpass
@@ -192,20 +190,7 @@ postHighcut = fi.lowpass(3,postHighcut_freq);
 postHighcut_freq = 12000; // gui_main(vslider("postHighcut_freq[scale:log][symbol:postHighcut_freq]",12000,5000,22000,1));
 
 
-
-// LIMITER MONO
-
-limiter_mono = co.limiter_lad_mono(lad, ceiling, att, hold, rel) with {
-    lad = 0.005;
-    ceiling = -1 : ba.db2linear;
-    att = 0.002;
-    hold = 0.01;
-    rel = 0.01;
-};
-
-
 // LIMITER with LOOKAHEAD
-
 Latency_limiter = 0.01; // in s
 limiter_thresh = -1 : ba.db2linear;
 
@@ -348,7 +333,7 @@ ballancer(l) = l <:
         : _* vad_ext
         : sb_envelope(i)                                // gainchange smoothing (dependent on frequency band)
 
-        : ba.db2linear)     )                 // multiply with external VAD (voice activity detection)
+        : ba.db2linear)     )                           // multiply with external VAD (voice activity detection)
         : sb_gainmeter(i)),_))                          // meter the gainchange
         : par(i,Nbands,gainchange(l))                    // do the actual gainchange to each band
         
