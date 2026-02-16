@@ -59,8 +59,6 @@ Nch = 1;                            // bbba is mono
 Nbands = 8;                         // number of bands of the multiband processing and the spectral ballancer
 maxSR = 48000;                      // maximum samplerate
 
-sbmb_strength_init = 100;
-
 lev_target_init = -23;
 lev_maxboost_init = 30;
 lev_maxcut_init = 30;
@@ -68,10 +66,13 @@ lev_brake_threshold_init = -22;
 lev_speed_init = 80;
 lev_scale_init =100;
 
+sbmb_strength_init = 100;
+
 sb_strength_init = 50;
 sb_target_spectrum_init = -10, -5, -5, -8, -9, -10, -7, -4;
 
 mb_strength_init = 50;
+
 mb_exp_strength_init = 100;
 mb_exp_thresh_init = 6;
 
@@ -103,7 +104,7 @@ sbmb_strength = gui_main(vslider("[2]sbmb_strength[symbol:sbmb_strength]",sbmb_s
 
 
 sb_strength = vslider("h:[1]Spectral Ballancer/h:Parameters/[1][unit:%]sb_strength[symbol:sb_strength]", sb_strength_init,0,100,1) : _/100;    // strength of the spectral ballancer
-sb_target_spectrum = par(i,Nbands, vslider("h:[1]Spectral Ballancer/h:Target Curve/spec %i[symbol:sb_target_spectrum_%i]", (sb_target_spectrum_init : ba.selector(i,Nbands)),-20,0,1));
+sb_target_spectrum = sb_target_spectrum_init; //par(i,Nbands, vslider("h:[1]Spectral Ballancer/h:Target Curve/spec %i[symbol:sb_target_spectrum_%i]", (sb_target_spectrum_init : ba.selector(i,Nbands)),-20,0,1));
 
 
 mb_strength = gui_mb(vslider("mb_strength[unit:%][symbol:mb_strength]", mb_strength_init,0,100,1)) / 100 : _*sbmb_strength;

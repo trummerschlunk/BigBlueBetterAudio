@@ -32,14 +32,14 @@ Nch = 1;                            // bbba is mono
 Nbands = 8;                         // number of bands of the multiband processing and the spectral ballancer
 maxSR = 48000;                      // maximum samplerate
 
-sbmb_strength_init = 80;
-
 lev_target_init = -18;
 lev_maxboost_init = 3;
 lev_maxcut_init = 3;
 lev_brake_threshold_init = -22;
 lev_speed_init = 50;
 lev_scale_init = 100;
+
+sbmb_strength_init = 100;
 
 sb_strength_init = 50;
 sb_target_spectrum_init = -10, -5, -5, -8, -9, -10, -7, -4;

@@ -222,14 +222,6 @@ protected:
                 parameter.symbol = "voice_optimization";
                 break;
             // hide some unused parameters
-            case kParameter_sb_target_spectrum_0:
-            case kParameter_sb_target_spectrum_1:
-            case kParameter_sb_target_spectrum_2:
-            case kParameter_sb_target_spectrum_3:
-            case kParameter_sb_target_spectrum_4:
-            case kParameter_sb_target_spectrum_5:
-            case kParameter_sb_target_spectrum_6:
-            case kParameter_sb_target_spectrum_7:
             case kParameter_voice_isolation_intensity:
             case kParameter_pre_lowcut:
            #ifndef SIMPLIFIED_MAPI_BUILD
