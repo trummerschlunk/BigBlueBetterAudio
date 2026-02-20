@@ -30,13 +30,13 @@ import("stdfaust.lib");
 // [symbol:pre_gain]                Input Gain -20/+20 dB
 // [symbol:leveler_target]          Targel Loudness -60/0 LUFS
 // [symbol:leveler_scale]           Leveler On/Off 1/0
-// [symbol:sbmb_strength]           Sound Shaping Enable 100 / 0
 // [symbol:sb_strength]             Spectral Ballancer Strength 0/100 %
 // [symbol:mb_strength]             Multiband Dynamics Strength 0/100 %
 // [symbol:voice_isolation_intensity]   voice isolation intensity from Plugin
 // [symbol:preLowcut_freq]          Lowcut Frequency 10Hz - 400Hz  
 // [symbol:vad_g_thr]               VAD smoothing threshold
 // [symbol:vad_smoo_t]              VAD smoothing time in ms
+// [symbol:exp_strength]            strength of expander
 
 
 // INIT VALUES
@@ -52,15 +52,13 @@ lev_brake_threshold_init = -22;
 lev_speed_init = 50;
 lev_scale_init = 100;
 
-sbmb_strength_init = 100;
-
 sb_strength_init = 50;
 sb_target_spectrum_init = -10, -5, -5, -8, -9, -10, -7, -4;
 
 mb_strength_init = 50;
 
-mb_exp_strength_init = 100;
-mb_exp_thresh_init = 6;
+exp_strength_init = 100;
+exp_thresh_init = 6;
 
 meters_minimum = -70;
 
@@ -85,18 +83,14 @@ lev_scale = gui_leveler(vslider("leveler_scale[symbol:leveler_scale]", 1, 0, 1,0
 lev_speed = lev_speed_init / 100;
 lev_brake_thresh = lev_brake_threshold_init + target;
 
-
-sbmb_strength = gui_main(vslider("[2]sbmb_strength[symbol:sbmb_strength]",sbmb_strength_init,0,100,1)) /100;      // strength of spectral ballancer and multiband compressor
-
-
 sb_strength = vslider("h:[1]Spectral Ballancer/h:Parameters/[1][unit:%]sb_strength[symbol:sb_strength]", sb_strength_init,0,100,1) : _/100;    // strength of the spectral ballancer
 sb_target_spectrum = sb_target_spectrum_init; //par(i,Nbands, vslider("h:[1]Spectral Ballancer/h:Target Curve/spec %i[symbol:sb_target_spectrum_%i]", (sb_target_spectrum_init : ba.selector(i,Nbands)),-20,0,1));
 
 
-mb_strength = gui_mb(vslider("mb_strength[symbol:mb_strength]", mb_strength_init,0,100,1)) / 100 : _*sbmb_strength;
+mb_strength = gui_mb(vslider("mb_strength[symbol:mb_strength]", mb_strength_init,0,100,1)) / 100;
 
-mb_exp_thresh = mb_exp_thresh_init; //gui_main(vslider("mb_exp_thresh[unit:dB][symbol:mb_exp_thresh]",0,-12,12,1));
-mb_exp_strength = mb_exp_strength_init : _*sbmb_strength; //gui_mb(vslider("mb_exp_strength[unit:%][symbol:mb_exp_strength]", mb_exp_strength_init,0,100,1)) / 100;
+exp_thresh = exp_thresh_init; //gui_main(vslider("exp_thresh[unit:dB][symbol:exp_thresh]",0,-12,12,1));
+exp_strength = gui_mb(vslider("exp_strength[unit:%][symbol:exp_strength]", exp_strength_init,0,100,1)) / 100;
 
 voice_isolation_intensity = gui_main(vslider("VIintense[symbol:voice_isolation_intensity]",1,0,1,0.01));
 
@@ -342,7 +336,6 @@ ballancer(l) = l <:
         : par(i,Nbands,(((((_-_)                         // substract target spectrum
         : sb_limit(i)                                      // limit gainchange
         : _*sb_strength                                 // apply strength
-        : _*sbmb_strength                               // apply overall strength
         : _* vad_ext
         : sb_envelope(i)                                // gainchange smoothing (dependent on frequency band)
 
@@ -425,8 +418,8 @@ mbExpComp =
 
         expander8 = par(i,Nbands,
             co.expander_N_chan(
-                ratio2strength(ratio_array : ba.selector(i,Nbands)) * mb_exp_strength * (1-voice_isolation_intensity) * (1-(vad/2)), // strength is reduced by half, when VAD is 1
-                target + mb_exp_thresh + (thresh_array : ba.selector(i,Nbands)),
+                ratio2strength(ratio_array : ba.selector(i,Nbands)) * exp_strength * (1-voice_isolation_intensity) * (1-(vad/2)), // strength is reduced by half, when VAD is 1
+                target + exp_thresh + (thresh_array : ba.selector(i,Nbands)),
                 range_array : ba.selector(i,Nbands),
                 (att_array : ba.selector(i,Nbands)) /1000,
                 hold,

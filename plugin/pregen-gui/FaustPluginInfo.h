@@ -170,7 +170,7 @@ static constexpr const struct { float def, min, max; } kParameterRanges[54] = {
     { 100, 0, 100 },
     { 50, 0, 100 },
     { 6, -12, 12 },
-    { 42, 1, 400 },
+    { 42, 10, 400 },
     { 0.89999998, 0, 1 },
     { 50, 0, 1000 },
     

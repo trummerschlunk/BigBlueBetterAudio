@@ -703,7 +703,7 @@ class mydsp : public dsp {
 		m->declare("basics.lib/peakholder:copyright", "Copyright (C) 2022 Dario Sanfilippo <sanfilippo.dario@gmail.com>");
 		m->declare("basics.lib/peakholder:license", "MIT-style STK-4.3 license");
 		m->declare("basics.lib/version", "1.22.0");
-		m->declare("compile_options", "-a /home/ks/.cache/faustpp/95687-md.cpp -lang cpp -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("compile_options", "-a /home/ks/.cache/faustpp/6372-md.cpp -lang cpp -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("compressors.lib/expanderSC_N_chan:author", "Bart Brouns");
 		m->declare("compressors.lib/expanderSC_N_chan:license", "GPLv3");
 		m->declare("compressors.lib/expander_N_chan:author", "Bart Brouns");
@@ -2172,7 +2172,7 @@ class mydsp : public dsp {
 		ui_interface->addVerticalSlider("mb_exp_thresh", &fVslider0, FAUSTFLOAT(6.0f), FAUSTFLOAT(-12.0f), FAUSTFLOAT(12.0f), FAUSTFLOAT(1.0f));
 		ui_interface->declare(&fVslider6, "scale", "log");
 		ui_interface->declare(&fVslider6, "symbol", "pre_lowcut");
-		ui_interface->addVerticalSlider("preLowcut_freq", &fVslider6, FAUSTFLOAT(42.0f), FAUSTFLOAT(1.0f), FAUSTFLOAT(4e+02f), FAUSTFLOAT(1.0f));
+		ui_interface->addVerticalSlider("preLowcut_freq", &fVslider6, FAUSTFLOAT(42.0f), FAUSTFLOAT(1e+01f), FAUSTFLOAT(4e+02f), FAUSTFLOAT(1.0f));
 		ui_interface->declare(&fVslider2, "symbol", "vad_gate_thresh");
 		ui_interface->addVerticalSlider("vad_g_thr", &fVslider2, FAUSTFLOAT(0.9f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f), FAUSTFLOAT(0.01f));
 		ui_interface->declare(&fVbargraph0, "symbol", "vad_smoothing_meter");
