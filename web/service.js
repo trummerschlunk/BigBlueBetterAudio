@@ -12,7 +12,7 @@ const loadedFiles = {
 };
 
 // known constants
-const kParameter_vad_meter = 21; // was 20
+const kParameter_vad_meter = "vad_meter";
 
 // global audio processor so we can communicate with it
 let audioProcessor = null;
@@ -24,9 +24,9 @@ const setWasmProcessorEnabled = (enabled) => {
     }
 };
 
-const setWasmProcessorParameter = (index, value) => {
+const setWasmProcessorParameter = (symbol, value) => {
     if (audioProcessor) {
-        audioProcessor.port.postMessage({type: 'param', index: index, value: value});
+        audioProcessor.port.postMessage({type: 'param', symbol: symbol, value: value});
     }
 };
 
@@ -62,7 +62,7 @@ const createWasmProcessorStream = (stream) => {
                 audioProcessor.port.onmessage = event => {
                     if (event.data?.type == 'loaded') {
                         console.log("audioProcessor has been loaded, triggering callback now");
-                        audioProcessor.port.postMessage({ type: 'monitor', index: kParameter_vad_meter });
+                        audioProcessor.port.postMessage({ type: 'monitor', symbol: kParameter_vad_meter });
                         resolve([contextDestination.stream, audioProcessor, audioContext]);
                     }
                     else if (event.data?.type == 'error') {
