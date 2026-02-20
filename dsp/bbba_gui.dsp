@@ -40,6 +40,8 @@ import("stdfaust.lib");
 // [symbol:sb_strength]             Spectral Ballancer Strength 0/100 %
 // [symbol:mb_strength]             Multiband Dynamics Strength 0/100 %
 // [symbol:voice_isolation_intensity]   voice isolation intensity from Plugin
+// [symbol:preLowcut_freq]          Lowcut Frequency 10Hz - 400Hz  
+
 
 // SYMBOLS FOR PLUGIN METERS
 // [symbol:input_peak_channel_0]    Left Input Peak Meter -70 / 0 dbFS
@@ -90,7 +92,7 @@ bypass = gui_main(checkbox("[0]bypass[symbol:bypass]"));    // global bypass
 preGainSlider = gui_main(vslider("[1][unit:dB]PreGain[symbol:pre_gain]", 0, -20, 20, 0.1));
 postGainSlider = gui_main(vslider("[9][unit:dB]PostGain[symbol:post_gain]", 0, -20, 20, 0.1));
 
-preFilter_hp_freq = gui_main(vslider("preLowcut_freq[scale:log][symbol:pre_lowcut]",42,1,400,1));
+preFilter_hp_freq = gui_main(vslider("preLowcut_freq[scale:log][symbol:pre_lowcut]",42,10,400,1));
 
 target = gui_leveler(vslider("[1][unit:LUFS]target[symbol:leveler_target]", lev_target_init, -60, 0, 1));
 lev_limit_pos = lev_maxboost_init;

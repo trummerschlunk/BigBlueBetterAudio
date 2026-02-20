@@ -25,6 +25,19 @@ declare license "GPLv3";
 
 import("stdfaust.lib");
 
+// SYMBOLS FOR PARAMETERS
+// [symbol:bypass]                  Global Enable 0/1 (or 1/0 ???)
+// [symbol:pre_gain]                Input Gain -20/+20 dB
+// [symbol:leveler_target]          Targel Loudness -60/0 LUFS
+// [symbol:leveler_scale]           Leveler On/Off 1/0
+// [symbol:sbmb_strength]           Sound Shaping Enable 100 / 0
+// [symbol:sb_strength]             Spectral Ballancer Strength 0/100 %
+// [symbol:mb_strength]             Multiband Dynamics Strength 0/100 %
+// [symbol:voice_isolation_intensity]   voice isolation intensity from Plugin
+// [symbol:preLowcut_freq]          Lowcut Frequency 10Hz - 400Hz  
+// [symbol:vad_g_thr]               VAD smoothing threshold
+// [symbol:vad_smoo_t]              VAD smoothing time in ms
+
 
 // INIT VALUES
 
@@ -63,7 +76,7 @@ bypass = gui_main(checkbox("[0]bypass[symbol:bypass]"));    // global bypass
 preGainSlider = gui_main(vslider("[1][unit:dB]PreGain[symbol:pre_gain]", 0, -20, 20, 0.1));
 postGainSlider = gui_main(vslider("[9][unit:dB]PostGain[symbol:post_gain]", 0, -20, 20, 0.1));
 
-preFilter_hp_freq = gui_main(vslider("preLowcut_freq[scale:log][symbol:pre_lowcut]",42,1,400,1));
+preFilter_hp_freq = gui_main(vslider("preLowcut_freq[scale:log][symbol:pre_lowcut]",42,10,400,1));
 
 target = gui_leveler(vslider("[1][unit:dB]target[symbol:leveler_target]", lev_target_init, -60, 0, 1));
 lev_limit_pos = lev_maxboost_init;
