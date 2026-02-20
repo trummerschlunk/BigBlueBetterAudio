@@ -207,17 +207,26 @@ protected:
             return;
         }
 
+       #ifndef SIMPLIFIED_MAPI_BUILD
+        // special case, full range reduced by 100x for boolean
+        if (index == kParameter_sbmb_strength)
+        {
+            parameter.name   = "Voice Optimization";
+            parameter.symbol = "voice_optimization";
+            parameter.hints = kParameterIsAutomatable | kParameterIsBoolean | kParameterIsInteger;
+            parameter.ranges.def = 1.f;
+            parameter.ranges.min = 0.f;
+            parameter.ranges.max = 1.f;
+            return;
+        }
+       #endif
+
         if (index < kParameterCount)
         {
             FaustGeneratedPlugin::initParameter(index, parameter);
 
             switch (index)
             {
-            // some custom properties
-            case kParameter_sbmb_strength:
-                parameter.name   = "Voice Optimization";
-                parameter.symbol = "voice_optimization";
-                break;
             // hide some unused parameters
             case kParameter_voice_isolation_intensity:
             case kParameter_pre_lowcut:
@@ -336,6 +345,12 @@ protected:
     */
     float getParameterValue(uint32_t index) const override
     {
+       #ifndef SIMPLIFIED_MAPI_BUILD
+        // special case, full range reduced by 100x for boolean
+        if (index == kParameter_sbmb_strength)
+            return FaustGeneratedPlugin::getParameterValue(index) * 0.01f;
+       #endif
+
         if (index < kParameterCount)
             return FaustGeneratedPlugin::getParameterValue(index);
 
@@ -350,6 +365,12 @@ protected:
     */
     void setParameterValue(uint32_t index, float value) override
     {
+       #ifndef SIMPLIFIED_MAPI_BUILD
+        // special case, full range reduced by 100x for boolean
+        if (index == kParameter_sbmb_strength)
+            return FaustGeneratedPlugin::setParameterValue(index, value * 100.f);
+       #endif
+
         if (index < kParameterCount)
             return FaustGeneratedPlugin::setParameterValue(index, value);
 

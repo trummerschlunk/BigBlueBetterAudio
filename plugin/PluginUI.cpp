@@ -462,7 +462,7 @@ protected:
             enabled.voiceOptimization = qenabled;
             voiceOptimizationGroup.title.switch_.setEnabled(enabled.global && enabled.voiceOptimization, false);
             voiceOptimizationGroup.updateColors();
-            value = qenabled ? 100.f : 0.f;
+            value = qenabled ? 1.f : 0.f;
             break;
         case kParameter_leveler_scale:
             enabled.leveler = qenabled;
