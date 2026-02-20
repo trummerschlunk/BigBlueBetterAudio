@@ -321,14 +321,7 @@ protected:
         case kParameter_vad_smoothing_meter:
             voiceIsolationGroup.vadSmooth.meter.setValue(value);
             return;
-        case kParameter_sb_target_spectrum_0:
-        case kParameter_sb_target_spectrum_1:
-        case kParameter_sb_target_spectrum_2:
-        case kParameter_sb_target_spectrum_3:
-        case kParameter_sb_target_spectrum_4:
-        case kParameter_sb_target_spectrum_5:
-        case kParameter_sb_target_spectrum_6:
-        case kParameter_sb_target_spectrum_7:
+        case kParameter_voice_isolation_intensity:
         case kParameter_vad_ext:
         case kParameter_pre_lowcut:
         case kParameter_vad_gate_thresh:
