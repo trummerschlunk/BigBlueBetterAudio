@@ -139,7 +139,7 @@ ifeq ($(shell command -v faustpp 1>/dev/null && echo true),true)
 FAUSTPP_TARGET =
 FAUSTPP_EXEC = faustpp
 else
-FAUSTPP_TARGET = build/faustpp/faustpp$(APP_EXT)
+FAUSTPP_TARGET = build-faustpp/faustpp$(APP_EXT)
 FAUSTPP_EXEC = $(CURDIR)/$(FAUSTPP_TARGET)
 endif
 
@@ -169,11 +169,11 @@ endif
 faustpp/CMakeLists.txt:
 	git clone --recursive https://github.com/falkTX/faustpp.git --depth=1 -b use-internal=boost
 
-build/faustpp/Makefile: faustpp/CMakeLists.txt
-	cmake -Bbuild/faustpp -Sfaustpp -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DFAUSTPP_USE_INTERNAL_BOOST=ON $(FAUSTPP_CMAKE_ARGS)
+build-faustpp/Makefile: faustpp/CMakeLists.txt
+	cmake -Bbuild-faustpp -Sfaustpp -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DFAUSTPP_USE_INTERNAL_BOOST=ON $(FAUSTPP_CMAKE_ARGS)
 
-build/faustpp/faustpp$(APP_EXT): build/faustpp/Makefile
-	$(MAKE) -C build/faustpp
+build-faustpp/faustpp$(APP_EXT): build-faustpp/Makefile
+	$(MAKE) -C build-faustpp
 
 # ---------------------------------------------------------------------------------------------------------------------
 # rules for faust dsp to plugin code conversion
