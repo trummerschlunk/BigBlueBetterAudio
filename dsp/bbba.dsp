@@ -16,10 +16,11 @@
 // 0.25 intro of * voice_isolation_intensity
 // 0.26 add lowpass filter
 // 0.27 LaSuite version: leveler +/- 3dB, target -18lufs
+// 0.28 disable leveler & expander
 
 
 declare name "bbba";
-declare version "0.27";             
+declare version "0.28";             
 declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
@@ -136,9 +137,9 @@ process = si.bus(Nch)
               pregain(1)
             : preFilter
 
-            : (leveler_sc(target) 
+            //: (leveler_sc(target) 
             : ballancer 
-            <: par(i,Nbands*2,_) :    (par(i,Nbands,_):>_) , par(i,Nbands,_) ) ~_  : (!,par(i,Nbands,_))    
+            //<: par(i,Nbands*2,_) :    (par(i,Nbands,_):>_) , par(i,Nbands,_) ) ~_  : (!,par(i,Nbands,_))    
             
             : mbExpComp
             : postHighcut
@@ -385,7 +386,7 @@ ballancer(l) = l <:
 mbExpComp = 
     
       compressor8
-    : expander8
+    //: expander8               disable mb expander
     :> si.bus(1)
 
     with {
