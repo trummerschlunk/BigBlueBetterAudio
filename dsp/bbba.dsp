@@ -15,14 +15,29 @@
 // 0.24 modified vad for spectral ballancer
 // 0.25 intro of * voice_isolation_intensity
 // 0.26 add lowpass filter
+// 0.27 LaSuite version: leveler +/- 3dB, target -18lufs
+// 0.28 disable leveler & expander
 
 
 declare name "bbba";
-declare version "0.26";             
+declare version "0.28";             
 declare author "Klaus Scheuermann";
 declare license "GPLv3";
 
 import("stdfaust.lib");
+
+// SYMBOLS FOR PARAMETERS
+// [symbol:bypass]                  Global Enable 0/1 (or 1/0 ???)
+// [symbol:pre_gain]                Input Gain -20/+20 dB
+// [symbol:leveler_target]          Targel Loudness -60/0 LUFS
+// [symbol:leveler_scale]           Leveler On/Off 1/0
+// [symbol:sb_strength]             Spectral Ballancer Strength 0/100 %
+// [symbol:mb_strength]             Multiband Dynamics Strength 0/100 %
+// [symbol:voice_isolation_intensity]   voice isolation intensity from Plugin
+// [symbol:preLowcut_freq]          Lowcut Frequency 10Hz - 400Hz  
+// [symbol:vad_g_thr]               VAD smoothing threshold
+// [symbol:vad_smoo_t]              VAD smoothing time in ms
+// [symbol:exp_strength]            strength of expander
 
 
 // INIT VALUES
@@ -31,22 +46,20 @@ Nch = 1;                            // bbba is mono
 Nbands = 8;                         // number of bands of the multiband processing and the spectral ballancer
 maxSR = 48000;                      // maximum samplerate
 
-sbmb_strength_init = 80;
-
-lev_target_init = -23;
-lev_maxboost_init = 30;
-lev_maxcut_init = 30;
+lev_target_init = -18;
+lev_maxboost_init = 3;
+lev_maxcut_init = 3;
 lev_brake_threshold_init = -22;
-lev_speed_init = 80;
-lev_scale_init =100;
+lev_speed_init = 50;
+lev_scale_init = 100;
 
 sb_strength_init = 50;
 sb_target_spectrum_init = -10, -5, -5, -8, -9, -10, -7, -4;
 
 mb_strength_init = 50;
 
-mb_exp_strength_init = 100;
-mb_exp_thresh_init = 6;
+exp_strength_init = 100;
+exp_thresh_init = 6;
 
 meters_minimum = -70;
 
@@ -62,7 +75,7 @@ bypass = gui_main(checkbox("[0]bypass[symbol:bypass]"));    // global bypass
 preGainSlider = gui_main(vslider("[1][unit:dB]PreGain[symbol:pre_gain]", 0, -20, 20, 0.1));
 postGainSlider = gui_main(vslider("[9][unit:dB]PostGain[symbol:post_gain]", 0, -20, 20, 0.1));
 
-preFilter_hp_freq = gui_main(vslider("preLowcut_freq[scale:log][symbol:pre_lowcut]",42,1,400,1));
+preFilter_hp_freq = gui_main(vslider("preLowcut_freq[scale:log][symbol:pre_lowcut]",42,10,400,1));
 
 target = gui_leveler(vslider("[1][unit:dB]target[symbol:leveler_target]", lev_target_init, -60, 0, 1));
 lev_limit_pos = lev_maxboost_init;
@@ -71,18 +84,14 @@ lev_scale = gui_leveler(vslider("leveler_scale[symbol:leveler_scale]", 1, 0, 1,0
 lev_speed = lev_speed_init / 100;
 lev_brake_thresh = lev_brake_threshold_init + target;
 
-
-sbmb_strength = gui_main(vslider("[2]sbmb_strength[symbol:sbmb_strength]",sbmb_strength_init,0,100,1)) /100;      // strength of spectral ballancer and multiband compressor
-
-
 sb_strength = vslider("h:[1]Spectral Ballancer/h:Parameters/[1][unit:%]sb_strength[symbol:sb_strength]", sb_strength_init,0,100,1) : _/100;    // strength of the spectral ballancer
-sb_target_spectrum = par(i,Nbands, vslider("h:[1]Spectral Ballancer/h:Target Curve/spec %i[symbol:sb_target_spectrum_%i]", (sb_target_spectrum_init : ba.selector(i,Nbands)),-20,0,1));
+sb_target_spectrum = sb_target_spectrum_init; //par(i,Nbands, vslider("h:[1]Spectral Ballancer/h:Target Curve/spec %i[symbol:sb_target_spectrum_%i]", (sb_target_spectrum_init : ba.selector(i,Nbands)),-20,0,1));
 
 
-mb_strength = gui_mb(vslider("mb_strength[symbol:mb_strength]", mb_strength_init,0,100,1)) / 100 : _*sbmb_strength;
+mb_strength = gui_mb(vslider("mb_strength[symbol:mb_strength]", mb_strength_init,0,100,1)) / 100;
 
-mb_exp_thresh = mb_exp_thresh_init; //gui_main(vslider("mb_exp_thresh[unit:dB][symbol:mb_exp_thresh]",0,-12,12,1));
-mb_exp_strength = mb_exp_strength_init : _*sbmb_strength; //gui_mb(vslider("mb_exp_strength[unit:%][symbol:mb_exp_strength]", mb_exp_strength_init,0,100,1)) / 100;
+exp_thresh = exp_thresh_init; //gui_main(vslider("exp_thresh[unit:dB][symbol:exp_thresh]",0,-12,12,1));
+exp_strength = gui_mb(vslider("exp_strength[unit:%][symbol:exp_strength]", exp_strength_init,0,100,1)) / 100;
 
 voice_isolation_intensity = gui_main(vslider("VIintense[symbol:voice_isolation_intensity]",1,0,1,0.01));
 
@@ -124,18 +133,17 @@ vad_smoothing_meter = _;//_<: attach(_, gui_main(vbargraph("vad_smoo[symbol:vad_
 
 process = si.bus(Nch) 
         : bp1(bypass,
+
               pregain(1)
             : preFilter
 
-            : (leveler_sc(target) 
+            //: (leveler_sc(target) 
             : ballancer 
-            <: par(i,Nbands*2,_) :    (par(i,Nbands,_):>_) , par(i,Nbands,_) ) ~_  : (!,par(i,Nbands,_))    
+            //<: par(i,Nbands*2,_) :    (par(i,Nbands,_):>_) , par(i,Nbands,_) ) ~_  : (!,par(i,Nbands,_))    
             
             : mbExpComp
-
             : postHighcut
-            
-            //: limiter_mono
+            : postgain(1)
             : limiter_lookahead
 
         );
@@ -178,13 +186,11 @@ ratio2strength(ratio) = 1-(1/ratio);
 
 // PRE FILTER
 preFilter = preFilter_hp with {
-
     preFilter_hp = fi.highpass(1,preFilter_hp_freq);
-
 };
 
-// CROSSOVER for spectral ballancer (and multiband compressor)
 
+// CROSSOVER for spectral ballancer (and multiband compressor)
 crossover = fi.crossover8LR4(100,200,400,800,1600,3200,6400);
 
 // lowpass
@@ -192,20 +198,7 @@ postHighcut = fi.lowpass(3,postHighcut_freq);
 postHighcut_freq = 12000; // gui_main(vslider("postHighcut_freq[scale:log][symbol:postHighcut_freq]",12000,5000,22000,1));
 
 
-
-// LIMITER MONO
-
-limiter_mono = co.limiter_lad_mono(lad, ceiling, att, hold, rel) with {
-    lad = 0.005;
-    ceiling = -1 : ba.db2linear;
-    att = 0.002;
-    hold = 0.01;
-    rel = 0.01;
-};
-
-
 // LIMITER with LOOKAHEAD
-
 Latency_limiter = 0.01; // in s
 limiter_thresh = -1 : ba.db2linear;
 
@@ -344,11 +337,10 @@ ballancer(l) = l <:
         : par(i,Nbands,(((((_-_)                         // substract target spectrum
         : sb_limit(i)                                      // limit gainchange
         : _*sb_strength                                 // apply strength
-        : _*sbmb_strength                               // apply overall strength
         : _* vad_ext
         : sb_envelope(i)                                // gainchange smoothing (dependent on frequency band)
 
-        : ba.db2linear)     )                 // multiply with external VAD (voice activity detection)
+        : ba.db2linear)     )                           // multiply with external VAD (voice activity detection)
         : sb_gainmeter(i)),_))                          // meter the gainchange
         : par(i,Nbands,gainchange(l))                    // do the actual gainchange to each band
         
@@ -394,7 +386,7 @@ ballancer(l) = l <:
 mbExpComp = 
     
       compressor8
-    : expander8
+    //: expander8               disable mb expander
     :> si.bus(1)
 
     with {
@@ -427,8 +419,8 @@ mbExpComp =
 
         expander8 = par(i,Nbands,
             co.expander_N_chan(
-                ratio2strength(ratio_array : ba.selector(i,Nbands)) * mb_exp_strength * (1-voice_isolation_intensity) * (1-(vad/2)), // strength is reduced by half, when VAD is 1
-                target + mb_exp_thresh + (thresh_array : ba.selector(i,Nbands)),
+                ratio2strength(ratio_array : ba.selector(i,Nbands)) * exp_strength * (1-voice_isolation_intensity) * (1-(vad/2)), // strength is reduced by half, when VAD is 1
+                target + exp_thresh + (thresh_array : ba.selector(i,Nbands)),
                 range_array : ba.selector(i,Nbands),
                 (att_array : ba.selector(i,Nbands)) /1000,
                 hold,
