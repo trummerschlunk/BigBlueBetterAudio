@@ -412,23 +412,17 @@ class mydsp : public dsp {
 	mydsp() {
 	}
 	
-	mydsp(const mydsp&) = default;
-	
-	FAUSTPP_VIRTUAL ~mydsp() = default;
-	
-	mydsp& operator=(const mydsp&) = default;
-	
 	void metadata(Meta* m) { 
 		m->declare("analyzers.lib/name", "Faust Analyzer Library");
-		m->declare("analyzers.lib/version", "1.3.0");
+		m->declare("analyzers.lib/version", "1.2.0");
 		m->declare("author", "Klaus Scheuermann");
 		m->declare("basics.lib/bypass1:author", "Julius Smith");
 		m->declare("basics.lib/name", "Faust Basic Element Library");
 		m->declare("basics.lib/peakholder:author", "Dario Sanfilippo");
 		m->declare("basics.lib/peakholder:copyright", "Copyright (C) 2022 Dario Sanfilippo <sanfilippo.dario@gmail.com>");
 		m->declare("basics.lib/peakholder:license", "MIT-style STK-4.3 license");
-		m->declare("basics.lib/version", "1.22.0");
-		m->declare("compile_options", "-a /home/ks/.cache/faustpp/9347-md.cpp -lang cpp -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("basics.lib/version", "1.21.0");
+		m->declare("compile_options", "-a /tmp/tmpx5z8l0tx.cpp -lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("compressors.lib/name", "Faust Compressor Effect Library");
 		m->declare("compressors.lib/peak_compression_gain_mono:author", "Bart Brouns");
 		m->declare("compressors.lib/peak_compression_gain_mono:license", "GPLv3");
@@ -489,7 +483,7 @@ class mydsp : public dsp {
 		m->declare("maths.lib/copyright", "GRAME");
 		m->declare("maths.lib/license", "LGPL with exception");
 		m->declare("maths.lib/name", "Faust Math Library");
-		m->declare("maths.lib/version", "2.9.0");
+		m->declare("maths.lib/version", "2.8.1");
 		m->declare("name", "bbba");
 		m->declare("platform.lib/name", "Generic Platform Library");
 		m->declare("platform.lib/version", "1.3.0");
@@ -514,7 +508,7 @@ class mydsp : public dsp {
 	
 	FAUSTPP_VIRTUAL void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
-		fConst0 = std::min<float>(1.92e+05f, std::max<float>(1.0f, static_cast<float>(fSampleRate)));
+		fConst0 = std::min<float>(1.92e+05f, std::max<float>(1.0f, float(fSampleRate)));
 		fConst1 = std::tan(37699.113f / fConst0);
 		fConst2 = 2.0f * (1.0f - 1.0f / mydsp_faustpower2_f(fConst1));
 		fConst3 = 1.0f / fConst1;
@@ -609,7 +603,7 @@ class mydsp : public dsp {
 		fConst92 = 1.0f - fConst3;
 		fConst93 = 1.0f / (fConst3 + 1.0f);
 		fConst94 = 0.01f * fConst0;
-		iConst95 = static_cast<int>(fConst94);
+		iConst95 = int(fConst94);
 		fConst96 = std::exp(-(628.31854f / fConst0));
 		fConst97 = 1.0f - fConst96;
 		fConst98 = std::exp(-(6.2831855f / fConst0));
@@ -617,14 +611,14 @@ class mydsp : public dsp {
 	}
 	
 	FAUSTPP_VIRTUAL void instanceResetUserInterface() {
-		fVslider0 = static_cast<FAUSTFLOAT>(-18.0f);
-		fVslider1 = static_cast<FAUSTFLOAT>(0.0f);
-		fVslider2 = static_cast<FAUSTFLOAT>(42.0f);
-		fVslider3 = static_cast<FAUSTFLOAT>(1.0f);
-		fVslider4 = static_cast<FAUSTFLOAT>(5e+01f);
-		fVslider5 = static_cast<FAUSTFLOAT>(5e+01f);
-		fVslider6 = static_cast<FAUSTFLOAT>(0.0f);
-		fCheckbox0 = static_cast<FAUSTFLOAT>(0.0f);
+		fVslider0 = FAUSTFLOAT(-18.0f);
+		fVslider1 = FAUSTFLOAT(0.0f);
+		fVslider2 = FAUSTFLOAT(42.0f);
+		fVslider3 = FAUSTFLOAT(1.0f);
+		fVslider4 = FAUSTFLOAT(5e+01f);
+		fVslider5 = FAUSTFLOAT(5e+01f);
+		fVslider6 = FAUSTFLOAT(0.0f);
+		fCheckbox0 = FAUSTFLOAT(0.0f);
 	}
 	
 	FAUSTPP_VIRTUAL void instanceClear() {
@@ -1156,7 +1150,7 @@ class mydsp : public dsp {
 	}
 	
 	FAUSTPP_VIRTUAL mydsp* clone() {
-		return new mydsp(*this);
+		return new mydsp();
 	}
 	
 	FAUSTPP_VIRTUAL int getSampleRate() {
@@ -1212,16 +1206,16 @@ class mydsp : public dsp {
 	FAUSTPP_VIRTUAL void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
 		FAUSTFLOAT* input0 = inputs[0];
 		FAUSTFLOAT* output0 = outputs[0];
-		float fSlow0 = static_cast<float>(fVslider0);
+		float fSlow0 = float(fVslider0);
 		float fSlow1 = fSlow0 + -12.5f;
-		float fSlow2 = fConst8 * std::pow(1e+01f, 0.05f * static_cast<float>(fVslider1));
-		float fSlow3 = 1.0f / std::tan(fConst10 * static_cast<float>(fVslider2));
+		float fSlow2 = fConst8 * std::pow(1e+01f, 0.05f * float(fVslider1));
+		float fSlow3 = 1.0f / std::tan(fConst10 * float(fVslider2));
 		float fSlow4 = 1.0f - fSlow3;
 		float fSlow5 = 1.0f / (fSlow3 + 1.0f);
-		float fSlow6 = static_cast<float>(fVslider4) * static_cast<float>(fVslider3);
+		float fSlow6 = float(fVslider4) * float(fVslider3);
 		float fSlow7 = fConst69 * fSlow6;
 		float fSlow8 = fSlow0 + -13.5f;
-		float fSlow9 = 0.01f * static_cast<float>(fVslider5);
+		float fSlow9 = 0.01f * float(fVslider5);
 		float fSlow10 = fSlow0 + -11.5f;
 		float fSlow11 = fConst73 * fSlow6;
 		float fSlow12 = fConst76 * fSlow6;
@@ -1235,11 +1229,11 @@ class mydsp : public dsp {
 		float fSlow20 = fSlow0 + -5.5f;
 		float fSlow21 = fConst87 * fSlow6;
 		float fSlow22 = fConst90 * fSlow6;
-		float fSlow23 = fConst8 * std::pow(1e+01f, 0.05f * static_cast<float>(fVslider6));
-		float fSlow24 = fConst8 * static_cast<float>(fCheckbox0);
+		float fSlow23 = fConst8 * std::pow(1e+01f, 0.05f * float(fVslider6));
+		float fSlow24 = fConst8 * float(fCheckbox0);
 		for (int i0 = 0; i0 < count; i0 = i0 + 1) {
 			fRec19[0] = fSlow2 + fConst9 * fRec19[1];
-			float fTemp0 = static_cast<float>(input0[i0]);
+			float fTemp0 = float(input0[i0]);
 			float fTemp1 = fTemp0 * fRec19[0];
 			fVec0[0] = fTemp1;
 			fRec18[0] = -(fSlow5 * (fSlow4 * fRec18[1] - fSlow3 * (fTemp1 - fVec0[1])));
@@ -1608,16 +1602,16 @@ class mydsp : public dsp {
 			float fTemp161 = fRec181[0] * (fRec0[2] + fRec0[0] + 2.0f * fRec0[1]);
 			fVec24[IOTA0 & 2047] = fTemp161;
 			float fTemp162 = std::fabs(fConst5 * fTemp161);
-			int iTemp163 = (fTemp162 >= fRec185[1]) | (static_cast<float>(iRec184[1]) >= fConst94);
+			int iTemp163 = (fTemp162 >= fRec185[1]) | (float(iRec184[1]) >= fConst94);
 			iRec184[0] = ((iTemp163) ? 0 : iRec184[1] + 1);
 			fRec185[0] = ((iTemp163) ? fTemp162 : fRec185[1]);
 			fRec183[0] = fConst97 * fRec185[0] + fConst96 * fRec183[1];
 			float fTemp164 = std::fabs(fRec183[0]);
 			fRec182[0] = std::max<float>(fTemp164, fConst98 * fRec182[1] + fConst99 * fTemp164);
 			float fTemp165 = std::min<float>(1.0f, 0.8912509f / std::max<float>(fRec182[0], 1.1920929e-07f));
-			fVbargraph0 = static_cast<FAUSTFLOAT>(2e+01f * std::log10(std::max<float>(1.1754944e-38f, std::fabs(fTemp165))));
+			fVbargraph0 = FAUSTFLOAT(2e+01f * std::log10(std::max<float>(1.1754944e-38f, std::fabs(fTemp165))));
 			fRec186[0] = fSlow24 + fConst9 * fRec186[1];
-			output0[i0] = static_cast<FAUSTFLOAT>(fTemp0 * fRec186[0] + fConst5 * (1.0f - fRec186[0]) * fTemp165 * fVec24[(IOTA0 - iConst95) & 2047]);
+			output0[i0] = FAUSTFLOAT(fTemp0 * fRec186[0] + fConst5 * (1.0f - fRec186[0]) * fTemp165 * fVec24[(IOTA0 - iConst95) & 2047]);
 			fRec19[1] = fRec19[0];
 			fVec0[1] = fVec0[0];
 			fRec18[1] = fRec18[0];
