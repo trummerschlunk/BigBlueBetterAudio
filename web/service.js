@@ -11,19 +11,39 @@ const loadedFiles = {
     worklet: null,
 };
 
+// function to setup wasm + emscripten module options for offline fetch
+const createWasmOpts = (wasmBlob, postRunCallback, errorCallback) => {
+    console.log("here 000xa");
+    return {
+        // override to use previously retrieved blob data, as `fetch` is not allowed in worklets
+        instantiateWasm: (imports, successCallback) => {
+            console.log("here 000ba");
+            WebAssembly.instantiate(wasmBlob, imports).then(output => {
+                console.log("here 000ca");
+                successCallback(output.instance, output.module);
+            }).catch(error => {
+                errorCallback(error);
+            });
+
+            return {};
+        },
+        postRun: postRunCallback,
+    };
+};
+
 // global audio processor so we can communicate with it
 let audioProcessor = null;
 
 // global functions for testing purposes
 const setWasmProcessorEnabled = (enabled) => {
     if (audioProcessor) {
-        audioProcessor.port.postMessage({type: 'enable', enable: enabled});
+        // audioProcessor.port.postMessage({type: 'enable', enable: enabled});
     }
 };
 
 const setWasmProcessorParameter = (symbol, value) => {
     if (audioProcessor) {
-        audioProcessor.port.postMessage({type: 'param', symbol: symbol, value: value});
+        // audioProcessor.port.postMessage({type: 'param', symbol: symbol, value: value});
     }
 };
 
@@ -55,20 +75,69 @@ const createWasmProcessorStream = (stream) => {
                     numberOfOutputs: 1,
                     outputChannelCount: [1],
                 };
-                audioProcessor = new AudioWorkletNode(audioContext, 'mapi-proc', audioProcessorOptions);
-                audioProcessor.port.onmessage = event => {
-                    if (event.data?.type == 'loaded') {
-                        console.log("audioProcessor has been loaded, triggering callback now");
-                        resolve([contextDestination.stream, audioProcessor, audioContext]);
-                    }
-                    else if (event.data?.type == 'error') {
-                        reject(event.data.error);
-                    }
-                };
-                audioProcessor.port.postMessage({ type: 'init', wasm: loadedFiles.wasmBlob, js: loadedFiles.wasmJS });
+                if (true) {
+                    console.log("here 0001");
+
+                    // execute JS to expose the emscripten load module function
+                    const jsfn_bbba = new Function(loadedFiles.wasmJS + 'return mapi_bbba;');
+                    const create_module_bbba = jsfn_bbba.call();
+                    console.log("here 0002");
+
+                    const bufferSize = 2048;
+                    audioProcessor = audioContext.createScriptProcessor(bufferSize, 1, 1);
+                    console.log("here 0003");
+
+                    // create wasm opts for offline loading
+                    const opts = createWasmOpts(loadedFiles.wasmBlob,
+                        (module) => {
+                            console.log("here 0003a");
+                            const handle = module._mapi_create(48000, bufferSize);
+                            console.log("here 0003b");
+
+                            const audioData = module._malloc(module.HEAPF32.BYTES_PER_ELEMENT * bufferSize);
+                            const audioPtrs = module._malloc(module.HEAPU32.BYTES_PER_ELEMENT);
+                            module.HEAPU32[audioPtrs + (0 << 2) >> 2] = audioData;
+
+                            console.log("here 0004");
+                            audioProcessor.onaudioprocess = function (e) {
+
+                                var buffer = e.inputBuffer.getChannelData(0);
+                                for (let i = 0; i < bufferSize; ++i)
+                                    module.HEAPF32[audioData + (i << 2) >> 2] = buffer[i];
+
+                                module._mapi_process(handle, audioPtrs, audioPtrs, bufferSize);
+
+                                buffer = e.outputBuffer.getChannelData(0);
+                                for (let i = 0; i < bufferSize; ++i)
+                                    buffer[i] = module.HEAPF32[audioData + (i << 2) >> 2];
+                            };
+                            console.log("here 0005");
+                        },
+                        (error) => {
+                            // this.port.postMessage({ type: 'error', error: error });
+                        },
+                    );
+
+                    // create the wasm module and instance
+                    create_module_bbba(opts);
+                } else {
+                    audioProcessor = new AudioWorkletNode(audioContext, 'mapi-proc', audioProcessorOptions);
+                    audioProcessor.port.onmessage = event => {
+                        if (event.data?.type == 'loaded') {
+                            console.log("audioProcessor has been loaded, triggering callback now");
+                            resolve([contextDestination.stream, audioProcessor, audioContext]);
+                        }
+                        else if (event.data?.type == 'error') {
+                            reject(event.data.error);
+                        }
+                    };
+                    audioProcessor.port.postMessage({ type: 'init', wasm: loadedFiles.wasmBlob, js: loadedFiles.wasmJS });
+                }
 
                 contextSource.connect(audioProcessor);
-                audioProcessor.connect(contextDestination);
+
+                audioProcessor.connect(audioContext.destination);
+                // audioProcessor.connect(contextDestination);
 
                 console.log("---------------------------------------------------------------- loadAudioWorklet ok!");
             }).catch(reject);
