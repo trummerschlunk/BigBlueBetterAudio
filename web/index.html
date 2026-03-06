@@ -117,6 +117,9 @@ window.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        var isAndroid = navigator.userAgent.match(/Android/i) ? "yes" : "no";
+        document.getElementById('info').setHTMLUnsafe('<h3>isAndroid - ' + isAndroid + '</h3>');
+
         document.getElementById('error').style.setProperty('display', 'none');
         document.getElementById('content').style.removeProperty('display');
 
@@ -241,5 +244,6 @@ window.addEventListener('DOMContentLoaded', function() {
                 </fieldset>
             </div>
         </div>
+        <div id="info"></div>
     </body>
 </html>
