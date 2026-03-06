@@ -73,7 +73,7 @@ const createWasmProcessor = (audioContext, stream) => {
         const jsfn_bbba = new Function(loadedFiles.wasmJS + 'return mapi_bbba;');
         const create_module_bbba = jsfn_bbba.call();
 
-        const bufferSize = 2048;
+        const bufferSize = 4096;
         const numberOfInputs = 1;
         const numberOfOutputs = 1;
         const processor = audioContext.createScriptProcessor(bufferSize, numberOfInputs, numberOfOutputs);
