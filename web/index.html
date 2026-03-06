@@ -9,6 +9,7 @@
 // known constants
 const kParameter_leveler_target = "leveler_target";
 const kParameter_mb_strength = "mb_strength";
+const kParameter_sb_strength = "sb_strength";
 const kParameter_intensity = "intensity";
 
 // load the wasm modules
@@ -89,6 +90,7 @@ function enableStream() {
             console.log("createWasmProcessorStream callback", wasmProcStream, audioProcessor, audioContext);
             setWasmProcessorEnabled(document.getElementById('enable-bbba').checked);
             setWasmProcessorParameter(kParameter_mb_strength, document.getElementById('bbba-strength').value);
+            setWasmProcessorParameter(kParameter_sb_strength, document.getElementById('bbba-strength').value);
             setWasmProcessorParameter(kParameter_leveler_target, document.getElementById('bbba-target').value);
             setWasmProcessorParameter(kParameter_intensity, document.getElementById('bbba-intensity').value);
 
@@ -150,6 +152,7 @@ window.addEventListener('DOMContentLoaded', function() {
         elems.strength.addEventListener('input', function(event) {
             elems.strengthVal.textContent = event.target.value;
             setWasmProcessorParameter(kParameter_mb_strength, event.target.value);
+            setWasmProcessorParameter(kParameter_sb_strength, event.target.value);
         });
         elems.target.addEventListener('input', function(event) {
             elems.targetVal.textContent = event.target.value;
