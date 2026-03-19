@@ -1,4 +1,4 @@
-![Audio Flow Diagram](documentation/pics/BBBA_signalFlow_02.jpg)
+![Audio Flow Diagram](documentation/pics/BBBA_signalFlow_03.jpg)
 
 # BigBlueBetterAudio
 
@@ -28,13 +28,17 @@ While technically pristine audio remains the foundation, a chain of carefully tu
 
 ## Audio Flow
 
-![Audio Flow Diagram](documentation/pics/BBBA_signalFlow_02.jpg)
+![Audio Flow Diagram](documentation/pics/BBBA_signalFlow_03.jpg)
 
 ## Injection
 
 As shown in the audio flow diagram, BBBA's audio processing runs in the user's browser and does not require additional server capacity.
 
-BBBA's DSP is written in Faust and compiled to a wasm module via DPF and emscripten. The wasm module runs as an audio worklet inside BBB's html5 client.
+## DSP
+
+BBBA's DSP is written in [Faust](https://faust.grame.fr/) and compiled to a wasm module via DPF and emscripten. The wasm module runs as an audio worklet inside BBB's html5 client.
+
+For voice isolation, BBBA uses [RNNoise](https://github.com/xiph/rnnoise), a popular voice isolation machine learning process.
 
 ## Screenshot
 
@@ -43,5 +47,5 @@ When using the desktop plugin version, BBBA will look like this:
 ![Screenshot](documentation/pics/BBBA_screenshot_desktop.png)
 
 ## Support and Funding
-With support and funding from the PrototypeFund (class 01, June-November 2025).
+With support and funding from the PrototypeFund (class 01, June 2025 - March 2026).
 
