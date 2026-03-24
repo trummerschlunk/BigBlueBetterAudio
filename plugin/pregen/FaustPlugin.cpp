@@ -423,7 +423,7 @@ class mydsp : public dsp {
 		m->declare("basics.lib/peakholder:copyright", "Copyright (C) 2022 Dario Sanfilippo <sanfilippo.dario@gmail.com>");
 		m->declare("basics.lib/peakholder:license", "MIT-style STK-4.3 license");
 		m->declare("basics.lib/version", "1.22.0");
-		m->declare("compile_options", "-a /home/ks/.cache/faustpp/15824-md.cpp -lang cpp -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("compile_options", "-a /home/ks/.cache/faustpp/34366-md.cpp -lang cpp -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("compressors.lib/name", "Faust Compressor Effect Library");
 		m->declare("compressors.lib/peak_compression_gain_mono:author", "Bart Brouns");
 		m->declare("compressors.lib/peak_compression_gain_mono:license", "GPLv3");
@@ -613,10 +613,10 @@ class mydsp : public dsp {
 	
 	FAUSTPP_VIRTUAL void instanceResetUserInterface() {
 		fVslider0 = static_cast<FAUSTFLOAT>(-18.0f);
-		fVslider1 = static_cast<FAUSTFLOAT>(0.0f);
+		fVslider1 = static_cast<FAUSTFLOAT>(2.0f);
 		fVslider2 = static_cast<FAUSTFLOAT>(1.0f);
-		fVslider3 = static_cast<FAUSTFLOAT>(5e+01f);
-		fVslider4 = static_cast<FAUSTFLOAT>(5e+01f);
+		fVslider3 = static_cast<FAUSTFLOAT>(6e+01f);
+		fVslider4 = static_cast<FAUSTFLOAT>(6e+01f);
 		fVslider5 = static_cast<FAUSTFLOAT>(0.0f);
 	}
 	
@@ -1152,7 +1152,7 @@ class mydsp : public dsp {
 		ui_interface->declare(&fVslider1, "1", "");
 		ui_interface->declare(&fVslider1, "symbol", "pre_gain");
 		ui_interface->declare(&fVslider1, "unit", "dB");
-		ui_interface->addVerticalSlider("preGain", &fVslider1, FAUSTFLOAT(0.0f), FAUSTFLOAT(-2e+01f), FAUSTFLOAT(2e+01f), FAUSTFLOAT(0.1f));
+		ui_interface->addVerticalSlider("preGain", &fVslider1, FAUSTFLOAT(2.0f), FAUSTFLOAT(-2e+01f), FAUSTFLOAT(2e+01f), FAUSTFLOAT(0.1f));
 		ui_interface->declare(&fVslider2, "3", "");
 		ui_interface->declare(&fVslider2, "symbol", "vad_ext");
 		ui_interface->addVerticalSlider("vad_ext", &fVslider2, FAUSTFLOAT(1.0f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1.0f), FAUSTFLOAT(0.001f));
@@ -1171,13 +1171,13 @@ class mydsp : public dsp {
 		ui_interface->closeBox();
 		ui_interface->openHorizontalBox("multiband_compressor");
 		ui_interface->declare(&fVslider4, "symbol", "mb_strength");
-		ui_interface->addVerticalSlider("mb_strength", &fVslider4, FAUSTFLOAT(5e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+02f), FAUSTFLOAT(1.0f));
+		ui_interface->addVerticalSlider("mb_strength", &fVslider4, FAUSTFLOAT(6e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+02f), FAUSTFLOAT(1.0f));
 		ui_interface->closeBox();
 		ui_interface->openHorizontalBox("spectral_balancer");
 		ui_interface->declare(&fVslider3, "1", "");
 		ui_interface->declare(&fVslider3, "symbol", "sb_strength");
 		ui_interface->declare(&fVslider3, "unit", "%");
-		ui_interface->addVerticalSlider("sb_strength", &fVslider3, FAUSTFLOAT(5e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+02f), FAUSTFLOAT(1.0f));
+		ui_interface->addVerticalSlider("sb_strength", &fVslider3, FAUSTFLOAT(6e+01f), FAUSTFLOAT(0.0f), FAUSTFLOAT(1e+02f), FAUSTFLOAT(1.0f));
 		ui_interface->closeBox();
 		ui_interface->closeBox();
 	}

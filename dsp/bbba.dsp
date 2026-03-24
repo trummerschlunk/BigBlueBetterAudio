@@ -28,7 +28,6 @@ import("stdfaust.lib");
 // [symbol:sb_strength]             Spectral Balancer Strength 0/100 %
 // [symbol:mb_strength]             Multiband Dynamics Strength 0/100 %
 // [symbol:post_gain]               Output Gain before Limiter -20/+20 dB
-// [symbol:preLowcut_freq]          Lowcut Frequency 10Hz - 400Hz  
 
 
 // INIT VALUES
@@ -37,15 +36,15 @@ Nch = 1;                            // bbba is mono
 Nbands = 8;                         // number of bands of the multiband processing and the spectral Balancer
 maxSR = 48000;                      // maximum samplerate
 
-pre_gain_init = 0;
+pre_gain_init = 2;
 post_gain_init = 0;
 
 lev_target_init = -18;
 
-sb_strength_init = 50;
+sb_strength_init = 60;
 sb_target_spectrum_init = -10, -5, -5, -8, -9, -10, -7, -4;
 
-mb_strength_init = 50;
+mb_strength_init = 60;
 
 
 
@@ -87,8 +86,13 @@ vad_ext = gui_main(vslider("[3]vad_ext[symbol:vad_ext]",1,0,1,0.001));
 
 
 
-// MAIN
-
+//   __  __       _       
+//  |  \/  |     (_)      
+//  | \  / | __ _ _ _ __  
+//  | |\/| |/ _` | | '_ \ 
+//  | |  | | (_| | | | | |
+//  |_|  |_|\__,_|_|_| |_|
+                       
 process = si.bus(Nch) 
             : preGain(1)
             : preHighpass

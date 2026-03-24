@@ -66,12 +66,12 @@ static constexpr const char* kParameterNames[7] = {
 
 static constexpr const struct { float def, min, max; } kParameterRanges[7] = {
     // inputs
-    { 0, -20, 20 },
+    { 2, -20, 20 },
     { 1, 0, 1 },
     { 0, -20, 20 },
     { -18, -60, 0 },
-    { 50, 0, 100 },
-    { 50, 0, 100 },
+    { 60, 0, 100 },
+    { 60, 0, 100 },
     
     // ouputs
     { 0, -12, 0 },
