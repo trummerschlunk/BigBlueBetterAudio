@@ -9,7 +9,7 @@
 // Author: Klaus Scheuermann
 // Copyright: 
 // License: GPLv3+
-// Version: 0.28
+// Version: 0.29
 //------------------------------------------------------------------------------
 
 
@@ -28,14 +28,12 @@
 
 enum Parameters {
     // inputs
-    kParameter_sb_strength,
-    kParameter_bypass,
     kParameter_pre_gain,
     kParameter_vad_ext,
     kParameter_post_gain,
     kParameter_leveler_target,
     kParameter_mb_strength,
-    kParameter_pre_lowcut,
+    kParameter_sb_strength,
     
     // outputs
     kParameter_limiter_gain,
@@ -52,68 +50,61 @@ enum States {
     kStateCount
 };
 
-static constexpr const char* kParameterNames[9] = {
+static constexpr const char* kParameterNames[7] = {
     // inputs
-    "sb_strength",
-    "bypass",
-    "PreGain",
+    "preGain",
     "vad_ext",
-    "PostGain",
+    "postGain",
     "target",
     "mb_strength",
-    "preLowcut_freq",
+    "sb_strength",
     
     // ouputs
     "LimiterGR",
     
 };
 
-static constexpr const struct { float def, min, max; } kParameterRanges[9] = {
+static constexpr const struct { float def, min, max; } kParameterRanges[7] = {
     // inputs
-    { 50.0, 0.0, 100.0 },
-    { 0, 0, 1 },
-    { 0.0, -20.0, 20.0 },
-    { 1.0, 0.0, 1.0 },
-    { 0.0, -20.0, 20.0 },
-    { -18.0, -60.0, 0.0 },
-    { 50.0, 0.0, 100.0 },
-    { 42.0, 10.0, 400.0 },
+    { 0, -20, 20 },
+    { 1, 0, 1 },
+    { 0, -20, 20 },
+    { -18, -60, 0 },
+    { 50, 0, 100 },
+    { 50, 0, 100 },
     
     // ouputs
-    { 0, -12.0, 0.0 },
+    { 0, -12, 0 },
     
 };
 
-static constexpr const char* kParameterSymbols[9] = {
+static constexpr const char* kParameterSymbols[7] = {
     // inputs
-    "sb_strength",
-    "bypass",
     "pre_gain",
     "vad_ext",
     "post_gain",
     "leveler_target",
     "mb_strength",
-    "pre_lowcut",
+    "sb_strength",
     
     // ouputs
     "limiter_gain",
     
 };
 
-static constexpr const char* kParameterUnits[9] = {
+static constexpr const char* kParameterUnits[7] = {
     // inputs
+    "dB",
+    "",
+    "dB",
+    "dB",
+    "",
     "%",
-    "",
-    "dB",
-    "",
-    "dB",
-    "dB",
-    "",
-    "",
     
     // ouputs
     "",
     
 };
+
 
 

@@ -228,7 +228,7 @@ protected:
             switch (index)
             {
             // hide some unused parameters
-            case kParameter_pre_lowcut:
+//            case kParameter_pre_lowcut:
            #ifndef SIMPLIFIED_MAPI_BUILD
             case kParameter_sb_meter__0:
             case kParameter_sb_meter__1:
