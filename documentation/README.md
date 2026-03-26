@@ -1,5 +1,5 @@
 # BigBlueBetterAudio - Documentaion
-definition
+BigBlueBetterAudio is a voice optimization audio processor built into a Webassembly module. It was initially developed for BigBlueButton, but can be used in any web-audio context. It reduces background noise and smoothes the vocal sound. The design of the audio process is based on two decades experience as a music producer and mastering engineer.
 
 ## Faust and c++
 made with Faust and preexisting DSP code (RNNoise)
