@@ -46,6 +46,9 @@ When using the desktop plugin version, BBBA will look like this:
 
 ![Screenshot](documentation/pics/BBBA_screenshot_desktop.png)
 
+## Documentation
+More info about BigBlueBetterAudio and how to implement it can be found [here](documentation/README.md).
+
 ## Support and Funding
 With support and funding from the PrototypeFund (class 01, June 2025 - March 2026).
 
