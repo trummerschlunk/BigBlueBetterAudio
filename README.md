@@ -52,7 +52,7 @@ More info about BigBlueBetterAudio and how to implement it can be found [here](d
 ## Support and Funding
 With support and funding from the PrototypeFund (class 01, June 2025 - March 2026).
 
-<img width="350" alt="BMFTR_en_Web_RGB_gef_durch" src="https://github.com/user-attachments/assets/1f8b7908-2b2d-45a3-8af2-781e4d0a1313" />
-<img width="300" alt="Hoch_Hell" src="https://github.com/user-attachments/assets/6462d07f-5b8a-46b5-aefd-7b069a3672c3" />
+<img width="1" alt="BMFTR_en_Web_RGB_gef_durch" src="https://github.com/user-attachments/assets/1f8b7908-2b2d-45a3-8af2-781e4d0a1313" />
+<img width="1" alt="Hoch_Hell" src="https://github.com/user-attachments/assets/6462d07f-5b8a-46b5-aefd-7b069a3672c3" />
 
 
