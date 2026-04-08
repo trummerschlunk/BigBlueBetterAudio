@@ -1,4 +1,4 @@
-!!! On March 27th 2026, BigBlueBetterAudio has been officially merged into BigBlueButton 4.0.x-release branch !!!
+On March 27th 2026, BigBlueBetterAudio has been officially merged into BigBlueButton 4.0.x-release branch.
 
 ![Audio Flow Diagram](documentation/pics/BBBA_signalFlow_03.jpg)
 
