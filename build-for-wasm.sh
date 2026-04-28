@@ -38,3 +38,9 @@ mv bin/BBBA-nosimd-mapi.wasm bin-nosimd/BBBA-nosimd-mapi.wasm
 # build with SIMD next
 make clean
 env CC=emcc CXX=em++ make mapi ${MAKE_ARGS}
+
+ln -sf ../../bin/BBBA-mapi.js npm/dist/
+ln -sf ../../bin/BBBA-mapi.wasm npm/dist/
+ln -sf ../../bin/BBBA-nosimd-mapi.js npm/dist/
+ln -sf ../../bin/BBBA-nosimd-mapi.wasm npm/dist/
+ln -sf ../../web/mapi-proc.js npm/dist/

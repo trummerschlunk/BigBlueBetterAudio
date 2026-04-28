@@ -1,0 +1,17 @@
+{
+  "name": "@libreaudio/la-call",
+  "version": "0.0.1",
+  "description": "Voice isolation and optimization AudioWorklet/WASM module for web conferencing",
+  "license": "GPL-3.0+",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/",
+    "package.json",
+    "../LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/trummerschlunk/BigBlueBetterAudio"
+  }
+}

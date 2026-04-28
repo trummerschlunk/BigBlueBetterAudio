@@ -9,3 +9,6 @@
 .DS_Store
 compile_commands.json
 *~
+/npm/dist/*-mapi.js
+/npm/dist/*.wasm
+/npm/dist/mapi-proc.js
