@@ -1,14 +1,14 @@
 {
   "name": "@libreaudio/la-call",
-  "version": "0.0.1d",
+  "version": "0.0.1h",
   "description": "Voice isolation and optimization AudioWorklet/WASM module for web conferencing",
   "license": "GPL-3.0+",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist/*.*",
+    "dist/",
     "package.json",
-    "../LICENSE"
+    "LICENSE"
   ],
   "repository": {
     "type": "git",
