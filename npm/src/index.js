@@ -2,14 +2,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 const mapiWasmBlob = new Uint8Array(@BBBA_WASM_BLOB@);
-const mapiWasmJs = `@BBBA_WASM_JS@`;
+const mapiWasmJs = atob('@BBBA_WASM_JS@');
 const mapiNoSimdWasmJs = new Uint8Array(@BBBA_NOSIMD_WASM_BLOB@);
-const mapiNoSimdWasmBlob = `@BBBA_NOSIMD_WASM_JS@`;
-const mapiProcJs = `@MAPI_PROC_JS@`;
+const mapiNoSimdWasmBlob = atob('@BBBA_NOSIMD_WASM_JS@');
+const mapiProcJs = atob('@MAPI_PROC_JS@');
+
+const previouslyLoaded = false;
 
 // create audio worklet or script processor
 // we rely on script processor because worklets must run at 128 block size, which is not possible on low-spec machines
-const createWasmProcessor = (audioContext) => {
+const createWasmProcessor = (audioContext, properties) => {
     return new Promise((resolve, reject) => {
         if (typeof(WebAssembly) === 'undefined') {
             reject('WebAssembly unsupported');
@@ -20,14 +22,18 @@ const createWasmProcessor = (audioContext) => {
             return;
         }
 
+        const simdSupported = WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,0,0,1,5,1,96,0,1,123,3,2,1,0,10,10,1,8,0,65,0,253,15,253,98,11]));
+        const wasmBlob = simdSupported ? mapiWasmBlob : mapiNoSimdWasmBlob;
+        const wasmJs = simdSupported ? mapiWasmJs : mapiNoSimdWasmJs;
+
+        const intensity = /*typedef(properties.intensity) === 'undefined' ? 100 :*/ properties.intensity;
+
         if (! navigator.userAgent.match(/Android/i)) {
-            console.log("Using Audio Worklet");
+            console.log("la-call: using audio worklet");
 
-            const processorBlob = new Blob([mapiProcJs], { type: 'text/javascript' });
-            const processorURL = URL.createObjectURL(processorBlob);
+            const moduleLoaded = () => {
+                previouslyLoaded = true;
 
-            audioContext.audioWorklet.addModule(processorURL)
-            .then(() => {
                 const options = {
                     channelCount: 1,
                     numberOfInputs: 1,
@@ -37,29 +43,34 @@ const createWasmProcessor = (audioContext) => {
                 const processor = new AudioWorkletNode(audioContext, 'mapi-proc', options);
                 processor.port.onmessage = event => {
                     if (event.data.type == 'loaded') {
-                        processor.port.postMessage({ type: 'param', symbol: "intensity", value: 100 });
-                        processor.port.postMessage({ type: 'param', symbol: "leveler_target", value: -18 });
-                        processor.port.postMessage({ type: 'param', symbol: "sb_strength", value: 60 });
-                        processor.port.postMessage({ type: 'param', symbol: "mb_strength", value: 60 });
-                        processor.port.postMessage({ type: 'param', symbol: "pre_gain", value: 2 });
-                        processor.port.postMessage({ type: 'param', symbol: "post_gain", value: 0 });
+                        processor.port.postMessage({ type: 'param', symbol: "intensity", value: intensity });
                         resolve(processor);
                     }
                     else if (event.data.type == 'error') {
                         reject(event.data.error);
                     }
                 };
-                processor.port.postMessage({ type: 'init', wasm: mapiWasmBlob, js: mapiWasmJs });
-            })
-            .catch(reject);
+                processor.port.postMessage({ type: 'init', wasm: wasmBlob, js: wasmJs });
+            };
+
+            if (previouslyLoaded) {
+                moduleLoaded();
+            } else {
+                const processorBlob = new Blob([mapiProcJs], { type: 'text/javascript' });
+                const processorURL = URL.createObjectURL(processorBlob);
+
+                audioContext.audioWorklet.addModule(processorURL)
+                .then(moduleLoaded)
+                .catch(reject);
+            }
             return;
         }
 
         // NOTE fallback with createScriptProcessor follows here
-        console.log("Using Script Processor");
+        console.log("la-call: using script processor");
 
         // execute JS to expose the emscripten load module function
-        const jsfn_bbba = new Function(mapiWasmJs + 'return mapi_bbba;');
+        const jsfn_bbba = new Function(wasmJs + 'return mapi_bbba;');
         const create_module_bbba = jsfn_bbba.call();
 
         const bufferSize = 4096;
@@ -70,7 +81,7 @@ const createWasmProcessor = (audioContext) => {
         // create the wasm module and instance
         create_module_bbba({
             instantiateWasm: (imports, successCallback) => {
-                WebAssembly.instantiate(mapiWasmBlob, imports)
+                WebAssembly.instantiate(wasmBlob, imports)
                 .then(output => {
                     successCallback(output.instance, output.module);
                 })
@@ -91,6 +102,8 @@ const createWasmProcessor = (audioContext) => {
                     module.stringToUTF8(symbol, csymbolData, len);
                     return csymbolData;
                 }
+
+                module._mapi_set_parameter(handle, csymbol("intensity"), intensity);
 
                 let enabled = true;
                 processor.onaudioprocess = function (e) {
@@ -134,4 +147,4 @@ const createWasmProcessor = (audioContext) => {
     });
 };
 
-export default createWasmProcessor;
+export { createWasmProcessor };

@@ -45,6 +45,10 @@ class MapiProcessorInstance {
     }
 
     param(symbol, value) {
+        if (!this.handle) {
+            console.error('BBBA wasm handle is null!');
+            return;
+        }
         this.module._mapi_set_parameter(this.handle, this.csymbol(symbol), value);
     }
 
