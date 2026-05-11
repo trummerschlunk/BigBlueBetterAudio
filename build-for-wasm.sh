@@ -39,9 +39,5 @@ mv bin/BBBA-nosimd-mapi.wasm bin-nosimd/BBBA-nosimd-mapi.wasm
 make clean
 env CC=emcc CXX=em++ make mapi ${MAKE_ARGS}
 
-cp -v bin/BBBA-mapi.js npm/dist/
-cp -v bin/BBBA-mapi.wasm npm/dist/
-cp -v bin/BBBA-nosimd-mapi.js npm/dist/
-cp -v bin/BBBA-nosimd-mapi.wasm npm/dist/
-cp -v web/mapi-proc.js npm/dist/
 cp -v LICENSE npm
+./npm/src/package.py

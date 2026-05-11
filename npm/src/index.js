@@ -1,12 +1,11 @@
 // Copyright 2026 Filipe Coelho <falktx@falktx.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-// These imports get resolved by Vite/webpack as asset URLs at build time
-export { default as mapiWasm }       from './BBBA-mapi.wasm';
-// export { default as mapiNosimdWasm } from './BBBA-nosimd-mapi.wasm';
-export { default as mapiJs }         from './BBBA-mapi.js';
-// export { default as mapiNosimdJs }   from './BBBA-nosimd-mapi.js';
-export { default as mapiProcJs }     from './mapi-proc.js';
+const mapiWasmBlob = new Uint8Array(@BBBA_WASM_BLOB@);
+const mapiWasmJs = `@BBBA_WASM_JS@`;
+const mapiNoSimdWasmJs = new Uint8Array(@BBBA_NOSIMD_WASM_BLOB@);
+const mapiNoSimdWasmBlob = `@BBBA_NOSIMD_WASM_JS@`;
+const mapiProcJs = `@MAPI_PROC_JS@`;
 
 // create audio worklet or script processor
 // we rely on script processor because worklets must run at 128 block size, which is not possible on low-spec machines
@@ -50,7 +49,7 @@ const createWasmProcessor = (audioContext) => {
                         reject(event.data.error);
                     }
                 };
-                processor.port.postMessage({ type: 'init', wasm: mapiWasm, js: mapiJs });
+                processor.port.postMessage({ type: 'init', wasm: mapiWasmBlob, js: mapiWasmJs });
             })
             .catch(reject);
             return;
@@ -60,7 +59,7 @@ const createWasmProcessor = (audioContext) => {
         console.log("Using Script Processor");
 
         // execute JS to expose the emscripten load module function
-        const jsfn_bbba = new Function(mapiJs + 'return mapi_bbba;');
+        const jsfn_bbba = new Function(mapiWasmJs + 'return mapi_bbba;');
         const create_module_bbba = jsfn_bbba.call();
 
         const bufferSize = 4096;
@@ -71,7 +70,7 @@ const createWasmProcessor = (audioContext) => {
         // create the wasm module and instance
         create_module_bbba({
             instantiateWasm: (imports, successCallback) => {
-                WebAssembly.instantiate(mapiWasm, imports)
+                WebAssembly.instantiate(mapiWasmBlob, imports)
                 .then(output => {
                     successCallback(output.instance, output.module);
                 })
