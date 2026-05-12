@@ -7,7 +7,7 @@ const mapiNoSimdWasmJs = new Uint8Array(@BBBA_NOSIMD_WASM_BLOB@);
 const mapiNoSimdWasmBlob = atob('@BBBA_NOSIMD_WASM_JS@');
 const mapiProcJs = atob('@MAPI_PROC_JS@');
 
-const previouslyLoaded = false;
+let previouslyLoaded = false;
 
 // create audio worklet or script processor
 // we rely on script processor because worklets must run at 128 block size, which is not possible on low-spec machines
