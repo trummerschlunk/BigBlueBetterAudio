@@ -23,6 +23,10 @@
 // 0.29 modified vad for spectral ballancer
 // 0.30 new [symbol:voice_isolation_intensity]
 // 0.31 add lowpass filter (commented out in gui version)
+// 0.32 merged analyser + bell-bank topology, matching dsp/bbba.dsp. The
+//      crossover is gone: one analyser drives the spectral balancer, the
+//      multiband compressor and the expander, their gains are summed in dB,
+//      de-overlapped and realised by a cascade of 8 SVF bells.
 
 declare name "bbba";
 declare version "0.30";             
@@ -70,6 +74,14 @@ sbmb_strength_init = 100;
 
 sb_strength_init = 50;
 sb_target_spectrum_init = -10, -5, -5, -8, -9, -10, -7, -4;
+
+// Analysis layer, as in dsp/bbba.dsp. Not exposed as plugin parameters - they
+// shape how the balancer decides, not what the user reaches for.
+sb_levelneutral = 1;    // corrections sum to zero: tonal balance only
+sb_bandrange = 18;      // dB below the average band before a band stops counting
+sb_tolerance = 1;       // dB deadband
+sb_threshold = -50;     // dBFS fullrange gate, applied after the ballistics
+sb_gateknee = 6;        // dB, soft knee of both gates
 
 mb_strength_init = 50;
 
@@ -119,9 +131,10 @@ voice_isolation_intensity = gui_main(vslider("VIintense[symbol:voice_isolation_i
 lev_meter_gain = _ <: attach(_,gui_leveler(vbargraph("[8][unit:dB]gain[symbol:leveler_gain]",-50,50)));
 
 sb_meter(i) = _ <: attach(_, vbargraph("h:[1]Spectral Ballancer/h:[2]loudness normalized spectrum/[1][unit:dB]band %2i[symbol:sb_meter_%2i]",-40,40));
-sb_gainmeter(i) = _ <: attach(_, (ba.linear2db:vbargraph("h:[1]Spectral Ballancer/h:[3]resulting gain/[1]sb_gain %2i[symbol:sb_gain_%2i]",-12,12)));
+// gains arrive in dB now, so no linear2db here
+sb_gainmeter(i) = _ <: attach(_, vbargraph("h:[1]Spectral Ballancer/h:[3]resulting gain/[1]sb_gain %2i[symbol:sb_gain_%2i]",-12,12));
 
-compressor_meter(i) = _ <: attach(_,ba.linear2db:gui_mb(vbargraph("[2]MBgr%2i[unit:dB][symbol:mb_comp_gain%2i]",-12,12)));
+compressor_meter(i) = _ <: attach(_,gui_mb(vbargraph("[2]MBgr%2i[unit:dB][symbol:mb_comp_gain%2i]",-12,12)));
 expander_meter = _ <: attach(_,ba.linear2db:gui_mb(vbargraph("[2]EXgr[unit:dB][symbol:mb_exp_gain]",-12,12)));
 mb_exp_meter(i) = _<:(_, ((gui_mb(vbargraph("[1]Exp%i[unit:dB][symbol:mb_exp_meter%i]", -12, 0))))):attach;
 limiter_meter = _ <: attach(_,abs : ba.linear2db : gui_main(vbargraph("[99][symbol:limiter_gain]LimiterGR",-12,0)));
@@ -173,11 +186,11 @@ process = _,_
         
         : preFilter
 
-        : (leveler_sc(target) 
-        : ballancer 
-        <: par(i,Nbands*2,_) :    (par(i,Nbands,_):>_) , par(i,Nbands,_) ) ~_  : (!,par(i,Nbands,_))    
-        
-        : mbExpComp
+        // The leveler's sidechain now sees the fully corrected signal. With one
+        // bell pass realising balancer + compressor + expander together there is
+        // no longer a separate post-balancer tap to feed back, and measuring
+        // what actually leaves the stage is the more sensible reference anyway.
+        : (leveler_sc(target) : correct <: (_,_)) ~ _ : (!,_)
 
         // : postHighcut
         
@@ -235,18 +248,118 @@ preFilter = preFilter_hp with {
 
 };
 
-// CROSSOVER for spectral ballancer (and multiband compressor)
+// dB CONVERSION
+// 10^(x/20) == e^(x*ln10/20) and 20*log10(x) == ln(x)*20/ln10, so exp/log can
+// replace pow/log10 with identical results to float precision. powf is much
+// more expensive than expf on the wasm/emscripten target in particular.
+lin2db(x) = log(max(ma.MIN, x)) * 8.685889638065035;    // 20/ln(10)
+db2lin(x) = exp(x * 0.11512925464970229);               // ln(10)/20
 
-crossover = fi.crossover8LR4(xo1,xo2,xo3,xo4,xo5,xo6,xo7) with{
-        xo1 = 100;
-        xo2 = 200;
-        xo3 = 400;
-        xo4 = 800;
-        xo5 = 1600;
-        xo6 = 3200;
-        xo7 = 6400;
+// ---- routing helpers (shared by the analysis layer) ------------------------
+// Interleave two n-buses into n pairs.
+pairUp(n) = route(2*n, 2*n, par(i, n, ((i+1, 2*i+1), (n+i+1, 2*i+2))));
+// Lay a copy of one scalar beside every signal on an n-bus.
+withScalar(n) = route(n+1, 2*n, (par(i, n, (i+1, 2*i+1)),
+                                 par(i, n, (n+1, 2*i+2))));
 
+// comp_gain_db with the level supplied directly in dB rather than as a signal.
+// Valid for prePost = 1, where the pre-detector is bypassed and the chain is
+// abs : lin2db : gain_computer : onePoleSwitching - so scaling the input by a
+// gain is exactly adding that gain to the level in dB, which is how the spectral
+// balancer's correction reaches this compressor without a trip through linear.
+comp_gain_from_db(strength,thresh,att,rel,knee) =
+    gain_computer(strength,thresh,knee) : si.onePoleSwitching(rel,att)
+with {
+    gain_computer(strength,thresh,knee,level) =
+        select3((level>(thresh-(knee/2)))+(level>(thresh+(knee/2))),
+                0,
+                ((level-thresh+(knee/2)) : pow(2)/(2*max(ma.EPSILON,knee))),
+                (level-thresh))
+        : max(0)*-strength;
 };
+
+
+// co.peak_expansion_gain_mono_db with the level supplied directly in dB.
+// Valid for prePost = 1, where the pre-detector is bypassed and the chain is
+// abs : slidingMax : linear2db : gain_computer. slidingMax commutes with a
+// positive gain, so adding the balancer's and compressor's gains to the level
+// in dB is exact.
+exp_gain_from_db(strength,thresh,range,attack,release,knee) =
+    gain_computer(strength,thresh,range,knee) : si.lag_ud(att,rel)
+with {
+    gain_computer(strength,thresh,range,knee,level) =
+        (select3((level>(thresh-(knee/2)))+(level>(thresh+(knee/2))),
+                 (level-thresh),
+                 ((level-thresh-(knee/2)) : pow(2)/(min(ma.EPSILON,knee*-2))),
+                 0)
+         * abs(strength) : max(range) * (-1+(2*(strength>0))));
+    att = select2((strength>0),release,attack);
+    rel = select2((strength>0),attack,release);
+};
+
+// ANALYSIS / CORRECTION BANK
+// Band centres are the geometric centres of the crossover bands this replaces,
+// so the two topologies are comparable band for band.
+fcL = 70.7, 141.4, 282.8, 565.7, 1131.4, 2262.7, 4525.5, 9051.0;
+fcOf(i) = fcL : ba.selector(i,Nbands);
+
+// Q of a filter whose -3 dB bandwidth is one octave: Q = 1/(2 sinh(ln2/2)).
+qOct(bw) = 1.0/(2.0*shx(0.5*log(2.0)*bw)) with { shx(x) = 0.5*(exp(x) - exp(0.0-x)); };
+qAnalysis = qOct(1.0);          // one band spacing wide - to tell bands apart
+bellWidth = 2.0;                // correction bells wider than the spacing, so the
+qBell = qOct(1.0*bellWidth);    // de-overlapped curve does not scallop between centres
+
+// Analysis bandpass, unity at centre. Detector only - never in the audio path.
+bandpass(i) = fi.svf.bp(fcOf(i), qAnalysis) : /(qAnalysis);
+
+// De-overlap. The bells overlap, so what the cascade produces at a band centre
+// is not that band's gain but the sum of every bell's response there:
+// applied = W . g. W was measured on this exact bank rather than assumed from a
+// peaking-filter prototype - fi.svf.bell sets k = 1/(Q*A), so its bandwidth
+// moves with gain and the analytic shape does not describe it. Nearest-neighbour
+// leakage measures 0.19, cond(W) = 2.03. Rows below are inv(W).
+// Regenerate if fcL, QbL or Nbands change.
+bells_kernel = 1;                   // 0 = skip the de-overlap, for A/B
+
+deconvolve = si.bus(Nbands) <: par(i,Nbands, krow(i))
+with {
+    krow(i) = par(j,Nbands, *(kmat(i,j))) :> _;
+    kmat(i,j) = Krow(i) : ba.selector(j,Nbands);
+    Krow(0) = 1.35422, -0.77469, 0.22165, -0.05398, 0.01302, -0.00309, 0.00069, -0.00013;
+    Krow(1) = -0.77301, 1.80799, -0.91783, 0.25175, -0.06104, 0.01449, -0.00325, 0.00059;
+    Krow(2) = 0.21506, -0.90890, 1.85152, -0.91688, 0.25042, -0.05976, 0.01340, -0.00243;
+    Krow(3) = -0.05244, 0.25035, -0.91860, 1.84578, -0.91077, 0.24485, -0.05519, 0.00999;
+    Krow(4) = 0.01270, -0.06095, 0.25175, -0.91263, 1.83204, -0.89004, 0.22587, -0.04111;
+    Krow(5) = -0.00302, 0.01451, -0.06024, 0.24587, -0.89053, 1.78298, -0.81733, 0.16725;
+    Krow(6) = 0.00068, -0.00325, 0.01350, -0.05536, 0.22574, -0.81715, 1.62165, -0.60264;
+    Krow(7) = -0.00012, 0.00059, -0.00245, 0.01003, -0.04112, 0.16735, -0.60280, 1.23852;
+};
+
+// fi.svf.bell, transcribed so the gain arrives in dB and the tick divisor is
+// formed once as a reciprocal. Verified against fi.svf.bell below.
+bellv(f, q, gDb) = tick ~ (_,_) : !,!,si.dot(3, mix)
+with {
+    a   = db2lin(gDb*0.5);              // 10^(g/40)
+    g   = tan(ma.PI*f/ma.SR);           // f is constant, so this is init-time
+    k   = 1.0/(q*a);
+    d   = 1.0/(1.0 + g*(g + k));
+    mix = 1.0, k*(a*a - 1.0), 0.0;
+    tick(ic1eq, ic2eq, v0) = 2.0*v1 - ic1eq, 2.0*v2 - ic2eq, v0, v1, v2
+    with {
+        v1 = (ic1eq + g*(v0 - ic2eq))*d;
+        v2 = ic2eq + g*v1;
+    };
+};
+
+// (gains bus, audio) -> audio. Peeled from the top band down, each stage taking
+// the gain sitting next to the signal.
+bells = bc(Nbands)
+with {
+    bc(0) = _;
+    bc(n) = (si.bus(n-1), bellAt(n-1)) : bc(n-1);
+};
+bellAt(i, g, x) = x : bellv(fcOf(i), qBell, g);
+
 
 // lowpass
 postHighcut = fi.lowpass(3,postHighcut_freq);
@@ -368,148 +481,165 @@ dynamicSmoothing(sensitivity, baseCF, x) = f ~ _ : ! , ! , _
     };
 
 
-/*
-   _____                 _             _   ____        _ _                           
-  / ____|               | |           | | |  _ \      | | |                          
- | (___  _ __   ___  ___| |_ _ __ __ _| | | |_) | __ _| | | __ _ _ __   ___ ___ _ __ 
-  \___ \| '_ \ / _ \/ __| __| '__/ _` | | |  _ < / _` | | |/ _` | '_ \ / __/ _ \ '__|
-  ____) | |_) |  __/ (__| |_| | | (_| | | | |_) | (_| | | | (_| | | | | (_|  __/ |   
- |_____/| .__/ \___|\___|\__|_|  \__,_|_| |____/ \__,_|_|_|\__,_|_| |_|\___\___|_|   
-        | |                                                                          
-        |_|                                                                        */
+//   __  __                        _    _____                          _   _
+//  |  \/  |                      | |  / ____|                        | | (_)
+//  | \  / | ___ _ __ __ _  ___  __| | | |     ___  _ __ _ __ ___  ___| |_ _  ___  _ __
+//  | |\/| |/ _ \ '__/ _` |/ _ \/ _` | | |    / _ \| '__| '__/ _ \/ __| __| |/ _ \| '_ \
+//  | |  | |  __/ | | (_| |  __/ (_| | | |___| (_) | |  | | |  __/ (__| |_| | (_) | | | |
+//  |_|  |_|\___|_|  \__, |\___|\__,_|  \_____\___/|_|  |_|  \___|\___|\__|_|\___/|_| |_|
+//                    __/ |
+//                   |___/
+//
+// One analyser drives all three stages. The spectral balancer, the multiband
+// compressor and the expander each produce a per-band gain in dB; they are
+// summed, de-overlapped, and realised by a single cascade of 8 SVF bells.
+//
+// The stages stay in series exactly as before, because a gain in dB simply adds
+// to a level in dB: the compressor is fed the band level plus the balancer's
+// gain, and the expander the band level plus both. With prePost = 1 neither has
+// a smoother before its log, so this is exact rather than an approximation.
 
+correct = _ <: (gainsTotal, _) : bells
 
-//----------------------- Ballancer Section -----------------------
+with {
 
-ballancer(l) = l <: 
-        (measure_full <:                                // split input in 2 for FULLRANGE measurement and crossover split
-        
-        par(i,Nbands,_)),                                // multiply FULLRANGE measurement by Nbands
-        
-        (_ : (xoverbank                                 // filterbank split
-        
-        : par(i,Nbands,(_<: ((measure_bp),_))))          // duplicate each filtered band and measure the first one
-        
-        : ro.interleave(2,Nbands))                       // swap for subtraction
-    
-        : sb_target_spectrum, par(i,Nbands*3,_)          // get target spectrum
-        : ro.interleave(Nbands,4)                        // rearrange
-        
-        : par(i,Nbands,(_,(ro.cross(2)                   // cross
-        :(_-_)                                          // subract from fullrange loudness
-        :sb_meter(i)),_))                               // meter (incoming frequency spectrum loudness-normalized)
-        
-        : par(i,Nbands,(((((_-_)                         // substract target spectrum
-        : sb_limit(i)                                      // limit gainchange
-        : _*sb_strength                                 // apply strength
-        : _*sbmb_strength                               // apply overall strength
-        : _* vad_ext
-        : sb_envelope(i)                                // gainchange smoothing (dependent on frequency band)
+    // ---- analysis -----------------------------------------------------------
+    measure_full = fi.itu_r_bs_1770_4_kfilter : detect;
 
-        : ba.db2linear)     )                 // multiply with external VAD (voice activity detection)
-        : sb_gainmeter(i)),_))                          // meter the gainchange
-        : par(i,Nbands,gainchange(l))                    // do the actual gainchange to each band
-        
-        with {
-        
-            xoverbank = crossover;
-            sb_limitUP = 6, 9, 12, 12, 12, 12, 9, 6;
-            sb_limitDOWN = 12;
-            sb_limit(i) = max(ma.neg(sb_limitDOWN)) : min(sb_limitUP : ba.selector(i,Nbands));
-        
-            sb_envelope(i) = si.smooth(ba.tau2pole(tau)) with{
-                tau = 0.2 * ((Nbands-i) / Nbands);
-            };
-            
-            gainchange(in) = (_)*(_);
+    kw_offset = 0, -1.33, -0.80, -0.36, 0.80, 2.45, 3.15, 3.30;
 
+    measure_bp(0) = _ * ba.db2linear(12)
+                    : fi.itu_r_bs_1770_4_kfilter
+                    : detect;
+    measure_bp(i) = _ * ba.db2linear(12 + (kw_offset : ba.selector(i,Nbands)))
+                    : detect;
 
-            measure_full =  fi.itu_r_bs_1770_4_kfilter
-                            : an.amp_follower_ud(0.01,0.1) 
-                            : max(-90:ba.db2linear) 
-                            : ba.linear2db;
+    detect = an.amp_follower_ud(0.01,0.1) : max(-90:ba.db2linear) : lin2db;
 
-            measure_bp =    _ * ba.db2linear(12)                    // boost the bands for measuring by +18dB
-                            : fi.itu_r_bs_1770_4_kfilter            // k-weighting
-                            : an.amp_follower_ud(0.01,0.1)          // actual measuring with separate up/down time constants
-                            : max(-90:ba.db2linear)                 // limit floor to -70dB (in linear domain)
-                            : ba.linear2db;
+    curveBus = _ <: ((_ <: par(i,Nbands, bandpass(i) : measure_bp(i))),
+                     (measure_full <: si.bus(Nbands)))
+             : pairUp(Nbands)
+             : par(i,Nbands, (_-_) : sb_meter(i));
 
-        };    
+    // ---- spectral balancer --------------------------------------------------
+    sb_limitUP = 6, 9, 12, 12, 12, 12, 9, 6;
+    sb_limitDOWN = 12;
+    sb_limit(i) = max(ma.neg(sb_limitDOWN)) : min(sb_limitUP : ba.selector(i,Nbands));
 
-
-
-//             _     ______             _____                      
-//            | |   |  ____|           / ____|                     
-//   _ __ ___ | |__ | |__  __  ___ __ | |     ___  _ __ ___  _ __  
-//  | '_ ` _ \| '_ \|  __| \ \/ / '_ \| |    / _ \| '_ ` _ \| '_ \ 
-//  | | | | | | |_) | |____ >  <| |_) | |___| (_) | | | | | | |_) |
-//  |_| |_| |_|_.__/|______/_/\_\ .__/ \_____\___/|_| |_| |_| .__/ 
-//                              | |                         | |    
-//                              |_|                         |_|    
-
-mbExpComp = 
-    
-      compressor8
-    : expander8
-    :> si.bus(1)
-
-    with {
-
-        mb_makeup = 1.5;
-        
-        compressor8 = par (i,8, compressor8_mono(i)) with {
-            compressor8_mono(i,l) = l * 
-                                (l:co.peak_compression_gain_mono(
-                                    ratio2strength(ratio : ba.selector(i,Nbands)),
-                                    target + (thresh : ba.selector(i,Nbands)),
-                                    att : ba.selector(i,Nbands) : _*0.001,
-                                    rel : ba.selector(i,Nbands) : _*0.001,
-                                    knee,
-                                    prePost)
-                                    : ba.linear2db + mb_makeup : ba.db2linear
-                                    : scale_by_mb_strength
-                                    :compressor_meter(i)
-                                );
-            ratio = 4,4,4,4,4,4,4,4;
-            thresh = -6,-6,-7,-8,-11,-12,-12,-13;
-            att = 30,25,20,15,10,5,3,2;
-            rel = 100,80,60,40,20,15,15,15;
-            knee = 1;
-            prePost= 1;
-
-            scale_by_mb_strength = ba.linear2db : _ * mb_strength : ba.db2linear;
-
-        };
-
-        expander8 = par(i,Nbands,
-            co.expander_N_chan(
-                ratio2strength(ratio_array : ba.selector(i,Nbands)) * mb_exp_strength * (1-voice_isolation_intensity) * (1-(vad/2) ), // strength is reduced by half, when VAD is 1
-                target + mb_exp_thresh + (thresh_array : ba.selector(i,Nbands)),
-                range_array : ba.selector(i,Nbands),
-                (att_array : ba.selector(i,Nbands)) /1000,
-                hold,
-                (rel_array : ba.selector(i,Nbands)) /1000,
-                knee,
-                prePost,
-                link,meter(i),maxHold,1)) with {
-            ratio_array = 4,4,4,4,4,4,4,4;
-            thresh_array = -12,-12,-12,-12,-13,-13,-14,-15;
-            range_array = -12,-12,-12,-12,-12,-12,-12,-12;
-            att_array = 8,7,6,5,4,3,2,1;
-            hold = 0.001;
-            rel_array = 200,200,200,200,160,120,80,50;
-            knee = 6;
-            prePost = 1;
-            link = 0.25;
-            meter(i) = mb_exp_meter(i);
-            maxHold = 1000;
-        };
-
+    sb_envelope(i) = si.smooth(ba.tau2pole(tau)) with{
+        tau = 0.2 * ((Nbands-i) / Nbands);
     };
 
+    sb_target(i) = sb_target_spectrum : ba.selector(i,Nbands);
 
+    weights = si.bus(Nbands) <: (si.bus(Nbands),
+                                 (si.bus(Nbands) :> _ : /(Nbands)))
+            : withScalar(Nbands) : par(i,Nbands, weightOf)
+    with {
+        weightOf(c, mean) = (c - mean + sb_bandrange)/sb_gateknee : clamp01;
+    };
 
+    devMean = si.bus(2*Nbands) : pairUp(Nbands) <: (wSum, dSum) : ratio
+    with {
+        wSum = par(i,Nbands, (!,_)) :> _ : max(ma.EPSILON);
+        dSum = par(i,Nbands, devOf(i)) :> _;
+        devOf(i, c, w) = (sb_target(i) - c) * w;
+        ratio(w, d) = d / w;
+    };
 
+    levelGate = measure_full : _-sb_threshold : _/sb_gateknee : clamp01 : si.smoo;
 
+    toWant = si.bus(2*Nbands) <: (si.bus(2*Nbands), devMean)
+           : spread : par(i,Nbands, wantOf(i))
+    with {
+        spread = route(2*Nbands+1, 3*Nbands,
+                   par(i, Nbands, ((i+1,        3*i+1),
+                                   (Nbands+i+1, 3*i+2),
+                                   (2*Nbands+1, 3*i+3))));
+        wantOf(i, c, w, dMean) =
+              ((sb_target(i) - c) - dMean*sb_levelneutral)
+            : deadband(sb_tolerance)
+            : sb_limit(i)
+            : _*sb_strength
+            : _*sbmb_strength
+            : _*vad_ext
+            : _*w;
+    };
 
+    sbGains = _ <: (curveBus <: (si.bus(Nbands), weights) : toWant), levelGate
+            : withScalar(Nbands)
+            : par(i,Nbands, applyGain(i))
+    with {
+        applyGain(i, want, gate) = want : sb_envelope(i) : _*gate : sb_gainmeter(i);
+    };
+
+    // ---- multiband compressor ----------------------------------------------
+    mb_makeup = 1.5;
+    ratio = 4,4,4,4,4,4,4,4;
+    thresh = -6,-6,-7,-8,-11,-12,-12,-13;
+    att = 30,25,20,15,10,5,3,2;
+    rel = 100,80,60,40,20,15,15,15;
+    knee = 1;
+
+    mbGain(i) = comp_gain_from_db(
+                    ratio2strength(ratio : ba.selector(i,Nbands)),
+                    target + (thresh : ba.selector(i,Nbands)),
+                    att : ba.selector(i,Nbands) : _*0.001,
+                    rel : ba.selector(i,Nbands) : _*0.001,
+                    knee)
+                : +(mb_makeup) : *(mb_strength) : compressor_meter(i);
+
+    // ---- expander -----------------------------------------------------------
+    exp_ratio = 4,4,4,4,4,4,4,4;
+    exp_thresh = -12,-12,-12,-12,-13,-13,-14,-15;
+    exp_range = -12,-12,-12,-12,-12,-12,-12,-12;
+    exp_att = 8,7,6,5,4,3,2,1;
+    exp_rel = 200,200,200,200,160,120,80,50;
+    exp_hold = 0.001;
+    exp_maxHold = 1000;
+    exp_knee = 6;
+
+    // strength is reduced by half when VAD is 1, as before
+    exp_strength(i) = ratio2strength(exp_ratio : ba.selector(i,Nbands))
+                    * mb_exp_strength * (1-voice_isolation_intensity) * (1-(vad/2));
+
+    expGain(i) = exp_gain_from_db(
+                    exp_strength(i),
+                    target + mb_exp_thresh + (exp_thresh : ba.selector(i,Nbands)),
+                    exp_range : ba.selector(i,Nbands),
+                    (exp_att : ba.selector(i,Nbands)) / 1000,
+                    (exp_rel : ba.selector(i,Nbands)) / 1000,
+                    exp_knee)
+                : mb_exp_meter(i);
+
+    // ---- band levels --------------------------------------------------------
+    // the compressor detects instantaneously, the expander over a 1 ms hold
+    bandAbs(i) = bandpass(i) : abs;
+    mbLevels  = _ <: par(i,Nbands, bandAbs(i) : lin2db);
+    expLevels = _ <: par(i,Nbands, bandAbs(i)
+                                 : ba.slidingMax(exp_hold*ma.SR, exp_maxHold)
+                                 : lin2db);
+
+    // ---- sum the three decisions, undo the overlap, correct -----------------
+    tripleUp(n) = route(3*n, 3*n, par(i, n, ((i+1,       3*i+1),
+                                             (n+i+1,     3*i+2),
+                                             (2*n+i+1,   3*i+3))));
+
+    gainsTotal = _ <: (sbGains, mbLevels, expLevels)
+               : tripleUp(Nbands)
+               : par(i,Nbands, combine(i))
+               : deconv
+    with {
+        combine(i, sbg, mlvl, elvl) = sbg + mbg + eg
+        with {
+            mbg = mlvl + sbg : mbGain(i);
+            eg  = elvl + sbg + mbg : expGain(i);
+        };
+    };
+
+    deconv = kernelOn(bells_kernel)
+    with { kernelOn(0) = si.bus(Nbands); kernelOn(1) = deconvolve; };
+
+    clamp01 = max(0.0) : min(1.0);
+    deadband(t, x) = ma.signum(x) * max(0.0, abs(x) - t);
+};
