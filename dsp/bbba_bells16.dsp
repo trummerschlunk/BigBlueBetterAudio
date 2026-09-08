@@ -15,7 +15,7 @@
 
 // 0.29 cleanup
 //
-// PROTOTYPE: merged analyser + bell-bank topology.
+// PROTOTYPE: merged analyser + bell-bank topology, 16 bands.
 //
 // Same parameters, same analysis layer, same limiter as bbba.dsp. What changes
 // is how the correction is measured and applied:
@@ -32,7 +32,7 @@
 // gains are already computed in dB, so summing them is free and the bells take
 // dB directly - the two db2lin conversions of the old chain are gone.
 
-declare name "bbba_bells";
+declare name "bbba_bells16";
 declare version "0.29";             
 declare author "Klaus Scheuermann";
 declare license "GPLv3";
@@ -50,7 +50,7 @@ import("stdfaust.lib");
 // INIT VALUES
 
 Nch = 1;                            // bbba is mono
-Nbands = 8;                         // number of bands of the multiband processing and the spectral Balancer
+Nbands = 16;                        // half-octave spacing; 8 in bbba.dsp
 maxSR = 48000;                      // maximum samplerate
 
 pre_gain_init = 2;
@@ -59,7 +59,8 @@ post_gain_init = 0;
 lev_target_init = -18;
 
 sb_strength_init = 60;
-sb_target_spectrum_init = -10, -5, -5, -8, -9, -10, -7, -4;
+// interpolated from the 8-band curve onto the new centres (log frequency)
+sb_target_spectrum_init = -10.00, -7.67, -5.33, -5.00, -5.00, -6.00, -7.40, -8.27, -8.73, -9.20, -9.67, -9.60, -8.20, -6.80, -5.40, -4.00;
 
 // Analysis layer. Not exposed as plugin parameters - they shape how the
 // balancer decides, not what the user reaches for.
@@ -226,14 +227,31 @@ postLowpass_freq = 12000;
 // ANALYSIS / CORRECTION BANK
 // Band centres are the geometric centres of the crossover bands this replaces,
 // so the two topologies are comparable band for band.
-fcL = 70.7, 141.4, 282.8, 565.7, 1131.4, 2262.7, 4525.5, 9051.0;
-fcOf(i) = fcL : ba.selector(i,Nbands);
+// Log-spaced centres over the same span the 8-band version covered, so the two
+// are directly comparable. All constants, so Faust folds them at compile time.
+fLo = 70.7;
+fHi = 9051.0;
+bandRatio  = pow(fHi/fLo, 1.0/(Nbands - 1));     // 1.3819, i.e. 0.4667 octaves
+octSpacing = log(bandRatio)/log(2.0);
+fcOf(i) = fLo * pow(bandRatio, i);
 
-// Q of a filter whose -3 dB bandwidth is one octave: Q = 1/(2 sinh(ln2/2)).
+// Q of a filter whose -3 dB bandwidth is bw octaves: Q = 1/(2 sinh(ln2/2 bw)).
 qOct(bw) = 1.0/(2.0*shx(0.5*log(2.0)*bw)) with { shx(x) = 0.5*(exp(x) - exp(0.0-x)); };
-qAnalysis = qOct(1.0);          // one band spacing wide - to tell bands apart
-bellWidth = 2.0;                // correction bells wider than the spacing, so the
-qBell = qOct(1.0*bellWidth);    // de-overlapped curve does not scallop between centres
+
+// The analysis bandpasses are one band spacing wide - narrow, because their job
+// is to tell bands apart.
+qAnalysis = qOct(octSpacing);
+
+// The correction bells are deliberately WIDER than the spacing. At bellWidth 1
+// the de-overlap kernel makes each band centre exact but leaves the curve
+// scalloped between centres: a flat request came out with 1.34 dB of peak-to-peak
+// ripple, which the multiband compressor would impose on everything it touched,
+// moving with the gain. Widening the bells so their skirts meet drops that to
+// 0.13 dB, and improves resolution at the same time (a 1-octave feature landing
+// between centres reaches 7.4 dB of a requested 8, against 5.6 at bellWidth 1).
+// The cost is conditioning: cond(W) goes 2.3 -> 9.3, and climbs steeply past 2.5.
+bellWidth = 2.0;
+qBell = qOct(octSpacing*bellWidth);
 
 // Analysis bandpass, unity at centre. Detector only - never in the audio path.
 bandpass(i) = fi.svf.bp(fcOf(i), qAnalysis) : /(qAnalysis);
@@ -244,21 +262,29 @@ bandpass(i) = fi.svf.bp(fcOf(i), qAnalysis) : /(qAnalysis);
 // peaking-filter prototype - fi.svf.bell sets k = 1/(Q*A), so its bandwidth
 // moves with gain and the analytic shape does not describe it. Nearest-neighbour
 // leakage measures 0.19, cond(W) = 2.03. Rows below are inv(W).
-// Regenerate if fcL, QbL or Nbands change.
+// Regenerate if fLo, fHi, bellWidth or Nbands change.
 bells_kernel = 1;                   // 0 = skip the de-overlap, for A/B
 
 deconvolve = si.bus(Nbands) <: par(i,Nbands, krow(i))
 with {
     krow(i) = par(j,Nbands, *(kmat(i,j))) :> _;
     kmat(i,j) = Krow(i) : ba.selector(j,Nbands);
-    Krow(0) = 1.35422, -0.77469, 0.22165, -0.05398, 0.01302, -0.00309, 0.00069, -0.00013;
-    Krow(1) = -0.77301, 1.80799, -0.91783, 0.25175, -0.06104, 0.01449, -0.00325, 0.00059;
-    Krow(2) = 0.21506, -0.90890, 1.85152, -0.91688, 0.25042, -0.05976, 0.01340, -0.00243;
-    Krow(3) = -0.05244, 0.25035, -0.91860, 1.84578, -0.91077, 0.24485, -0.05519, 0.00999;
-    Krow(4) = 0.01270, -0.06095, 0.25175, -0.91263, 1.83204, -0.89004, 0.22587, -0.04111;
-    Krow(5) = -0.00302, 0.01451, -0.06024, 0.24587, -0.89053, 1.78298, -0.81733, 0.16725;
-    Krow(6) = 0.00068, -0.00325, 0.01350, -0.05536, 0.22574, -0.81715, 1.62165, -0.60264;
-    Krow(7) = -0.00012, 0.00059, -0.00245, 0.01003, -0.04112, 0.16735, -0.60280, 1.23852;
+    Krow( 0) = 1.32938, -0.71099, 0.12726, -0.03511, 0.00243, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000;
+    Krow( 1) = -0.70857, 1.73095, -0.80900, 0.14189, -0.03543, 0.00366, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000;
+    Krow( 2) = 0.11732, -0.79978, 1.75909, -0.79085, 0.13665, -0.03536, 0.00350, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000;
+    Krow( 3) = -0.03440, 0.14704, -0.80843, 1.74501, -0.78518, 0.14008, -0.03569, 0.00362, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000;
+    Krow( 4) = 0.00254, -0.03783, 0.14787, -0.79643, 1.74390, -0.79449, 0.14018, -0.03590, 0.00376, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000;
+    Krow( 5) = 0.00000, 0.00416, -0.03762, 0.14319, -0.79877, 1.74701, -0.79118, 0.14051, -0.03632, 0.00375, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000;
+    Krow( 6) = 0.00000, 0.00000, 0.00414, -0.03687, 0.14398, -0.79659, 1.74247, -0.79240, 0.14281, -0.03638, 0.00372, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000;
+    Krow( 7) = 0.00000, 0.00000, 0.00000, 0.00387, -0.03670, 0.14206, -0.79049, 1.74336, -0.79620, 0.14141, -0.03588, 0.00357, 0.00000, 0.00000, 0.00000, 0.00000;
+    Krow( 8) = 0.00000, 0.00000, 0.00000, 0.00000, 0.00381, -0.03613, 0.13980, -0.79239, 1.74311, -0.78998, 0.13888, -0.03510, 0.00330, 0.00000, 0.00000, 0.00000;
+    Krow( 9) = 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00373, -0.03583, 0.14065, -0.79033, 1.73564, -0.78282, 0.13591, -0.03385, 0.00286, 0.00000, 0.00000;
+    Krow(10) = 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00361, -0.03580, 0.13937, -0.78333, 1.72467, -0.77192, 0.13010, -0.03164, 0.00215, 0.00000;
+    Krow(11) = 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00355, -0.03518, 0.13601, -0.77225, 1.70479, -0.75011, 0.11975, -0.02783, 0.00068;
+    Krow(12) = 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00333, -0.03394, 0.13052, -0.75091, 1.66765, -0.71137, 0.10209, -0.02207;
+    Krow(13) = 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00289, -0.03178, 0.12024, -0.71221, 1.60193, -0.64366, 0.06969;
+    Krow(14) = 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00218, -0.02796, 0.10254, -0.64419, 1.49235, -0.52365;
+    Krow(15) = 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00070, -0.02213, 0.06981, -0.52368, 1.20629;
 };
 
 // fi.svf.bell, transcribed so the gain arrives in dB and the tick divisor is
@@ -309,16 +335,12 @@ with {
     // ---- analysis -----------------------------------------------------------
     measure_full =  fi.itu_r_bs_1770_4_kfilter : detect;
 
-    // K-weighting is close enough to constant inside one constant-Q band to fold
-    // in as an offset. Measured on this bank: pink vs white agree to 0.1 dB at
-    // the top, 0.7 dB in the midrange - wider skirts than the crossover bands
-    // put more of the K slope inside each band. Band 0 keeps the real filter:
-    // the BS.1770 highpass at 38 Hz sits in its passband.
-    kw_offset = 0, -1.33, -0.80, -0.36, 0.80, 2.45, 3.15, 3.30;
+    // K-weighting folded in as a per-band constant. Measured on this bank:
+    // pink and white agree to 0.5 dB across every band, tighter than the 8-band
+    // version because half-octave skirts enclose less of the K slope. That holds
+    // for band 0 too, so unlike bbba.dsp no band needs the real filter here.
+    kw_offset = -2.75, -1.89, -1.35, -1.04, -0.85, -0.72, -0.58, -0.34, 0.16, 1.00, 2.00, 2.73, 3.10, 3.24, 3.30, 3.33;
 
-    measure_bp(0) = _ * ba.db2linear(12)
-                    : fi.itu_r_bs_1770_4_kfilter
-                    : detect;
     measure_bp(i) = _ * ba.db2linear(12 + (kw_offset : ba.selector(i,Nbands)))
                     : detect;
 
@@ -333,7 +355,7 @@ with {
              : par(i,Nbands, (_-_) : sb_meter(i));
 
     // ---- the analysis layer, unchanged from bbba.dsp ------------------------
-    sb_limitUP = 6, 9, 12, 12, 12, 12, 9, 6;
+    sb_limitUP = 6.00, 7.40, 8.80, 10.20, 11.60, 12.00, 12.00, 12.00, 12.00, 12.00, 12.00, 11.60, 10.20, 8.80, 7.40, 6.00;
     sb_limitDOWN = 12;
     sb_limit(i) = max(ma.neg(sb_limitDOWN)) : min(sb_limitUP : ba.selector(i,Nbands));
 
@@ -387,10 +409,13 @@ with {
 
     // ---- multiband compression, in dB, on the same analysis bands -----------
     mb_makeup = 1.5;
-    ratio = 4,4,4,4,4,4,4,4;
-    thresh = -6,-6,-7,-8,-11,-12,-12,-13;
-    att = 30,25,20,15,10,5,3,2;
-    rel = 100,80,60,40,20,15,15,15;
+    ratio = 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4;
+    // interpolated onto the new centres, then lowered by the measured
+    // detector shortfall: halving each band's width takes ~3.2 dB off what
+    // the gain computer sees, so the same threshold would compress less.
+    thresh = -9.57, -9.49, -9.60, -9.96, -10.35, -10.83, -11.39, -12.37, -13.77, -14.63, -14.76, -14.91, -14.46, -14.72, -15.22, -15.64;
+    att = 30.0, 27.7, 25.3, 23.0, 20.7, 18.3, 16.0, 13.7, 11.3, 9.0, 6.7, 4.7, 3.8, 2.9, 2.5, 2.0;
+    rel = 100.0, 90.7, 81.3, 72.0, 62.7, 53.3, 44.0, 34.7, 25.3, 19.0, 16.7, 15.0, 15.0, 15.0, 15.0, 15.0;
     knee = 1;
 
     mbGain(i) = comp_gain_from_db(
