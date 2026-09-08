@@ -6,11 +6,22 @@
         <script src="service.js" ></script>
         <script>
 
-// known constants
-const kParameter_leveler_target = "leveler_target";
-const kParameter_mb_strength = "mb_strength";
-const kParameter_sb_strength = "sb_strength";
-const kParameter_intensity = "intensity";
+// Known parameter INDICES. mapi_set_parameter takes an index, not a symbol
+// (see deps/dpf/distrho/src/mapi/mapi.h) - passing a symbol string silently
+// does nothing and trips a DPF assertion.
+//
+// 0..6 come from the enum in plugin/pregen/FaustPluginInfo.h, generated from
+// dsp/bbba.dsp:
+//   0 pre_gain   1 vad_ext   2 post_gain   3 leveler_target
+//   4 mb_strength   5 sb_strength   6 limiter_gain (output)
+// Extra parameters follow at kParameterCount(7) + the enum in
+// plugin/DistrhoPluginInfo.h, which for SIMPLIFIED_MAPI_BUILD is intensity only.
+//
+// These must be updated if the .dsp parameter list changes.
+const kParameter_leveler_target = 3;
+const kParameter_mb_strength = 4;
+const kParameter_sb_strength = 5;
+const kParameter_intensity = 7;
 
 // load the wasm modules
 function init(callback) {
@@ -197,16 +208,16 @@ window.addEventListener('DOMContentLoaded', function() {
                 <fieldset>
                     <legend>Web Browser constraints</legend>
                     <div>
-                        <input autocomplete="off" type="checkbox" id="gum-autoGainControl" value="gum-autoGainControl"></input>
+                        <input autocomplete="off" type="checkbox" id="gum-autoGainControl" value="gum-autoGainControl" checked></input>
                         <label for="gum-autoGainControl">Auto Gain Control</label>
                     </div>
                     <div>
-                        <input autocomplete="off" type="checkbox" id="gum-noiseSuppression" value="gum-noiseSuppression"></input>
+                        <input autocomplete="off" type="checkbox" id="gum-noiseSuppression" value="gum-noiseSuppression" checked></input>
                         <label for="gum-noiseSuppression">Noise Suppression</label>
                     </div>
                     <div>
                         <input autocomplete="off" type="checkbox" id="gum-echoCancellation" value="gum-echoCancellation"></input>
-                        <label for="gum-echoCancellation">Echo Cancellation</label>
+                        <label for="gum-echoCancellation">Echo Cancellation (makes no sense here as the test website is literally echoing the audio)</label>
                     </div>
                 </fieldset>
                 <br/>
@@ -220,7 +231,7 @@ window.addEventListener('DOMContentLoaded', function() {
                         <tr>
                             <td>Voice Isolation Intensity:</td>
                             <td><output id="bbba-intensity-value"></output></td>
-                            <td><input autocomplete="off" id="bbba-intensity" type="range" value="100" min="0" max="100" /></td>
+                            <td><input autocomplete="off" id="bbba-intensity" type="range" value="90" min="0" max="100" /></td>
                         </tr>
                         <tr>
                             <td>Voice Optimisation Strength:</td>

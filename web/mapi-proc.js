@@ -44,8 +44,11 @@ class MapiProcessorInstance {
         return this.csymbolData;
     }
 
-    param(symbol, value) {
-        this.module._mapi_set_parameter(this.handle, this.csymbol(symbol), value);
+    // NOTE mapi_set_parameter takes a parameter INDEX, not a symbol. The
+    // indices are listed in index.html; passing a string pointer here silently
+    // does nothing and trips a DPF assertion.
+    param(index, value) {
+        this.module._mapi_set_parameter(this.handle, index, value);
     }
 
     process(buffer, bufferSize, bufferOffset) {

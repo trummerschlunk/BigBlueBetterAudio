@@ -81,6 +81,17 @@ $(BUILD_DIR)/deps/rnnoise/src/x86/nnet_sse4_1.c.o: BASE_FLAGS += -msse4.1
 endif
 
 ifeq ($(WASM),true)
+# rnnoise's int8 dot product (opus_mm256_dpbusds_epi32 in vec_avx.h) has an
+# SSSE3 path built on a single _mm_maddubs_epi16; without __SSSE3__ it falls
+# back to an SSE2 version doing shifts plus two madds. DPF's wasm defaults stop
+# at -msse3, so the shipped build takes the slow path. Emscripten lowers the
+# SSSE3 intrinsic onto the same wasm SIMD128 the build already requires, so this
+# adds no browser requirement, and the arithmetic is integer - output is
+# bit-identical. Measured: denoiser 2.68% -> 2.47% realtime.
+# Excluded from the NOOPT build, which is deliberately the SIMD-free fallback.
+ifneq ($(NOOPT),true)
+BASE_FLAGS += -mssse3
+endif
 LINK_FLAGS += -sINITIAL_MEMORY=32Mb
 LINK_FLAGS += -sSTACK_SIZE=4MB
 endif

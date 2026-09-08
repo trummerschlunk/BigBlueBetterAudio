@@ -131,7 +131,8 @@ const createWasmProcessor = (audioContext, stream) => {
                             enabled = !!data.enable;
                             break;
                         case 'param':
-                            module._mapi_set_parameter(handle, csymbol(data.symbol), data.value);
+                            // index, not symbol - see the note in index.html
+                            module._mapi_set_parameter(handle, data.symbol, data.value);
                             break;
                         case 'destroy':
                             break;
