@@ -148,9 +148,10 @@ const setWasmProcessorEnabled = (enabled) => {
     }
 };
 
-const setWasmProcessorParameter = (symbol, value) => {
+// index, not name - see the note in mapi-proc.js
+const setWasmProcessorParameter = (index, value) => {
     if (audioProcessor) {
-        audioProcessor.port.postMessage({type: 'param', symbol: symbol, value: value});
+        audioProcessor.port.postMessage({type: 'param', index: index, value: value});
     }
 };
 
@@ -252,14 +253,6 @@ const createWasmProcessor = (audioContext, stream) => {
                 const audioPtrs = module._malloc(module.HEAPU32.BYTES_PER_ELEMENT);
                 module.HEAPU32[audioPtrs + (0 << 2) >> 2] = audioData;
 
-                const maxSymbolLength = 255;
-                const csymbolData = module._malloc(maxSymbolLength);
-                const csymbol = (symbol) => {
-                    const len = Math.min(maxSymbolLength, module.lengthBytesUTF8(symbol) + 1);
-                    module.stringToUTF8(symbol, csymbolData, len);
-                    return csymbolData;
-                }
-
                 let enabled = true;
                 processor.onaudioprocess = function (e) {
                     if (! enabled) {
@@ -288,8 +281,7 @@ const createWasmProcessor = (audioContext, stream) => {
                             enabled = !!data.enable;
                             break;
                         case 'param':
-                            // index, not symbol - see the note in index.html
-                            module._mapi_set_parameter(handle, data.symbol, data.value);
+                            module._mapi_set_parameter(handle, data.index, data.value);
                             break;
                         case 'destroy':
                             break;
