@@ -1,5 +1,8 @@
 /bin/
 /bin-nosimd/
+# symlinks to the built mapi artifacts, so the demo can be served from web/
+/web/BBBA-mapi.js
+/web/BBBA-mapi.wasm
 /build/
 /build-faustpp/
 /emsdk/

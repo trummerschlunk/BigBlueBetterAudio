@@ -50,20 +50,94 @@ function init(callback) {
 let gumStream = null;
 let delayNode = null;
 
+// Show what the browser actually delivered, which is often not what was asked
+// for - Firefox ignores sampleRate entirely, and channel counts vary.
+function showAudioConfig() {
+    const el = document.getElementById('audio-config');
+    if (!el) return;
+    const c = describeAudioConfig();
+    if (!c.context) { el.innerHTML = '&nbsp;'; return; }
+    const t = c.track || {};
+    const bits = [];
+    bits.push('context ' + c.context + ' Hz' + (c.contextPinned ? ' (pinned)' : ' (device rate)'));
+    if (t.sampleRate) {
+        bits.push('capture ' + t.sampleRate + ' Hz');
+        if (t.sampleRate !== c.context) bits.push('RESAMPLING ' + t.sampleRate + ' -> ' + c.context);
+    } else if (c.supported && !c.supported.sampleRate) {
+        bits.push('capture rate not reported by this browser');
+    }
+    if (t.channelCount) bits.push(t.channelCount + ' ch');
+    const ids = { echoCancellation:'gum-echoCancellation', autoGainControl:'gum-autoGainControl',
+                  noiseSuppression:'gum-noiseSuppression' };
+    const on = [], ignored = [];
+    for (const k of Object.keys(ids)) {
+        const el = document.getElementById(ids[k]);
+        const asked = el ? el.checked : undefined;
+        if (t[k] === true) on.push(k.replace(/([A-Z])/g,' $1').toLowerCase());
+        if (asked !== undefined && t[k] !== undefined && t[k] !== asked)
+            ignored.push(k + '=' + t[k] + ' (asked ' + asked + ')');
+    }
+    bits.push(on.length ? 'browser processing ON: ' + on.join(', ') : 'browser processing off');
+    if (on.length) bits.push('note: Firefox also high-passes the capture whenever any of these is on');
+    if (ignored.length) bits.push('IGNORED BY BROWSER: ' + ignored.join(', '));
+    el.textContent = bits.join('  |  ');
+}
+
+// Fill the input selector. Labels are only exposed once microphone permission
+// has been granted, so this is called again after the stream starts; before
+// that the browser reports blank labels and we fall back to numbering.
+async function populateInputDevices() {
+    const select = document.getElementById('audio-input');
+    if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices)
+        return;
+
+    let devices;
+    try {
+        devices = await navigator.mediaDevices.enumerateDevices();
+    } catch (err) {
+        console.error('enumerateDevices failed', err);
+        return;
+    }
+
+    const inputs = devices.filter(d => d.kind === 'audioinput');
+    const previous = select.value;
+    let labelled = 0;
+
+    select.replaceChildren();
+    const dflt = document.createElement('option');
+    dflt.value = '';
+    dflt.textContent = 'Default';
+    select.appendChild(dflt);
+
+    inputs.forEach((d, i) => {
+        const opt = document.createElement('option');
+        opt.value = d.deviceId;
+        if (d.label) { opt.textContent = d.label; labelled++; }
+        else opt.textContent = 'Microphone ' + (i + 1);
+        select.appendChild(opt);
+    });
+
+    // keep the current pick if that device is still present
+    select.value = inputs.some(d => d.deviceId === previous) ? previous : '';
+
+    document.getElementById('audio-input-hint').textContent =
+        inputs.length === 0 ? 'No audio inputs found.'
+        : labelled === 0    ? 'Device names appear once input has been enabled.'
+        : inputs.length + ' input' + (inputs.length === 1 ? '' : 's') + ' found.';
+}
+
+// Always re-open the capture rather than calling applyConstraints.
+//
+// applyConstraints cannot reliably change these on a live track: Chrome does
+// not support it for the processing flags, and in Firefox the decision of
+// whether to run the audio processing chain - including its high-pass filter -
+// is taken when the capture is opened, so an in-flight change cannot undo it.
+// Sniffing window.chrome to pick between the two paths also silently did the
+// wrong thing in Chromium builds that do not define it.
 function changeAudioConstraints() {
     if (gumStream) {
-        // NOTE chrome does not support this
-        if (!!window.chrome) {
-            enableStream();
-            return;
-        }
-        const constraints = {
-            'autoGainControl': { 'ideal': document.getElementById('gum-autoGainControl').checked },
-            'echoCancellation': { 'ideal': document.getElementById('gum-echoCancellation').checked },
-            'noiseSuppression': { 'ideal': document.getElementById('gum-noiseSuppression').checked },
-        };
-        console.log("dynamic reapply contraints!", constraints);
-        gumStream.getAudioTracks()[0].applyConstraints(constraints);
+        ensureAudioContext();
+        enableStream();
     }
 }
 
@@ -74,32 +148,80 @@ function enableStream() {
         gumStream = null;
     }
 
+    // the context is shared now, so an orphaned delay node would keep feeding
+    // the speakers after a restart
+    if (delayNode) {
+        try { delayNode.disconnect(); } catch (err) {}
+    }
     delayNode = null;
 
-    const constraints = {
-        'audio': {
-            'autoGainControl': { 'ideal': document.getElementById('gum-autoGainControl').checked },
-            'echoCancellation': { 'ideal': document.getElementById('gum-echoCancellation').checked },
-            'noiseSuppression': { 'ideal': document.getElementById('gum-noiseSuppression').checked },
-            'channelCount': { 'min': 0, 'ideal': 1 },
-        },
-        'video': false,
+    // 'exact', not 'ideal'. ideal is advisory: a browser is free to ignore it
+    // and keep its own processing on, which is what Firefox does. That matters
+    // beyond AGC, because Firefox also runs a high-pass filter on the capture
+    // that authors cannot address directly - it is engaged whenever *any* of
+    // echo cancellation, AGC or noise suppression is active, and bypassed only
+    // when all three are off. Asking with ideal therefore leaves the microphone
+    // sounding thin and makes the AGC checkbox appear to do nothing.
+    // exact is binding; if a device cannot honour it we retry with ideal below.
+    const wantAGC = document.getElementById('gum-autoGainControl').checked;
+    const wantEC  = document.getElementById('gum-echoCancellation').checked;
+    const wantNS  = document.getElementById('gum-noiseSuppression').checked;
+
+    const audioConstraints = {
+        'autoGainControl':  { 'exact': wantAGC },
+        'echoCancellation': { 'exact': wantEC },
+        'noiseSuppression': { 'exact': wantNS },
+        'channelCount': { 'ideal': 1 },
     };
+
+    // Empty value means "let the browser choose", so no deviceId at all. A
+    // specific pick uses 'exact' deliberately: for a test page it is better to
+    // fail loudly than to silently record from a different microphone.
+    const wantedDeviceId = document.getElementById('audio-input').value;
+    if (wantedDeviceId)
+        audioConstraints['deviceId'] = { 'exact': wantedDeviceId };
+
+    // Capturing at 48 kHz avoids a resample on the way in. Firefox does not
+    // list sampleRate in getSupportedConstraints, so this is a no-op there and
+    // the context has to resample instead.
+    if (navigator.mediaDevices.getSupportedConstraints().sampleRate)
+        audioConstraints['sampleRate'] = { 'ideal': 48000 };
+
+    const constraints = { 'audio': audioConstraints, 'video': false };
     const handleError = function(err) {
         document.getElementById('error').setHTMLUnsafe('<h2>Error</h2><p>' + err + '</p>');
         document.getElementById('error').style.removeProperty('display');
         console.error(err);
     };
 
-    navigator.mediaDevices.getUserMedia(constraints).then(async function(stream) {
+    // Fall back to advisory constraints if the device cannot satisfy the exact
+    // ones, so an unusual microphone does not leave the page dead.
+    const getStream = () => navigator.mediaDevices.getUserMedia(constraints)
+        .catch(function(err) {
+            if (err && (err.name === 'OverconstrainedError' || err.name === 'NotSupportedError')) {
+                console.warn('exact audio constraints refused (' + err.name + '), retrying advisory', err);
+                const relaxed = Object.assign({}, audioConstraints, {
+                    'autoGainControl':  { 'ideal': wantAGC },
+                    'echoCancellation': { 'ideal': wantEC },
+                    'noiseSuppression': { 'ideal': wantNS },
+                });
+                return navigator.mediaDevices.getUserMedia({ 'audio': relaxed, 'video': false });
+            }
+            throw err;
+        });
+
+    getStream().then(async function(stream) {
         document.getElementById('enable-input').style.setProperty('display', 'none');
 
         gumStream = stream;
 
+        // labels are readable now that permission has been granted
+        populateInputDevices();
+
         createWasmProcessorStream(stream).then(function([wasmProcStream, audioProcessor, audioContext]) {
             // initial setup matching live parameters
             console.log("createWasmProcessorStream callback", wasmProcStream, audioProcessor, audioContext);
-            setWasmProcessorEnabled(document.getElementById('enable-bbba').checked);
+            setWasmProcessorInserted(document.getElementById('enable-bbba').checked);
             setWasmProcessorParameter(kParameter_mb_strength, document.getElementById('bbba-strength').value);
             setWasmProcessorParameter(kParameter_sb_strength, document.getElementById('bbba-strength').value);
             setWasmProcessorParameter(kParameter_leveler_target, document.getElementById('bbba-target').value);
@@ -113,10 +235,13 @@ function enableStream() {
             };
             delayNode = new DelayNode(audioContext, delayOpts);
 
-            // connect processor to delay, then to speakers
-            audioProcessor.connect(delayNode);
+            // connect processor to delay, then to speakers. Registered as a
+            // sink so it follows the source directly when the processor is
+            // taken out of the chain.
+            connectWasmProcessorTo(delayNode);
             delayNode.connect(audioContext.destination);
 
+            showAudioConfig();
             console.log("createWasmProcessorStream final action done!");
         }).catch(handleError);
     }).catch(handleError);
@@ -156,8 +281,11 @@ window.addEventListener('DOMContentLoaded', function() {
         document.getElementById('gum-echoCancellation').addEventListener('click', changeAudioConstraints);
         document.getElementById('gum-noiseSuppression').addEventListener('click', changeAudioConstraints);
 
+        // Unchecking removes the wasm node from the audio graph entirely -
+        // no processing, no buffering, no added latency - rather than leaving
+        // it inserted and passing samples through.
         document.getElementById('enable-bbba').addEventListener('click', function() {
-            setWasmProcessorEnabled(this.checked);
+            setWasmProcessorInserted(this.checked);
         });
 
         elems.strength.addEventListener('input', function(event) {
@@ -179,7 +307,36 @@ window.addEventListener('DOMContentLoaded', function() {
                 delayNode.delayTime.value = event.target.value;
         });
 
-        document.getElementById('enable-input').addEventListener('click', enableStream);
+        // ensureAudioContext must run synchronously inside the gesture: Firefox
+        // does not count code after an await as user-initiated, and the context
+        // would stay suspended until the user clicked somewhere else.
+        document.getElementById('enable-input').addEventListener('click', function() {
+            ensureAudioContext();
+            enableStream();
+        });
+
+        // Switching device needs a fresh getUserMedia, which enableStream
+        // already does - it stops the old tracks and rebuilds the whole chain.
+        document.getElementById('force-48k').addEventListener('click', function() {
+            setForce48k(this.checked);
+            if (gumStream) {
+                ensureAudioContext();
+                enableStream();
+            }
+        });
+
+        document.getElementById('audio-input').addEventListener('change', function() {
+            if (gumStream) {
+                ensureAudioContext();
+                enableStream();
+            }
+        });
+
+        // keep the list current when devices are plugged in or removed
+        if (navigator.mediaDevices && navigator.mediaDevices.addEventListener)
+            navigator.mediaDevices.addEventListener('devicechange', populateInputDevices);
+
+        populateInputDevices();
     });
 });
 
@@ -206,13 +363,29 @@ window.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <br/>
                 <fieldset>
+                    <legend>Audio input</legend>
+                    <div>
+                        <label for="audio-input">Input device:</label>
+                        <select autocomplete="off" id="audio-input">
+                            <option value="">Default</option>
+                        </select>
+                    </div>
+                    <div><small id="audio-input-hint">Device names appear once input has been enabled.</small></div>
+                    <div>
+                        <input autocomplete="off" type="checkbox" id="force-48k" value="force-48k" checked></input>
+                        <label for="force-48k">Force 48 kHz AudioContext (needed by the denoiser; off = device rate, no resampling)</label>
+                    </div>
+                    <div><small id="audio-config">&nbsp;</small></div>
+                </fieldset>
+                <br/>
+                <fieldset>
                     <legend>Web Browser constraints</legend>
                     <div>
-                        <input autocomplete="off" type="checkbox" id="gum-autoGainControl" value="gum-autoGainControl" checked></input>
+                        <input autocomplete="off" type="checkbox" id="gum-autoGainControl" value="gum-autoGainControl"></input>
                         <label for="gum-autoGainControl">Auto Gain Control</label>
                     </div>
                     <div>
-                        <input autocomplete="off" type="checkbox" id="gum-noiseSuppression" value="gum-noiseSuppression" checked></input>
+                        <input autocomplete="off" type="checkbox" id="gum-noiseSuppression" value="gum-noiseSuppression"></input>
                         <label for="gum-noiseSuppression">Noise Suppression</label>
                     </div>
                     <div>
