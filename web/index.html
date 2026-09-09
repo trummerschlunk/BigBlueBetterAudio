@@ -50,6 +50,31 @@ function init(callback) {
 let gumStream = null;
 let delayNode = null;
 
+// Bypass the Web Audio graph and let the media element render the capture.
+//
+// Note what this does and does not isolate. It removes the AudioContext, the
+// worklet and BBBA, but it plays the same MediaStreamTrack getUserMedia handed
+// us, so the capture-time constraints above are still applied - verified by
+// reading getSettings() on the track the element is playing. A difference
+// between this and the normal path therefore points at the graph; no difference
+// points at the capture.
+function setRawMonitor(on) {
+    const el = document.getElementById('raw-monitor-el');
+    if (! el) return;
+    if (on) {
+        // silence the Web Audio monitor so the two are not heard together
+        if (delayNode) { try { delayNode.disconnect(); } catch (err) {} }
+        el.srcObject = gumStream || null;
+        el.play().catch(err => console.warn('raw monitor play refused', err));
+    } else {
+        el.pause();
+        el.srcObject = null;
+        if (delayNode && sharedAudioContext) {
+            try { delayNode.connect(sharedAudioContext.destination); } catch (err) {}
+        }
+    }
+}
+
 // Show what the browser actually delivered, which is often not what was asked
 // for - Firefox ignores sampleRate entirely, and channel counts vary.
 function showAudioConfig() {
@@ -59,6 +84,7 @@ function showAudioConfig() {
     if (!c.context) { el.innerHTML = '&nbsp;'; return; }
     const t = c.track || {};
     const bits = [];
+    if (c.label) bits.push('device "' + c.label + '"');
     bits.push('context ' + c.context + ' Hz' + (c.contextPinned ? ' (pinned)' : ' (device rate)'));
     if (t.sampleRate) {
         bits.push('capture ' + t.sampleRate + ' Hz');
@@ -241,6 +267,7 @@ function enableStream() {
             connectWasmProcessorTo(delayNode);
             delayNode.connect(audioContext.destination);
 
+            setRawMonitor(document.getElementById('raw-monitor').checked);
             showAudioConfig();
             console.log("createWasmProcessorStream final action done!");
         }).catch(handleError);
@@ -317,6 +344,10 @@ window.addEventListener('DOMContentLoaded', function() {
 
         // Switching device needs a fresh getUserMedia, which enableStream
         // already does - it stops the old tracks and rebuilds the whole chain.
+        document.getElementById('raw-monitor').addEventListener('click', function() {
+            setRawMonitor(this.checked);
+        });
+
         document.getElementById('force-48k').addEventListener('click', function() {
             setForce48k(this.checked);
             if (gumStream) {
@@ -376,6 +407,15 @@ window.addEventListener('DOMContentLoaded', function() {
                         <label for="force-48k">Force 48 kHz AudioContext (needed by the denoiser; off = device rate, no resampling)</label>
                     </div>
                     <div><small id="audio-config">&nbsp;</small></div>
+                    <div>
+                        <input autocomplete="off" type="checkbox" id="raw-monitor" value="raw-monitor"></input>
+                        <label for="raw-monitor">Raw monitor - play the capture straight to an audio element</label>
+                    </div>
+                    <div><small>Bypasses the Web Audio graph only: no AudioContext, no worklet, no BBBA.
+                        It does <strong>not</strong> bypass the browser constraints above - the element plays the very
+                        track getUserMedia returned, so whatever was applied at capture time is still in it.
+                        So: a difference here means the graph; no difference means the capture.</small></div>
+                    <audio id="raw-monitor-el" autoplay></audio>
                 </fieldset>
                 <br/>
                 <fieldset>
