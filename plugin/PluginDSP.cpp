@@ -735,6 +735,11 @@ protected:
     DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BBBAudioPlugin)
 };
 
+// C++14 requires definitions when these constants are bound to references
+// (for example by std::min), even though they have in-class initializers.
+constexpr uint32_t BBBAudioPlugin::denoiseFrameSize;
+constexpr uint32_t BBBAudioPlugin::denoiseFrameSizeF;
+
 // --------------------------------------------------------------------------------------------------------------------
 
 Plugin* createPlugin()
