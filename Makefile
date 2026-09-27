@@ -101,6 +101,14 @@ endif
 
 all: au clap jack ladspa lv2_gen vst3
 
+# Native DSP regression test (use a separate build directory from wasm).
+.PHONY: test-latency
+test-latency: $(BUILD_DIR)/test-latency
+	$(BUILD_DIR)/test-latency
+
+$(BUILD_DIR)/test-latency: tests/latency.cpp deps/dpf/distrho/src/DistrhoPlugin.cpp $(OBJS_DSP)
+	$(CXX) $(BUILD_CXX_FLAGS) -DDISTRHO_PLUGIN_TARGET_LADSPA $^ $(LINK_FLAGS) -o $@
+
 ifneq ($(CROSS_COMPILING),true)
 lv2_gen: lv2_sep deps/dpf/utils/lv2_ttl_generator
 	@$(CURDIR)/deps/dpf/utils/generate-ttl.sh

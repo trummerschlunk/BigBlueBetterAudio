@@ -38,6 +38,8 @@ class BBBAudioPlugin : public FaustGeneratedPlugin
     static constexpr const uint32_t denoiseFrameSize = FRAME_SIZE;
     static constexpr const uint32_t denoiseFrameSizeF = denoiseFrameSize * sizeof(float);
 
+    uint32_t limiterLatency = 0;
+
     // denoise handle, keep it const so we never modify it
     DenoiseState* const denoise = rnnoise_create(nullptr);
    #ifndef SIMPLIFIED_MAPI_BUILD
@@ -408,7 +410,7 @@ protected:
     void activate() override
     {
         const uint32_t ringBufferSize = denoiseFrameSizeF * 2;
-        ringBufferDry.createBuffer(ringBufferSize);
+        ringBufferDry.createBuffer(ringBufferSize + limiterLatency * sizeof(float));
         ringBufferOut.createBuffer(ringBufferSize);
 
         bufferIn = new float[denoiseFrameSize];
@@ -428,7 +430,7 @@ protected:
         denoiserDryValue.clearToTargetValue();
 
        #ifndef SIMPLIFIED_MAPI_BUILD
-        ringBufferDry2.createBuffer(ringBufferSize);
+        ringBufferDry2.createBuffer(ringBufferSize + limiterLatency * sizeof(float));
         ringBufferOut2.createBuffer(ringBufferSize);
         bufferIn2 = new float[denoiseFrameSize];
         bufferOut2 = new float[denoiseFrameSize];
@@ -447,6 +449,22 @@ protected:
 
         stats.reset();
        #endif
+
+        // The global bypass skips Faust, so delay its dry signal by the
+        // limiter's lookahead too. RNNoise's two-frame dry alignment is
+        // already supplied by bufferOldPrevIn.
+        std::memset(bufferOut, 0, denoiseFrameSizeF);
+        for (uint32_t remaining = limiterLatency; remaining != 0;)
+        {
+            const uint32_t count = std::min(remaining, denoiseFrameSize);
+            ringBufferDry.writeCustomData(bufferOut, count * sizeof(float));
+            ringBufferDry.commitWrite();
+           #ifndef SIMPLIFIED_MAPI_BUILD
+            ringBufferDry2.writeCustomData(bufferOut, count * sizeof(float));
+            ringBufferDry2.commitWrite();
+           #endif
+            remaining -= count;
+        }
     }
 
    /**
@@ -684,6 +702,8 @@ protected:
     */
     void sampleRateChanged(const double sampleRate) override
     {
+        FaustGeneratedPlugin::sampleRateChanged(sampleRate);
+
        #ifdef SIMPLIFIED_MAPI_BUILD
         static constexpr const float gracePeriod = 500.f;
        #else
@@ -696,8 +716,18 @@ protected:
         // update internal value that depends on sample rate
         gracePeriodInFrames = d_roundToUnsignedInt(gracePeriod * sampleRate / 1000.0);
 
-        // report latency to host
-        setLatency(denoiseFrameSize * 3 + d_roundToUnsignedInt(sampleRate * 0.005));
+        // Match Latency_limiter in the corresponding Faust source, including
+        // Faust's sample-rate clamp and float-to-int truncation for @ delays.
+       #ifdef SIMPLIFIED_MAPI_BUILD
+        static constexpr float limiterLookahead = 0.002f; // dsp/bbba.dsp
+       #else
+        static constexpr float limiterLookahead = 0.01f; // dsp/bbba_gui.dsp
+       #endif
+        const float faustSampleRate = std::min(192000.f, std::max(1.f, static_cast<float>(static_cast<int>(sampleRate))));
+        limiterLatency = static_cast<uint32_t>(limiterLookahead * faustSampleRate);
+
+        // One frame for block buffering, two inside RNNoise, then the limiter.
+        setLatency(denoiseFrameSize * 3 + limiterLatency);
     }
 
     // ----------------------------------------------------------------------------------------------------------------
@@ -715,4 +745,3 @@ Plugin* createPlugin()
 // --------------------------------------------------------------------------------------------------------------------
 
 END_NAMESPACE_DISTRHO
-
