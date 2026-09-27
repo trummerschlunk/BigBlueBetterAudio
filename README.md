@@ -48,6 +48,19 @@ When using the desktop plugin version, BBBA will look like this:
 
 ![Screenshot](documentation/pics/BBBA_screenshot_desktop.png)
 
+The desktop plugin processes stereo audio with linked gain control. Both channels
+keep their own audio and filter state; the spectral balancer, compressor,
+expander, leveler, limiter, and voice-isolation gate share gain decisions.
+Detectors link channel levels rather than summing signed audio, preserving
+opposite-polarity signals. RNNoise uses the less attenuated band estimate from
+either channel as a shared suppression mask. Its independent pitch reconstruction
+is omitted in this stereo path to preserve the stereo image.
+The browser/WASM version (`dsp/bbba.dsp`) remains mono and uses upstream RNNoise.
+
+Desktop DSP regression checks can be run with
+`make test-latency test-stereo DPF_BUILD_DIR="$PWD/build-desktop"`.
+Use `make pregen-gui` to regenerate only the desktop DSP.
+
 ## Documentation
 More info about BigBlueBetterAudio and how to implement it can be found [here](documentation/README.md).
 
@@ -56,5 +69,4 @@ With support and funding from the PrototypeFund (class 01, June 2025 - March 202
 
 <img width="300" alt="BMFTR Logo" src="https://github.com/user-attachments/assets/1f8b7908-2b2d-45a3-8af2-781e4d0a1313" />
 <img width="280" alt="PTF Logo" src="https://github.com/user-attachments/assets/6462d07f-5b8a-46b5-aefd-7b069a3672c3" />
-
 

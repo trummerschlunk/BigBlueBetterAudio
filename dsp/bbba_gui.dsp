@@ -27,6 +27,7 @@
 //      crossover is gone: one analyser drives the spectral balancer, the
 //      multiband compressor and the expander, their gains are summed in dB,
 //      de-overlapped and realised by a cascade of 8 SVF bells.
+// 0.33 stereo audio with linked detection, correction, leveler and limiter
 
 declare name "bbba";
 declare version "0.30";             
@@ -59,7 +60,7 @@ import("stdfaust.lib");
 
 // INIT VALUES
 
-Nch = 1;                            // bbba is mono
+Nch = 2;                            // stereo, with linked gain control
 Nbands = 8;                         // number of bands of the multiband processing and the spectral ballancer
 maxSR = 48000;                      // maximum samplerate
 
@@ -179,27 +180,20 @@ vad_smoothing_meter = _<: attach(_, gui_main(vbargraph("vad_smoo[symbol:vad_smoo
 
 // MAIN
 
-process = _,_  
+// Both feedback channels drive one leveler gain. Audio never passes through
+// a mono sum, including anti-phase material.
+process = si.bus(2)
         : pregain(2)
         : peakmeter_in
-        : stereo2mono
-        
-        : preFilter
-
-        // The leveler's sidechain now sees the fully corrected signal. With one
-        // bell pass realising balancer + compressor + expander together there is
-        // no longer a separate post-balancer tap to feed back, and measuring
-        // what actually leaves the stage is the more sensible reference anyway.
-        : (leveler_sc(target) : correct <: (_,_)) ~ _ : (!,_)
-
-        // : postHighcut
-        
+        : par(c,2,preFilter)
+        : (leveler_stereo : correct <: si.bus(2),si.bus(2)) ~ si.bus(2)
+            : !,!,si.bus(2)
         : limiter_lookahead
-        
-        <: _,_
         : peakmeter_out
-        : lufs_out_meter
-;
+        : lufs_out_meter;
+
+leveler_stereo(fl,fr,l,r) = l*g,r*g
+with { g = max(lk1_fixed(0.01,fl),lk1_fixed(0.01,fr)) : leveler_gain(target); };
 
 
 
@@ -212,11 +206,6 @@ process = _,_
 //  \__,_|\__|_|_|_|\__|\__, |
 //                       __/ |
 //                      |___/ 
-
-// mono2stereo2mono
-
-momo2stereo = _ <: _,_;
-stereo2mono = _,_ :> _ *0.5;
 
 // pre and post gain
 
@@ -372,12 +361,10 @@ postHighcut_freq = 12000; // gui_main(vslider("postHighcut_freq[scale:log][symbo
 Latency_limiter = 0.01; // in s
 limiter_thresh = -1 : ba.db2linear;
 
-limiter_lookahead = limiter_lad_mono(Latency_limiter,limiter_thresh, Latency_limiter/twopi, .01, 1/twopi)
+limiter_lookahead = limiter_lad_N(2, Latency_limiter,limiter_thresh, Latency_limiter/twopi, .01, 1/twopi)
 with {
     twopi = 2 * ma.PI;
 };
-
-limiter_lad_mono(LD) = limiter_lad_N(1, LD);
 
 limiter_lad_N(N, LD, ceiling, attack, hold, release) = 
       si.bus(N) <: par(i, N, @(LD * ma.SR)), 
@@ -425,9 +412,7 @@ lk2_fixed(Tg)= par(i,2,kfilter : zi) :> 4.342944819 * log(max(1e-12)) : -(0.691)
 
 kfilter = fi.itu_r_bs_1770_4_kfilter;
    
-leveler_sc(target,fl,l) =
-                calc(lk1_fixed(0.01,fl))
-                <: (_*l)
+leveler_gain(target) = calc
                     with {
                         calc(lufs) = FB(lufs)~_: ba.db2linear;
                         FB(lufs,prev_gain) =
@@ -499,12 +484,16 @@ dynamicSmoothing(sensitivity, baseCF, x) = f ~ _ : ! , ! , _
 // gain, and the expander the band level plus both. With prePost = 1 neither has
 // a smoother before its log, so this is exact rather than an approximation.
 
-correct = _ <: (gainsTotal, _) : bells
-
+correct = si.bus(2) <: (gainsTotal, si.bus(2)) : stereoBells
 with {
+    // Duplicate only the gain bus; each bell cascade has its own audio state.
+    stereoBells = route(Nbands+2, 2*(Nbands+1),
+        (par(i,Nbands, ((i+1,i+1),(i+1,Nbands+2+i))),
+         (Nbands+1,Nbands+1), (Nbands+2,2*(Nbands+1)))) : bells,bells;
 
     // ---- analysis -----------------------------------------------------------
-    measure_full = fi.itu_r_bs_1770_4_kfilter : detect;
+    // Link detected levels, never signed audio, so anti-phase signals survive.
+    measure_full = par(c,2,fi.itu_r_bs_1770_4_kfilter : detect) : max;
 
     kw_offset = 0, -1.33, -0.80, -0.36, 0.80, 2.45, 3.15, 3.30;
 
@@ -516,7 +505,7 @@ with {
 
     detect = an.amp_follower_ud(0.01,0.1) : max(-90:ba.db2linear) : lin2db;
 
-    curveBus = _ <: ((_ <: par(i,Nbands, bandpass(i) : measure_bp(i))),
+    curveBus = si.bus(2) <: ((si.bus(2) <: par(i,Nbands, par(c,2,bandpass(i) : measure_bp(i)) : max)),
                      (measure_full <: si.bus(Nbands)))
              : pairUp(Nbands)
              : par(i,Nbands, (_-_) : sb_meter(i));
@@ -566,7 +555,7 @@ with {
             : _*w;
     };
 
-    sbGains = _ <: (curveBus <: (si.bus(Nbands), weights) : toWant), levelGate
+    sbGains = si.bus(2) <: (curveBus <: (si.bus(Nbands), weights) : toWant), levelGate
             : withScalar(Nbands)
             : par(i,Nbands, applyGain(i))
     with {
@@ -614,9 +603,9 @@ with {
 
     // ---- band levels --------------------------------------------------------
     // the compressor detects instantaneously, the expander over a 1 ms hold
-    bandAbs(i) = bandpass(i) : abs;
-    mbLevels  = _ <: par(i,Nbands, bandAbs(i) : lin2db);
-    expLevels = _ <: par(i,Nbands, bandAbs(i)
+    bandAbs(i) = par(c,2,bandpass(i) : abs) : max;
+    mbLevels  = si.bus(2) <: par(i,Nbands, bandAbs(i) : lin2db);
+    expLevels = si.bus(2) <: par(i,Nbands, bandAbs(i)
                                  : ba.slidingMax(exp_hold*ma.SR, exp_maxHold)
                                  : lin2db);
 
@@ -625,7 +614,7 @@ with {
                                              (n+i+1,     3*i+2),
                                              (2*n+i+1,   3*i+3))));
 
-    gainsTotal = _ <: (sbGains, mbLevels, expLevels)
+    gainsTotal = si.bus(2) <: (sbGains, mbLevels, expLevels)
                : tripleUp(Nbands)
                : par(i,Nbands, combine(i))
                : deconv

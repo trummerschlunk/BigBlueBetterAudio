@@ -17,6 +17,9 @@
 #endif
 
 #include "rnnoise.h"
+#ifndef SIMPLIFIED_MAPI_BUILD
+#include "RNNoiseStereo.h"
+#endif
 #include "../src/denoise.h"
 
 // checks to ensure things are still as we expect them to be from faust dsp side
@@ -187,8 +190,11 @@ protected:
 
     void initAudioPort(const bool input, const uint32_t index, AudioPort& port) override
     {
-        // always mono
+       #ifdef SIMPLIFIED_MAPI_BUILD
         port.groupId = kPortGroupMono;
+       #else
+        port.groupId = kPortGroupStereo;
+       #endif
 
         // everything else is as default
         Plugin::initAudioPort(input, index, port);
@@ -561,14 +567,18 @@ protected:
                 ringBufferDry.commitWrite();
 
                 // run denoise
+               #ifdef SIMPLIFIED_MAPI_BUILD
                 float vad = rnnoise_process_frame(denoise, bufferOut, bufferIn);
+               #else
+                float vad = bbba_rnnoise_process_stereo(denoise, denoise2,
+                    bufferOut, bufferOut2, bufferIn, bufferIn2);
+               #endif
 
                #ifndef SIMPLIFIED_MAPI_BUILD
                 // stereo
                 ringBufferDry2.writeCustomData(bufferOldPrevIn2, denoiseFrameSizeF);
                 ringBufferDry2.commitWrite();
 
-                vad = std::max(vad, rnnoise_process_frame(denoise2, bufferOut2, bufferIn2));
                #endif
 
                 // unmute according to threshold

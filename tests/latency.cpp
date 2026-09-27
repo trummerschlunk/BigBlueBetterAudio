@@ -55,7 +55,7 @@ static bool check(PluginExporter& plugin, double rate, uint32_t block, bool bypa
             ok &= right[i] == (i >= latency ? inputRight[i - latency] : 0.f);
         }
         else
-            ok &= left[i] == right[i]; // Faust's desktop processing is mono.
+            ok &= std::abs(right[i] - 0.5f * left[i]) < 1e-6f;
     }
     std::printf("%s rate=%.0f block=%u bypass=%d reported=%u measured=%d\n",
                 ok ? "PASS" : "FAIL", rate, block, bypass, latency, int(onset) - int(impulse));

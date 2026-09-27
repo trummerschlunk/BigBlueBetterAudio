@@ -23,7 +23,6 @@ endif
 FILES_DSP = \
 	plugin/PluginDSP.cpp \
 	deps/rnnoise/src/celt_lpc.c \
-	deps/rnnoise/src/denoise.c \
 	deps/rnnoise/src/kiss_fft.c \
 	deps/rnnoise/src/nnet.c \
 	deps/rnnoise/src/nnet_default.c \
@@ -32,6 +31,12 @@ FILES_DSP = \
 	deps/rnnoise/src/rnn.c \
 	deps/rnnoise/src/rnnoise_tables.c \
 	deps/rnnoise-model-data/rnnoise_data.c
+
+ifeq ($(WASM),true)
+FILES_DSP += deps/rnnoise/src/denoise.c
+else
+FILES_DSP += plugin/RNNoiseStereo.c
+endif
 
 ifeq ($(X86_RTCD),true)
 FILES_DSP += \
@@ -102,11 +107,17 @@ endif
 all: au clap jack ladspa lv2_gen vst3
 
 # Native DSP regression test (use a separate build directory from wasm).
-.PHONY: test-latency
+.PHONY: test-latency test-stereo
 test-latency: $(BUILD_DIR)/test-latency
 	$(BUILD_DIR)/test-latency
 
 $(BUILD_DIR)/test-latency: tests/latency.cpp deps/dpf/distrho/src/DistrhoPlugin.cpp $(OBJS_DSP)
+	$(CXX) $(BUILD_CXX_FLAGS) -DDISTRHO_PLUGIN_TARGET_LADSPA $^ $(LINK_FLAGS) -o $@
+
+test-stereo: $(BUILD_DIR)/test-stereo
+	$(BUILD_DIR)/test-stereo
+
+$(BUILD_DIR)/test-stereo: tests/stereo.cpp deps/dpf/distrho/src/DistrhoPlugin.cpp $(OBJS_DSP)
 	$(CXX) $(BUILD_CXX_FLAGS) -DDISTRHO_PLUGIN_TARGET_LADSPA $^ $(LINK_FLAGS) -o $@
 
 ifneq ($(CROSS_COMPILING),true)
@@ -209,10 +220,14 @@ FAUSTPP_RUN = \
 	-Dversion_minor=$(VERSION_MINOR) \
 	-Dversion_micro=$(VERSION_MICRO)
 
-pregen: faustpp
+pregen: pregen-mono pregen-gui
+
+pregen-mono: faustpp
 	$(FAUSTPP_RUN) $(FAUSTPP_OPTS) dsp/bbba.dsp -a plugin/template/FaustPluginInfo.h -o plugin/pregen/FaustPluginInfo.h
 	$(FAUSTPP_RUN) $(FAUSTPP_OPTS) dsp/bbba.dsp -a plugin/template/FaustPlugin.cpp   -o plugin/pregen/FaustPlugin.cpp
+
+pregen-gui: faustpp
 	$(FAUSTPP_RUN) $(FAUSTPP_OPTS) dsp/bbba_gui.dsp -a plugin/template/FaustPluginInfo.h -o plugin/pregen-gui/FaustPluginInfo.h
 	$(FAUSTPP_RUN) $(FAUSTPP_OPTS) dsp/bbba_gui.dsp -a plugin/template/FaustPlugin.cpp   -o plugin/pregen-gui/FaustPlugin.cpp
 
-.PHONY: pregen
+.PHONY: pregen pregen-mono pregen-gui
